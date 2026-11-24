@@ -1,0 +1,1429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="AuraCare" />
+  <meta name="theme-color" content="#FAF8F5" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/icon.svg" />
+  <title>AuraCare — Blank Profile &amp; Care Studio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js"></script>
+  <style>
+    :root {
+      --bg: #FAF8F5;
+      --card: #FFFFFF;
+      --ink: #231F1D;
+      --muted: #726862;
+      --gold: #A9772B;
+    }
+    body {
+      background-color: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: calc(84px + env(safe-area-inset-bottom));
+      -webkit-tap-highlight-color: transparent;
+    }
+    .tab-active { color: var(--gold); font-weight: 700; }
+    .card {
+      background: var(--card);
+      border: 1px solid #EAE3D9;
+      border-radius: 20px;
+      box-shadow: 0 2px 10px rgba(35, 31, 29, 0.03);
+    }
+  </style>
+</head>
+<body>
+  <!-- Sticky Header -->
+  <header class="sticky top-0 z-30 bg-[#FAF8F5]/95 backdrop-blur-md border-b border-[#EAE3D9] px-4 py-3 flex items-center justify-between">
+    <div>
+      <div class="flex items-center gap-2">
+        <span class="text-lg font-bold tracking-tight">AuraCare</span>
+        <span id="profileStatusPill" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900">Blank Profile</span>
+      </div>
+      <p id="climateSummaryBar" class="text-xs text-[#726862] mt-0.5">Set location in Profile Builder for weather &amp; AQI</p>
+    </div>
+    <div class="flex items-center gap-1.5">
+      <button id="energyToggleBtn" onclick="toggleEnergyMode()" class="px-2.5 py-1.5 rounded-full text-xs font-semibold border bg-white border-[#DDD4C8]">
+        <span id="energyIcon">🔋</span>
+        <span id="energyLabel">Full</span>
+      </button>
+      <button onclick="wipeAllToBlank()" title="Wipe everything back to blank" class="px-2.5 py-1.5 rounded-full text-xs font-semibold border border-red-200 bg-red-50 text-red-700">
+        Reset Blank
+      </button>
+    </div>
+  </header>
+
+  <main class="max-w-lg mx-auto px-4 pt-4 space-y-4">
+
+    <!-- TAB 1: GUIDED PROFILE BUILDER (DETAILED QUESTIONS) -->
+    <section id="tab-builder" class="space-y-4">
+      <div class="card p-4 space-y-2 bg-gradient-to-br from-white to-[#F8F3EA]">
+        <div class="flex items-center justify-between">
+          <h1 class="text-base font-bold">Guided Profile Builder</h1>
+          <span class="text-xs font-bold text-[#A9772B]">Step <span id="stepNumLabel">1</span> of 5</span>
+        </div>
+        <p class="text-xs text-[#726862]">
+          Starting from a blank slate. Answer as many questions as you want—everything is optional until you save, and every detail shapes your routines, protective style care (wigs/braids), curling &amp; roller products, store/price picks, and pro treatments.
+        </p>
+        <div class="w-full bg-[#ECE5DC] h-2 rounded-full overflow-hidden">
+          <div id="builderProgressBar" class="bg-[#A9772B] h-full transition-all" style="width: 20%"></div>
+        </div>
+        <div class="grid grid-cols-5 gap-1 pt-1 text-[10px] font-semibold">
+          <button onclick="setBuilderStep(1)" id="stp-1" class="py-1.5 rounded-lg bg-[#231F1D] text-white">1. Basics</button>
+          <button onclick="setBuilderStep(2)" id="stp-2" class="py-1.5 rounded-lg bg-white border border-[#DDD4C8]">2. Hair &amp; Style</button>
+          <button onclick="setBuilderStep(3)" id="stp-3" class="py-1.5 rounded-lg bg-white border border-[#DDD4C8]">3. Face</button>
+          <button onclick="setBuilderStep(4)" id="stp-4" class="py-1.5 rounded-lg bg-white border border-[#DDD4C8]">4. Body</button>
+          <button onclick="setBuilderStep(5)" id="stp-5" class="py-1.5 rounded-lg bg-white border border-[#DDD4C8]">5. Shop &amp; Pro</button>
+        </div>
+      </div>
+
+      <!-- STEP 1: DEMOGRAPHICS, LOCATION, SCHEDULE & ENVIRONMENT -->
+      <div id="step-1" class="card p-4 space-y-3">
+        <h2 class="text-sm font-bold">1. Demographics, Location &amp; Daily Environment</h2>
+
+        <div>
+          <label class="block text-xs font-semibold mb-1">Age range &amp; gender / demographic context (optional)</label>
+          <input id="q_demographics" type="text" placeholder="Type your age range, identity, or relevant background..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-semibold mb-1">City, State / Region (for Weather &amp; AQI)</label>
+            <input id="q_city" type="text" placeholder="e.g., City, State" class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold mb-1">Or use current GPS</label>
+            <button type="button" onclick="useGPSForProfile()" class="w-full py-2.5 px-3 rounded-xl border border-[#A9772B] text-[#A9772B] text-xs font-semibold">📍 Detect GPS Location</button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold mb-1">Work / sleep schedule &amp; indoor air conditions (e.g., day/night shifts, AC, dry heat, hard tap water)</label>
+          <textarea id="q_scheduleEnv" rows="2" placeholder="Describe your daily schedule, indoor air, water hardness, or pollution exposure..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold mb-1">Health, allergies, sensitivities, or medications affecting hair/skin (optional)</label>
+          <input id="q_sensitivities" type="text" placeholder="e.g., fragrance allergy, sensitive scalp, retinoid use, low iron..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+        </div>
+
+        <div class="flex justify-end pt-1">
+          <button type="button" onclick="setBuilderStep(2)" class="px-4 py-2 rounded-xl bg-[#231F1D] text-white text-xs font-semibold">Next: Hair, Wigs &amp; Rollers →</button>
+        </div>
+      </div>
+
+      <!-- STEP 2: HAIR, PROTECTIVE STYLES (WIGS/BRAIDS) & CURLING/ROLLER TOOLS -->
+      <div id="step-2" class="card p-4 space-y-3 hidden">
+        <h2 class="text-sm font-bold">2. Hair, Protective Styles (Wigs/Braids) &amp; Styling Tools</h2>
+
+        <div>
+          <label class="block text-xs font-semibold mb-1">Natural hair texture &amp; strand thickness (fine, medium, coarse; straight, wavy, curly, coily)</label>
+          <input id="q_hairTexture" type="text" placeholder="Describe curl/wave pattern and strand thickness..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold mb-1">Chemical, color, or heat history (relaxed, texturized, bleached/dyed, keratin, heat tools)</label>
+          <input id="q_hairChemical" type="text" placeholder="List any dye, bleach, relaxer, perm, or heat styling..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold mb-1">Scalp condition &amp; problem zones (temples/edges, crown, ends, dryness, oiliness, flakes, shedding)</label>
+          <input id="q_hairIssues" type="text" placeholder="Where is your hair changing, breaking, or needing attention?" class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-semibold mb-1">Wash frequency</label>
+            <input id="q_washFreq" type="text" placeholder="e.g., weekly, biweekly" class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold mb-1">Top hair goal</label>
+            <input id="q_hairGoal" type="text" placeholder="e.g., stop breakage, moisture" class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold mb-1">Protective styles worn (wigs, lace fronts, glueless units, knotless/box braids, cornrows, weave)</label>
+          <input id="q_protectiveStyles" type="text" placeholder="Do you wear wigs or braid extensions? How long do you keep them in, and how is your hair braided underneath?" class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold mb-1">Styling tools &amp; rollers used (curling iron/wand, hot rollers, foam/sponge rollers, flexi rods, velcro rollers, satin heatless rods)</label>
+          <input id="q_stylingTools" type="text" placeholder="List the curling irons or roller types you use (or want to use)..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold mb-1">Custom oil blends or night-time hair habits (optional)</label>
+          <input id="q_hairHabits" type="text" placeholder="e.g., custom oil mix, silk bonnet/scarf..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+        </div>
+
+        <div class="flex justify-between pt-1">
+          <button type="button" onclick="setBuilderStep(1)" class="px-3 py-2 rounded-xl border border-[#DDD4C8] text-xs font-semibold">← Back</button>
+          <button type="button" onclick="setBuilderStep(3)" class="px-4 py-2 rounded-xl bg-[#231F1D] text-white text-xs font-semibold">Next: Face Skin →</button>
+        </div>
+      </div>
+
+      <!-- STEP 3: FACE SKINCARE QUESTIONS -->
+      <div id="step-3" class="card p-4 space-y-3 hidden">
+        <h2 class="text-sm font-bold">3. Face Skin Type, Concerns &amp; Routine Style</h2>
+
+        <div>
+          <label class="block text-xs font-semibold mb-1">Face skin type (dry, oily, combination, normal, sensitive/reactive)</label>
+          <input id="q_faceType" type="text" placeholder="Describe how your face feels through the day..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold mb-1">Top face concerns (hyperpigmentation/dark spots, acne/breakouts, redness, fine lines, dullness, dehydration)</label>
+          <input id="q_faceConcerns" type="text" placeholder="List what you want to improve or prevent on your face..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold mb-1">Current daily face routine &amp; preferred complexity (simple 2-3 steps vs. multi-step)</label>
+          <input id="q_faceRoutinePref" type="text" placeholder="e.g., prefer minimal steps, need SPF, avoid heavy creams..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+        </div>
+
+        <div class="flex justify-between pt-1">
+          <button type="button" onclick="setBuilderStep(2)" class="px-3 py-2 rounded-xl border border-[#DDD4C8] text-xs font-semibold">← Back</button>
+          <button type="button" onclick="setBuilderStep(4)" class="px-4 py-2 rounded-xl bg-[#231F1D] text-white text-xs font-semibold">Next: Body Care →</button>
+        </div>
+      </div>
+
+      <!-- STEP 4: BODY CARE QUESTIONS -->
+      <div id="step-4" class="card p-4 space-y-3 hidden">
+        <h2 class="text-sm font-bold">4. Body Care (Washes, Bar Soaps, Lotions, Butters &amp; Oils)</h2>
+
+        <div>
+          <label class="block text-xs font-semibold mb-1">Body skin condition &amp; trouble spots (dryness/ashiness, elbows/knees/heels, body acne, keratosis pilaris/bumps, ingrown hairs, dark marks)</label>
+          <input id="q_bodyConcerns" type="text" placeholder="Describe how your body skin behaves and where it gets dry or bumpy..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold mb-1">Preferred cleansing format (body wash, bar soap, exfoliating scrub, shower oil)</label>
+          <input id="q_bodyCleansePref" type="text" placeholder="e.g., bar soap, creamy body wash, both..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold mb-1">Preferred moisture &amp; scent style (light lotion, rich cream, whipped body butter, body oil, fragrance-free vs. scented)</label>
+          <input id="q_bodyMoisturePref" type="text" placeholder="e.g., lotion + body butter or body oil, fragrance-free..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+        </div>
+
+        <div class="flex justify-between pt-1">
+          <button type="button" onclick="setBuilderStep(3)" class="px-3 py-2 rounded-xl border border-[#DDD4C8] text-xs font-semibold">← Back</button>
+          <button type="button" onclick="setBuilderStep(5)" class="px-4 py-2 rounded-xl bg-[#231F1D] text-white text-xs font-semibold">Next: Shopping &amp; Pro →</button>
+        </div>
+      </div>
+
+      <!-- STEP 5: BUDGET, STORES & PRO TREATMENT PREFERENCES -->
+      <div id="step-5" class="card p-4 space-y-3 hidden">
+        <h2 class="text-sm font-bold">5. Budget, Stores &amp; Pro Treatment Preferences</h2>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-semibold mb-1">Max price per product ($ USD)</label>
+            <input id="q_maxPrice" type="number" min="5" max="200" step="1" placeholder="e.g., 25 or 30" class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold mb-1">Shopping style</label>
+            <input id="q_shopStyle" type="text" placeholder="e.g., drugstore, beauty supply, online" class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold mb-1">Preferred stores (type any stores you actually shop at)</label>
+          <input id="q_stores" type="text" placeholder="e.g., Walmart, Target, Ulta, CVS, Walgreens, Sally Beauty, Amazon..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold mb-1">Open to Salon, Dermatologist, or Esthetician treatments? (budget / goals / questions)</label>
+          <input id="q_proPrefs" type="text" placeholder="e.g., interested in derm or esthetician options, hair salon treatments..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+        </div>
+
+        <div class="flex items-center justify-between pt-2 gap-2">
+          <button type="button" onclick="setBuilderStep(4)" class="px-3 py-2.5 rounded-xl border border-[#DDD4C8] text-xs font-semibold">← Back</button>
+          <button type="button" onclick="completeProfileSetup()" class="flex-1 py-2.5 px-4 rounded-xl bg-[#A9772B] text-white text-xs font-bold shadow-sm">
+            ✓ Save Profile &amp; Go to Check-In
+          </button>
+        </div>
+        <p id="profileSavedBanner" class="text-xs text-emerald-700 font-semibold text-center hidden">Profile saved!</p>
+      </div>
+
+      <!-- Saved Profile Summary Preview -->
+      <div id="profileSummaryCard" class="card p-4 space-y-2 hidden">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-[#726862]">Current Saved Profile</h3>
+          <button onclick="switchTab('checkin')" class="text-xs font-semibold text-[#A9772B] underline">Open Check-In →</button>
+        </div>
+        <div id="profileSummaryBody" class="text-xs text-[#3D3530] space-y-1"></div>
+      </div>
+    </section>
+
+    <!-- TAB 2: CHECK-IN & AI ROUTINES (HAIR + WIGS/BRAIDS + CURLERS/ROLLERS + FACE + BODY + PRO) -->
+    <section id="tab-checkin" class="hidden space-y-4">
+      <!-- Weather & AQI Card -->
+      <div class="card p-4 bg-gradient-to-br from-white to-[#F8F3EA]">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-2">
+            <span>🌤️</span>
+            <h2 class="text-sm font-bold" id="locationHeading">No Location Set</h2>
+          </div>
+          <button onclick="fetchLocalClimate()" class="text-xs font-semibold text-[#A9772B] underline">Refresh Weather/AQI</button>
+        </div>
+        <div class="grid grid-cols-4 gap-2 text-center my-2">
+          <div class="bg-white rounded-xl p-2 border border-[#EAE3D9]">
+            <div class="text-[10px] text-[#726862]">TEMP</div>
+            <div id="wTemp" class="text-sm font-bold">--</div>
+          </div>
+          <div class="bg-white rounded-xl p-2 border border-[#EAE3D9]">
+            <div class="text-[10px] text-[#726862]">HUMIDITY</div>
+            <div id="wHumidity" class="text-sm font-bold">--</div>
+          </div>
+          <div class="bg-white rounded-xl p-2 border border-[#EAE3D9]">
+            <div class="text-[10px] text-[#726862]">UV</div>
+            <div id="wUV" class="text-sm font-bold">--</div>
+          </div>
+          <div class="bg-white rounded-xl p-2 border border-[#EAE3D9]">
+            <div class="text-[10px] text-[#726862]">AQI</div>
+            <div id="wAQI" class="text-sm font-bold">--</div>
+          </div>
+        </div>
+        <p id="climateAdviceText" class="text-xs text-[#594E47]">
+          Enter your location in the <strong>Profile</strong> tab to pull live weather, humidity, UV, and AQI for your hair, face, and body.
+        </p>
+      </div>
+
+      <!-- Check-In Form -->
+      <div class="card p-4 space-y-3">
+        <h2 class="text-base font-bold">State Check-In (Photo or Description)</h2>
+
+        <!-- Current Protective Style / Hair Mode Selector -->
+        <div class="space-y-1.5">
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-[#726862]">1. Current Hair / Protective Style State</label>
+          <div id="hairModeChipsBox" class="flex flex-wrap gap-1.5"></div>
+        </div>
+
+        <!-- Styling Tool / Roller Selector -->
+        <div class="space-y-1.5">
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-[#726862]">2. Curling Iron or Roller / Curler Method</label>
+          <select id="stylingMethodSelect" onchange="updateStylingMethod(this.value)" class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5] font-medium">
+            <option value="None / Air Dry / Natural">None / Air Dry / Protective Set</option>
+            <option value="Curling Iron / Curling Wand (Heat)">Curling Iron / Curling Wand (Direct Heat)</option>
+            <option value="Hot Rollers / Heated Setter">Hot Rollers / Heated Setter</option>
+            <option value="Foam / Sponge Rollers">Foam / Sponge Rollers</option>
+            <option value="Flexi Rods (Bendy Foam Rods)">Flexi Rods (Bendy Foam Rods)</option>
+            <option value="Velcro Rollers (Volume & Blowout Set)">Velcro Rollers (Volume &amp; Blowout Set)</option>
+            <option value="Magnetic / Hard Plastic Rollers (Wet Set)">Magnetic / Hard Plastic Rollers (Wet Set)</option>
+            <option value="Satin / Heatless Curling Rod or Scarf">Satin / Heatless Curling Rod or Scarf</option>
+          </select>
+        </div>
+
+        <!-- Root-Cause & Change Factors -->
+        <div class="space-y-1">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-[#726862]">3. Root-Cause &amp; Change Factors (Toggle any that apply)</span>
+          <div id="triggerChipsBox" class="flex flex-wrap gap-1.5 pt-1"></div>
+        </div>
+
+        <textarea id="checkinInput" rows="3" placeholder="Describe how your hair (or wig/braids), face, or body skin looks or feels right now, or attach a photo..." class="w-full rounded-xl border border-[#DDD4C8] p-3 text-sm bg-[#FAF8F5]"></textarea>
+
+        <div class="flex items-center gap-2">
+          <label class="flex-1 cursor-pointer flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border border-dashed border-[#A9772B] bg-[#F8F3EA] text-xs font-semibold text-[#8A5E1B]">
+            <span>📸 Snap / Upload Photo</span>
+            <input type="file" id="checkinPhotoInput" accept="image/*" capture="environment" class="hidden" onchange="handleCheckinPhoto(event)" />
+          </label>
+          <button id="clearPhotoBtn" onclick="clearCheckinPhoto()" class="hidden px-3 py-2.5 rounded-xl bg-red-50 text-red-700 text-xs font-semibold">Remove</button>
+        </div>
+        <div id="checkinPhotoPreviewBox" class="hidden">
+          <img id="checkinPhotoPreview" class="w-full h-40 object-cover rounded-xl border border-[#EAE3D9]" alt="Check-in preview" />
+        </div>
+
+        <button id="generateRoutineBtn" onclick="generateAIRoutine()" class="w-full py-3 rounded-xl bg-[#231F1D] text-white font-semibold text-sm">
+          ✨ Generate Tailored Routines, Styling Products &amp; Pro Care
+        </button>
+        <p id="aiStatusMsg" class="text-xs text-center text-[#726862] hidden"></p>
+      </div>
+
+      <div id="aiResultContainer" class="space-y-4"></div>
+    </section>
+
+    <!-- TAB 3: BLANK PRODUCT STASH + BARCODE / PHOTO SCANNER -->
+    <section id="tab-stash" class="hidden space-y-4">
+      <div class="card p-4 space-y-3">
+        <div>
+          <h2 class="text-base font-bold">My Product Stash (Starts Blank)</h2>
+          <p class="text-xs text-[#726862]">Scan barcodes, snap bottle/bar photos, or add hair, styling, wig/braid, face &amp; body items you own.</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="openBarcodeScanner()" class="py-3 px-3 rounded-xl bg-[#231F1D] text-white text-xs font-semibold flex items-center justify-center gap-1.5">
+            <span>🏁</span> Scan Barcode
+          </button>
+          <label class="cursor-pointer py-3 px-3 rounded-xl bg-[#A9772B] text-white text-xs font-semibold flex items-center justify-center gap-1.5">
+            <span>📷</span> Snap Product Photo
+            <input type="file" id="productPhotoInput" accept="image/*" capture="environment" class="hidden" onchange="handleProductPhotoScan(event)" />
+          </label>
+        </div>
+
+        <div id="scannerBox" class="hidden space-y-2 pt-2">
+          <div class="relative rounded-xl overflow-hidden bg-black aspect-video">
+            <video id="barcodeVideo" class="w-full h-full object-cover" playsinline></video>
+            <div class="absolute inset-x-8 top-1/2 -translate-y-1/2 h-0.5 bg-amber-400"></div>
+          </div>
+          <div class="flex gap-2">
+            <input id="manualBarcodeInput" type="text" placeholder="Enter barcode digits..." class="flex-1 text-xs border border-[#DDD4C8] rounded-lg px-2.5 py-2" />
+            <button onclick="lookupBarcode(document.getElementById('manualBarcodeInput').value)" class="px-3 py-2 rounded-lg bg-[#231F1D] text-white text-xs font-semibold">Lookup</button>
+            <button onclick="closeBarcodeScanner()" class="px-3 py-2 rounded-lg bg-gray-200 text-gray-800 text-xs font-semibold">Close</button>
+          </div>
+        </div>
+
+        <p id="scanStatusMsg" class="text-xs text-[#8A5E1B] font-medium hidden"></p>
+
+        <div class="pt-2 border-t border-[#EAE3D9] space-y-2">
+          <div class="text-xs font-semibold">Add Product Manually</div>
+          <input id="manName" type="text" placeholder="Product name..." class="w-full text-xs border border-[#DDD4C8] rounded-lg p-2 bg-[#FAF8F5]" />
+          <div class="grid grid-cols-2 gap-2">
+            <select id="manDomain" class="text-xs border border-[#DDD4C8] rounded-lg p-2 bg-white">
+              <option value="hair">Hair &amp; Styling</option>
+              <option value="skin">Face Skin Care</option>
+              <option value="body">Body Care</option>
+            </select>
+            <select id="manCategory" class="text-xs border border-[#DDD4C8] rounded-lg p-2 bg-white">
+              <option value="Bond Repair">Bond Repair</option>
+              <option value="Shampoo">Shampoo</option>
+              <option value="Clarifying / Chelating Shampoo">Clarifying / Chelating Shampoo</option>
+              <option value="Deep Conditioner">Deep Conditioner</option>
+              <option value="Protein Treatment">Protein Treatment</option>
+              <option value="Leave-In / Mist">Leave-In / Mist</option>
+              <option value="Hair Oil / Sealant">Hair Oil / Sealant</option>
+              <option value="Heat Protectant">Heat Protectant</option>
+              <option value="Setting Mousse / Foam / Lotion">Setting Mousse / Foam / Lotion</option>
+              <option value="Wig / Braid Scalp & Edge Care">Wig / Braid Scalp &amp; Edge Care</option>
+              <option value="Face Cleanser">Face Cleanser</option>
+              <option value="Face Treatment">Face Treatment</option>
+              <option value="Face Moisturizer">Face Moisturizer</option>
+              <option value="Sunscreen">Sunscreen</option>
+              <option value="Body Wash / Bar Soap">Body Wash / Bar Soap</option>
+              <option value="Body Scrub / Exfoliant">Body Scrub / Exfoliant</option>
+              <option value="Body Lotion / Cream">Body Lotion / Cream</option>
+              <option value="Body Butter">Body Butter</option>
+              <option value="Body Oil">Body Oil</option>
+            </select>
+          </div>
+          <button onclick="addManualProduct()" class="w-full py-2 rounded-lg bg-[#231F1D] text-white text-xs font-semibold">+ Add to Stash</button>
+        </div>
+      </div>
+
+      <div class="space-y-2">
+        <div class="flex items-center justify-between px-1">
+          <h3 class="text-sm font-bold">Owned Items (<span id="stashCount">0</span>)</h3>
+          <div class="flex gap-1 text-xs">
+            <button onclick="filterStash('all')" id="f-all" class="px-2.5 py-1 rounded-full bg-[#231F1D] text-white font-medium">All</button>
+            <button onclick="filterStash('hair')" id="f-hair" class="px-2.5 py-1 rounded-full bg-white border border-[#DDD4C8]">Hair</button>
+            <button onclick="filterStash('skin')" id="f-skin" class="px-2.5 py-1 rounded-full bg-white border border-[#DDD4C8]">Face</button>
+            <button onclick="filterStash('body')" id="f-body" class="px-2.5 py-1 rounded-full bg-white border border-[#DDD4C8]">Body</button>
+          </div>
+        </div>
+        <div id="stashList" class="space-y-2"></div>
+      </div>
+    </section>
+
+    <!-- TAB 4: SHOP BY STORE & PRICE -->
+    <section id="tab-shop" class="hidden space-y-4">
+      <div class="card p-4 space-y-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-base font-bold">Recommended Additions (Store &amp; Price)</h2>
+            <p class="text-xs text-[#726862]">Tailored to your profile, wig/braid status, curling/roller tools, preferred stores &amp; budget</p>
+          </div>
+          <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-[#F8F3EA] text-[#8A5E1B]">Max $<span id="budgetBadge">30</span></span>
+        </div>
+
+        <div class="space-y-1">
+          <div class="flex justify-between text-xs font-semibold">
+            <span>Max Price Per Product</span>
+            <span class="text-[#8A5E1B]">$<span id="budgetValLabel">30</span></span>
+          </div>
+          <input id="maxPriceSlider" type="range" min="10" max="100" step="5" value="30" oninput="updateBudgetSetting(this.value)" class="w-full accent-[#A9772B]" />
+        </div>
+
+        <div class="space-y-1.5">
+          <label class="block text-xs font-semibold">Preferred Stores (tap to toggle)</label>
+          <div id="storeChipsContainer" class="flex flex-wrap gap-1.5"></div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <select id="shopFocusSelect" class="text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]">
+            <option value="All missing hair, styling, face & body essentials">All Stash Gaps (Hair + Face + Body)</option>
+            <option value="Wig & braid extensions scalp care, edge protection & low-buildup moisture">Wig &amp; Braid Extension Care</option>
+            <option value="Curling iron heat protectants & roller setting mousses/lotions">Curling Iron &amp; Roller Styling</option>
+            <option value="Hair care, bond repair, scalp & hydration">Core Hair Care Gaps</option>
+            <option value="Face cleanser, treatment, moisturizer & SPF">Face Skincare Gaps</option>
+            <option value="Body wash, bar soap, lotion, body butter & body oil">Body Care Gaps</option>
+          </select>
+          <button id="findDealsBtn" onclick="fetchStoreRecommendations()" class="py-2.5 px-3 rounded-xl bg-[#231F1D] text-white text-xs font-semibold">
+            🔍 Find Matches
+          </button>
+        </div>
+        <p id="shopStatusMsg" class="text-xs text-[#726862] hidden"></p>
+      </div>
+
+      <div id="shopResultsList" class="space-y-2.5"></div>
+    </section>
+
+    <!-- TAB 5: STYLING & PROTECTIVE GUIDE + ROOT CAUSES + PRO TREATMENTS -->
+    <section id="tab-triggers" class="hidden space-y-4">
+      <div class="card p-4 space-y-2">
+        <h2 class="text-base font-bold">Wigs, Braids &amp; Roller / Curling Product Rules</h2>
+        <p class="text-xs text-[#726862]">Quick reference for protective styles and styling tools—select yours in Check-In for custom product picks.</p>
+        <div id="stylingReferenceBox" class="space-y-2 pt-1 text-xs"></div>
+      </div>
+
+      <div class="card p-4 space-y-2">
+        <h2 class="text-base font-bold">Salon, Dermatologist &amp; Esthetician Options</h2>
+        <p class="text-xs text-[#726862]">Fill out your Profile and run a Check-In to get professional treatments matched to your exact hair, face, body, and budget.</p>
+        <div id="proGuidanceBox" class="space-y-2 pt-1 text-xs"></div>
+      </div>
+
+      <div class="card p-4 space-y-2">
+        <h2 class="text-base font-bold">Why Hair, Face &amp; Body Change (Beyond Weather)</h2>
+        <p class="text-xs text-[#726862]">Tap any factor to toggle it into your Check-In AI analysis.</p>
+        <div id="rootCauseCardsBox" class="space-y-2 pt-1"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Bottom Navigation (5 Tabs) -->
+  <nav class="fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-md border-t border-[#EAE3D9] px-1 pt-2 pb-[calc(8px+env(safe-area-inset-bottom))]">
+    <div class="max-w-lg mx-auto grid grid-cols-5 text-center text-[10px]">
+      <button onclick="switchTab('builder')" id="nav-builder" class="tab-active flex flex-col items-center gap-0.5 py-1">
+        <span class="text-base">📝</span>
+        <span>Profile</span>
+      </button>
+      <button onclick="switchTab('checkin')" id="nav-checkin" class="text-[#726862] flex flex-col items-center gap-0.5 py-1">
+        <span class="text-base">✨</span>
+        <span>Check-In</span>
+      </button>
+      <button onclick="switchTab('stash')" id="nav-stash" class="text-[#726862] flex flex-col items-center gap-0.5 py-1">
+        <span class="text-base">🧴</span>
+        <span>My Stash</span>
+      </button>
+      <button onclick="switchTab('shop')" id="nav-shop" class="text-[#726862] flex flex-col items-center gap-0.5 py-1">
+        <span class="text-base">🏷️</span>
+        <span>Shop</span>
+      </button>
+      <button onclick="switchTab('triggers')" id="nav-triggers" class="text-[#726862] flex flex-col items-center gap-0.5 py-1">
+        <span class="text-base">🩺</span>
+        <span>Pro &amp; Style</span>
+      </button>
+    </div>
+  </nav>
+
+  <script>
+    const ALL_STORES = ["Walmart", "Target", "Ulta Beauty", "CVS", "Walgreens", "Sally Beauty", "Amazon"];
+
+    const HAIR_PROTECTIVE_MODES = [
+      "Hair Out / Natural",
+      "Wearing a Wig (Unit On)",
+      "Wig Prep / Braids Underneath",
+      "Braid Extensions Installed",
+      "Braid Takedown / Recovery"
+    ];
+
+    const STYLING_REFERENCE_GUIDE = [
+      {
+        title: "Wearing a Wig (Unit On & Hair Underneath)",
+        note: "Cleanse scalp between cornrows with diluted micellar/witch hazel or no-rinse scalp foam, lightly mist braids underneath, seal edges without heavy glue/gel buildup, and wear a satin wig grip or melt band instead of tight elastic."
+      },
+      {
+        title: "Braid Extensions (Box Braids, Knotless, Cornrows)",
+        note: "Use a nozzle-tip diluted shampoo or no-rinse scalp cleanser to prevent buildup at the base, hydrate roots with lightweight leave-in spray + light oil, and avoid heavy creams that cause white buildup."
+      },
+      {
+        title: "Curling Iron / Wand & Hot Rollers (Direct Heat)",
+        note: "Always apply a silicone or polymer thermal heat protectant before heat, keep temperature moderate for chemically treated/fine hair, and let curls cool completely in your hand or pinned before finger-combing."
+      },
+      {
+        title: "Foam / Sponge Rollers, Flexi Rods & Magnetic Wet Sets",
+        note: "Use a lightweight setting mousse/foam or setting lotion on damp or misted hair, wrap ends with end papers (especially on foam/sponge rollers to prevent snagging), and ensure 100% dry before unrolling."
+      },
+      {
+        title: "Velcro Rollers & Satin Heatless Rods",
+        note: "Velcro rollers work best on dry or 90% blown-dry hair with heat protectant and root-lift spray (roll away from fragile temples). Satin heatless rods work best on slightly misted hair with a drop of lightweight smoothing serum."
+      }
+    ];
+
+    const TRIGGER_FACTORS = [
+      { label: "Wig band / cap friction on edges", domain: "hair", note: "Wig combs, tight bands, or adhesive can thin the hairline; use a velvet/silicone grip and alcohol-free remover." },
+      { label: "Braid extension tension / buildup", domain: "hair", note: "Heavy extensions pull follicles and trap product at the base; use lightweight sprays and scalp cleansers." },
+      { label: "Heat styling dryness / curl drop", domain: "hair", note: "Curling irons and hot rollers need thermal protection and humidity-shielding hold so curls last without scorching." },
+      { label: "Hard water / mineral buildup", domain: "hair", note: "Minerals can dull/discolor hair and block moisture; chelating/clarifying washes + conditioning help." },
+      { label: "Protein vs. moisture imbalance", domain: "hair", note: "Too much protein can make hair brittle; too much moisture without structure can make hair limp." },
+      { label: "Shift work / sleep or circadian changes", domain: "skin", note: "Irregular sleep and indoor HVAC air affect skin hydration, puffiness, and barrier recovery." },
+      { label: "Hormonal or stress shifts", domain: "skin", note: "Hormones and stress can trigger breakouts, oil changes, shedding, or hyperpigmentation." },
+      { label: "Barrier irritation / over-exfoliation", domain: "skin", note: "Overusing actives or harsh cleansers causes stinging, dryness, and rebound spots." },
+      { label: "Body dryness / harsh soap stripping", domain: "body", note: "Drying soaps and hot water strip body lipids; apply lotion on damp skin and seal with butter/oil." },
+      { label: "Body bumps / KP / ingrown hairs", domain: "body", note: "Keratin plugs or shaving/waxing friction can cause bumps or dark marks; gentle exfoliation + moisture helps." }
+    ];
+
+    const PRO_CATEGORIES = [
+      { provider: "Salon", focus: "Bond building, color gloss/toning, steam hydration, silk press/roller sets, tension-free braid installs, and trims." },
+      { provider: "Dermatologist", focus: "Medical scalp/hairline evaluation (traction vs. shedding), stubborn acne/eczema, or hyperpigmentation prescriptions." },
+      { provider: "Esthetician", focus: "Barrier-supporting facials, gentle chemical/enzyme exfoliation, LED light therapy, and body treatments." }
+    ];
+
+    function createBlankState() {
+      return {
+        lowEnergyMode: false,
+        currentStep: 1,
+        currentHairState: "Hair Out / Natural",
+        selectedStylingMethod: "None / Air Dry / Natural",
+        profile: {
+          demographics: "",
+          city: "",
+          lat: null,
+          lon: null,
+          scheduleEnv: "",
+          sensitivities: "",
+          hairTexture: "",
+          hairChemical: "",
+          hairIssues: "",
+          washFreq: "",
+          hairGoal: "",
+          protectiveStyles: "",
+          stylingTools: "",
+          hairHabits: "",
+          faceType: "",
+          faceConcerns: "",
+          faceRoutinePref: "",
+          bodyConcerns: "",
+          bodyCleansePref: "",
+          bodyMoisturePref: "",
+          shopStyle: "",
+          proPrefs: ""
+        },
+        shoppingPrefs: {
+          maxPrice: 30,
+          stores: []
+        },
+        activeTriggers: [],
+        inventory: [],
+        weather: {
+          tempF: null,
+          humidity: null,
+          uv: null,
+          aqi: null
+        },
+        lastAIRoutine: null,
+        shopRecommendations: []
+      };
+    }
+
+    let state = JSON.parse(localStorage.getItem("auracare_blank_state_v21") || "null") || createBlankState();
+    let pendingCheckinImage = null;
+    let codeReader = null;
+
+    function saveState() {
+      localStorage.setItem("auracare_blank_state_v21", JSON.stringify(state));
+    }
+
+    function wipeAllToBlank() {
+      if (!confirm("Wipe all profile answers, owned products, and saved results back to completely blank?")) return;
+      localStorage.removeItem("auracare_blank_state_v21");
+      state = createBlankState();
+      pendingCheckinImage = null;
+      document.getElementById("aiResultContainer").innerHTML = "";
+      document.getElementById("shopResultsList").innerHTML = "";
+      init();
+    }
+
+    // ---------- NAVIGATION & ENERGY ----------
+    function switchTab(tab) {
+      ["builder", "checkin", "stash", "shop", "triggers"].forEach(t => {
+        document.getElementById(`tab-${t}`).classList.toggle("hidden", t !== tab);
+        const nav = document.getElementById(`nav-${t}`);
+        if (t === tab) {
+          nav.classList.add("tab-active");
+          nav.classList.remove("text-[#726862]");
+        } else {
+          nav.classList.remove("tab-active");
+          nav.classList.add("text-[#726862]");
+        }
+      });
+      if (tab !== "stash") closeBarcodeScanner();
+    }
+
+    function toggleEnergyMode() {
+      state.lowEnergyMode = !state.lowEnergyMode;
+      saveState();
+      renderEnergyButton();
+      if (state.lastAIRoutine) renderAIRoutine(state.lastAIRoutine);
+    }
+
+    function renderEnergyButton() {
+      const btn = document.getElementById("energyToggleBtn");
+      document.getElementById("energyIcon").textContent = state.lowEnergyMode ? "🌱" : "🔋";
+      document.getElementById("energyLabel").textContent = state.lowEnergyMode ? "Short" : "Full";
+      btn.classList.toggle("bg-emerald-50", state.lowEnergyMode);
+    }
+
+    // ---------- PROTECTIVE STYLE & STYLING TOOL CONTROLS ----------
+    function setHairState(modeLabel) {
+      state.currentHairState = modeLabel;
+      saveState();
+      renderHairModeChips();
+    }
+
+    function renderHairModeChips() {
+      const box = document.getElementById("hairModeChipsBox");
+      box.innerHTML = HAIR_PROTECTIVE_MODES.map(m => {
+        const active = state.currentHairState === m;
+        return `
+          <button type="button" onclick="setHairState('${m}')"
+            class="text-[11px] px-2.5 py-1 rounded-full border font-semibold ${
+              active ? "bg-[#A9772B] text-white border-[#A9772B]" : "bg-white text-[#594E47] border-[#DDD4C8]"
+            }">
+            ${active ? "✓ " : ""}${m}
+          </button>
+        `;
+      }).join("");
+    }
+
+    function updateStylingMethod(val) {
+      state.selectedStylingMethod = val;
+      saveState();
+    }
+
+    // ---------- PROFILE BUILDER ----------
+    function setBuilderStep(step) {
+      state.currentStep = step;
+      saveState();
+      for (let i = 1; i <= 5; i++) {
+        document.getElementById(`step-${i}`).classList.toggle("hidden", i !== step);
+        const pill = document.getElementById(`stp-${i}`);
+        pill.className = i === step
+          ? "py-1.5 rounded-lg bg-[#231F1D] text-white"
+          : "py-1.5 rounded-lg bg-white border border-[#DDD4C8]";
+      }
+      document.getElementById("stepNumLabel").textContent = step;
+      document.getElementById("builderProgressBar").style.width = `${step * 20}%`;
+    }
+
+    function syncInputsFromState() {
+      const p = state.profile;
+      document.getElementById("q_demographics").value = p.demographics || "";
+      document.getElementById("q_city").value = p.city || "";
+      document.getElementById("q_scheduleEnv").value = p.scheduleEnv || "";
+      document.getElementById("q_sensitivities").value = p.sensitivities || "";
+      document.getElementById("q_hairTexture").value = p.hairTexture || "";
+      document.getElementById("q_hairChemical").value = p.hairChemical || "";
+      document.getElementById("q_hairIssues").value = p.hairIssues || "";
+      document.getElementById("q_washFreq").value = p.washFreq || "";
+      document.getElementById("q_hairGoal").value = p.hairGoal || "";
+      document.getElementById("q_protectiveStyles").value = p.protectiveStyles || "";
+      document.getElementById("q_stylingTools").value = p.stylingTools || "";
+      document.getElementById("q_hairHabits").value = p.hairHabits || "";
+      document.getElementById("q_faceType").value = p.faceType || "";
+      document.getElementById("q_faceConcerns").value = p.faceConcerns || "";
+      document.getElementById("q_faceRoutinePref").value = p.faceRoutinePref || "";
+      document.getElementById("q_bodyConcerns").value = p.bodyConcerns || "";
+      document.getElementById("q_bodyCleansePref").value = p.bodyCleansePref || "";
+      document.getElementById("q_bodyMoisturePref").value = p.bodyMoisturePref || "";
+      document.getElementById("q_maxPrice").value = state.shoppingPrefs.maxPrice || 30;
+      document.getElementById("q_shopStyle").value = p.shopStyle || "";
+      document.getElementById("q_stores").value = (state.shoppingPrefs.stores || []).join(", ");
+      document.getElementById("q_proPrefs").value = p.proPrefs || "";
+      document.getElementById("stylingMethodSelect").value = state.selectedStylingMethod || "None / Air Dry / Natural";
+    }
+
+    function collectProfileFromInputs() {
+      state.profile = {
+        ...state.profile,
+        demographics: document.getElementById("q_demographics").value.trim(),
+        city: document.getElementById("q_city").value.trim(),
+        scheduleEnv: document.getElementById("q_scheduleEnv").value.trim(),
+        sensitivities: document.getElementById("q_sensitivities").value.trim(),
+        hairTexture: document.getElementById("q_hairTexture").value.trim(),
+        hairChemical: document.getElementById("q_hairChemical").value.trim(),
+        hairIssues: document.getElementById("q_hairIssues").value.trim(),
+        washFreq: document.getElementById("q_washFreq").value.trim(),
+        hairGoal: document.getElementById("q_hairGoal").value.trim(),
+        protectiveStyles: document.getElementById("q_protectiveStyles").value.trim(),
+        stylingTools: document.getElementById("q_stylingTools").value.trim(),
+        hairHabits: document.getElementById("q_hairHabits").value.trim(),
+        faceType: document.getElementById("q_faceType").value.trim(),
+        faceConcerns: document.getElementById("q_faceConcerns").value.trim(),
+        faceRoutinePref: document.getElementById("q_faceRoutinePref").value.trim(),
+        bodyConcerns: document.getElementById("q_bodyConcerns").value.trim(),
+        bodyCleansePref: document.getElementById("q_bodyCleansePref").value.trim(),
+        bodyMoisturePref: document.getElementById("q_bodyMoisturePref").value.trim(),
+        shopStyle: document.getElementById("q_shopStyle").value.trim(),
+        proPrefs: document.getElementById("q_proPrefs").value.trim()
+      };
+      const priceInput = Number(document.getElementById("q_maxPrice").value);
+      if (priceInput > 0) state.shoppingPrefs.maxPrice = priceInput;
+
+      const rawStores = document.getElementById("q_stores").value.trim();
+      if (rawStores) {
+        state.shoppingPrefs.stores = rawStores.split(",").map(s => s.trim()).filter(Boolean);
+      }
+      saveState();
+      renderProfileSummary();
+    }
+
+    async function completeProfileSetup() {
+      collectProfileFromInputs();
+      if (state.profile.city && (!state.profile.lat || !state.profile.lon)) {
+        await geocodeCity(state.profile.city);
+      } else if (state.profile.lat && state.profile.lon) {
+        fetchLocalClimate();
+      }
+      const banner = document.getElementById("profileSavedBanner");
+      banner.classList.remove("hidden");
+      setTimeout(() => {
+        banner.classList.add("hidden");
+        switchTab("checkin");
+      }, 600);
+    }
+
+    function renderProfileSummary() {
+      const p = state.profile;
+      const entries = [
+        ["Location", p.city],
+        ["Demographics", p.demographics],
+        ["Schedule & Env", p.scheduleEnv],
+        ["Sensitivities", p.sensitivities],
+        ["Hair", [p.hairTexture, p.hairChemical, p.hairIssues, p.washFreq && `Wash: ${p.washFreq}`, p.hairGoal && `Goal: ${p.hairGoal}`].filter(Boolean).join(" • ")],
+        ["Wigs & Braids", p.protectiveStyles],
+        ["Rollers & Styling", p.stylingTools],
+        ["Face", [p.faceType, p.faceConcerns, p.faceRoutinePref].filter(Boolean).join(" • ")],
+        ["Body", [p.bodyConcerns, p.bodyCleansePref, p.bodyMoisturePref].filter(Boolean).join(" • ")],
+        ["Budget & Stores", `$${state.shoppingPrefs.maxPrice} max • ${(state.shoppingPrefs.stores || []).join(", ") || "None specified"}`],
+        ["Pro Care", p.proPrefs]
+      ].filter(([, v]) => v);
+
+      const pill = document.getElementById("profileStatusPill");
+      if (entries.length) {
+        pill.textContent = "Profile Active";
+        pill.className = "text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900";
+        document.getElementById("profileSummaryCard").classList.remove("hidden");
+        document.getElementById("profileSummaryBody").innerHTML = entries
+          .map(([k, v]) => `<div><strong>${k}:</strong> ${v}</div>`).join("");
+      } else {
+        pill.textContent = "Blank Profile";
+        pill.className = "text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900";
+        document.getElementById("profileSummaryCard").classList.add("hidden");
+      }
+    }
+
+    // ---------- LOCATION, WEATHER & AQI ----------
+    async function geocodeCity(cityName) {
+      try {
+        const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityName)}&count=1&language=en&format=json`);
+        const data = await res.json();
+        const loc = data.results?.[0];
+        if (loc) {
+          state.profile.lat = loc.latitude;
+          state.profile.lon = loc.longitude;
+          state.profile.city = [loc.name, loc.admin1, loc.country_code].filter(Boolean).join(", ");
+          document.getElementById("q_city").value = state.profile.city;
+          saveState();
+          renderProfileSummary();
+          await fetchLocalClimate();
+        }
+      } catch (e) {}
+    }
+
+    function useGPSForProfile() {
+      if (!navigator.geolocation) return alert("Geolocation not supported.");
+      navigator.geolocation.getCurrentPosition(async (pos) => {
+        state.profile.lat = pos.coords.latitude;
+        state.profile.lon = pos.coords.longitude;
+        state.profile.city = `${pos.coords.latitude.toFixed(2)}, ${pos.coords.longitude.toFixed(2)}`;
+        document.getElementById("q_city").value = state.profile.city;
+        saveState();
+        renderProfileSummary();
+        fetchLocalClimate();
+      }, () => alert("Location permission denied."));
+    }
+
+    async function fetchLocalClimate() {
+      const { lat, lon, city } = state.profile;
+      if (!city && (lat === null || lon === null)) {
+        document.getElementById("locationHeading").textContent = "No Location Set";
+        document.getElementById("climateSummaryBar").textContent = "Set location in Profile Builder for weather & AQI";
+        return;
+      }
+      if ((lat === null || lon === null) && city) {
+        await geocodeCity(city);
+        return;
+      }
+      document.getElementById("locationHeading").textContent = state.profile.city || "Local Climate";
+      try {
+        const wUrl = `https://api.open-meteo.com/v1/forecast?latitude=${state.profile.lat}&longitude=${state.profile.lon}&current=temperature_2m,relative_humidity_2m,dew_point_2m,uv_index&temperature_unit=fahrenheit`;
+        const aUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${state.profile.lat}&longitude=${state.profile.lon}&current=us_aqi`;
+        const [wRes, aRes] = await Promise.all([fetch(wUrl), fetch(aUrl)]);
+        const wData = await wRes.json();
+        const aData = await aRes.json();
+
+        const temp = Math.round(wData.current?.temperature_2m ?? 0);
+        const hum = Math.round(wData.current?.relative_humidity_2m ?? 0);
+        const dew = Math.round(wData.current?.dew_point_2m ?? 0);
+        const uv = (wData.current?.uv_index ?? 0).toFixed(1);
+        const aqi = Math.round(aData.current?.us_aqi ?? 0);
+
+        state.weather = { tempF: temp, humidity: hum, dewPointF: dew, uv, aqi };
+        saveState();
+
+        document.getElementById("wTemp").textContent = `${temp}°F`;
+        document.getElementById("wHumidity").textContent = `${hum}%`;
+        document.getElementById("wUV").textContent = uv;
+        document.getElementById("wAQI").textContent = aqi;
+        document.getElementById("climateSummaryBar").textContent = `${state.profile.city} • ${temp}°F • ${hum}% Hum • AQI ${aqi}`;
+        document.getElementById("climateAdviceText").textContent =
+          `Dew point is ${dew}°F with ${hum}% humidity, UV ${uv}, and US AQI ${aqi}. Low dew points increase moisture loss from hair, face, and body skin; higher humidity impacts curl hold and frizz.`;
+      } catch (e) {
+        document.getElementById("climateAdviceText").textContent = "Unable to load weather/AQI right now.";
+      }
+    }
+
+    // ---------- TRIGGERS, STYLING GUIDE & PRO DIRECTORY ----------
+    function toggleTrigger(label) {
+      const idx = state.activeTriggers.indexOf(label);
+      if (idx >= 0) state.activeTriggers.splice(idx, 1);
+      else state.activeTriggers.push(label);
+      saveState();
+      renderTriggers();
+    }
+
+    function renderTriggers() {
+      const box = document.getElementById("triggerChipsBox");
+      box.innerHTML = TRIGGER_FACTORS.map(t => {
+        const active = state.activeTriggers.includes(t.label);
+        return `
+          <button type="button" onclick="toggleTrigger('${t.label}')"
+            class="text-[11px] px-2.5 py-1 rounded-full border font-semibold ${
+              active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#594E47] border-[#DDD4C8]"
+            }">
+            ${active ? "✓ " : "+ "}${t.label}
+          </button>
+        `;
+      }).join("");
+
+      document.getElementById("stylingReferenceBox").innerHTML = STYLING_REFERENCE_GUIDE.map(sg => `
+        <div class="p-3 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9]">
+          <div class="font-bold text-[#231F1D]">${sg.title}</div>
+          <div class="text-[#594E47] mt-0.5">${sg.note}</div>
+        </div>
+      `).join("");
+
+      document.getElementById("proGuidanceBox").innerHTML = PRO_CATEGORIES.map(pc => `
+        <div class="p-3 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9]">
+          <div class="font-bold text-[#A9772B]">${pc.provider}</div>
+          <div class="text-[#594E47] mt-0.5">${pc.focus}</div>
+        </div>
+      `).join("");
+
+      document.getElementById("rootCauseCardsBox").innerHTML = TRIGGER_FACTORS.map(t => {
+        const active = state.activeTriggers.includes(t.label);
+        return `
+          <div class="p-3 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] flex items-start justify-between gap-2">
+            <div>
+              <div class="text-xs font-bold">${t.label} <span class="text-[10px] uppercase text-[#726862]">(${t.domain})</span></div>
+              <div class="text-xs text-[#594E47] mt-0.5">${t.note}</div>
+            </div>
+            <button onclick="toggleTrigger('${t.label}')" class="text-[11px] font-semibold px-2 py-1 rounded-lg border shrink-0 ${active ? "bg-[#231F1D] text-white" : "bg-white"}">
+              ${active ? "Active" : "Track"}
+            </button>
+          </div>
+        `;
+      }).join("");
+    }
+
+    // ---------- CHECK-IN & AI ROUTINES ----------
+    function compressImageToDataURL(file, maxDim = 900) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            let { width, height } = img;
+            if (width > height && width > maxDim) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else if (height > maxDim) {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+            canvas.width = width;
+            canvas.height = height;
+            canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL("image/jpeg", 0.8));
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function handleCheckinPhoto(e) {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      pendingCheckinImage = await compressImageToDataURL(file);
+      document.getElementById("checkinPhotoPreview").src = pendingCheckinImage;
+      document.getElementById("checkinPhotoPreviewBox").classList.remove("hidden");
+      document.getElementById("clearPhotoBtn").classList.remove("hidden");
+    }
+
+    function clearCheckinPhoto() {
+      pendingCheckinImage = null;
+      document.getElementById("checkinPhotoInput").value = "";
+      document.getElementById("checkinPhotoPreviewBox").classList.add("hidden");
+      document.getElementById("clearPhotoBtn").classList.add("hidden");
+    }
+
+    async function generateAIRoutine() {
+      collectProfileFromInputs();
+      const btn = document.getElementById("generateRoutineBtn");
+      const status = document.getElementById("aiStatusMsg");
+      const description = document.getElementById("checkinInput").value.trim();
+
+      btn.disabled = true;
+      btn.textContent = "Generating routines...";
+      status.textContent = "Analyzing profile, wig/braid status, curling/roller method, stash & weather/AQI...";
+      status.classList.remove("hidden");
+
+      try {
+        const resp = await fetch("/api/analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            mode: "routine",
+            description,
+            currentHairState: state.currentHairState,
+            selectedStylingMethod: state.selectedStylingMethod,
+            activeTriggers: state.activeTriggers,
+            imageBase64: pendingCheckinImage,
+            profile: state.profile,
+            weather: state.weather,
+            inventory: state.inventory,
+            lowEnergyMode: state.lowEnergyMode,
+            shoppingPrefs: state.shoppingPrefs
+          })
+        });
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.error || "Failed to generate routine");
+        state.lastAIRoutine = data.result;
+        saveState();
+        renderAIRoutine(data.result);
+        status.classList.add("hidden");
+      } catch (err) {
+        status.textContent = err.message;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "✨ Generate Tailored Routines, Styling Products & Pro Care";
+      }
+    }
+
+    function renderAIRoutine(r) {
+      const box = document.getElementById("aiResultContainer");
+      const hairSteps = state.lowEnergyMode ? (r.hairRoutine || []).filter(s => s.essential) : (r.hairRoutine || []);
+      const skinSteps = state.lowEnergyMode ? (r.skinRoutine || []).filter(s => s.essential) : (r.skinRoutine || []);
+      const bodySteps = state.lowEnergyMode ? (r.bodyRoutine || []).filter(s => s.essential) : (r.bodyRoutine || []);
+
+      box.innerHTML = `
+        <div class="card p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold">Tailored Care &amp; Styling Plan</h3>
+            <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#F8F3EA] text-[#8A5E1B]">${state.currentHairState}</span>
+          </div>
+          ${r.climateImpact ? `<p class="text-xs text-[#594E47] bg-[#FAF8F5] p-2.5 rounded-xl"><strong>Weather &amp; AQI:</strong> ${r.climateImpact}</p>` : ""}
+
+          ${(r.rootCauseInsights && r.rootCauseInsights.length) ? `
+            <div class="space-y-1.5">
+              <h4 class="text-xs font-bold uppercase text-[#726862]">Root Causes &amp; Fixes</h4>
+              ${r.rootCauseInsights.map(rc => `
+                <div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs">
+                  <div class="font-bold">${rc.cause}</div>
+                  <div class="text-[#594E47] mt-0.5">${rc.fix}</div>
+                </div>
+              `).join("")}
+            </div>
+          ` : ""}
+
+          <div class="space-y-2">
+            <h4 class="text-xs font-bold uppercase text-[#8A5E1B]">Hair, Scalp &amp; Protective Style Routine</h4>
+            ${r.hairAssessment ? `<p class="text-xs text-[#726862]">${r.hairAssessment}</p>` : ""}
+            ${hairSteps.map(s => `
+              <div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs">
+                <div class="font-bold">${s.step}</div>
+                <div class="text-[#594E47] mt-0.5">${s.detail}</div>
+                ${s.productUsed ? `<div class="text-[11px] text-[#8A5E1B] font-semibold mt-1">Product/Step: ${s.productUsed}</div>` : ""}
+              </div>
+            `).join("")}
+          </div>
+
+          ${r.stylingGuide ? `
+            <div class="p-3 rounded-xl bg-[#F8F3EA]/70 border border-[#E5D7C1] space-y-2 text-xs">
+              <div class="font-bold text-[#8A5E1B]">🔥 Styling &amp; Roller Guide: ${r.stylingGuide.method || state.selectedStylingMethod}</div>
+              ${r.stylingGuide.prepAndProtection ? `<div><strong>Prep &amp; Protection:</strong> ${r.stylingGuide.prepAndProtection}</div>` : ""}
+              ${(r.stylingGuide.recommendedProducts || []).map(p => `
+                <div class="p-2 rounded-lg bg-white border border-[#EAE3D9]">
+                  <div class="font-bold">${p.productType}: <span class="text-[#8A5E1B]">${p.suggestion}</span></div>
+                  <div class="text-[#594E47] mt-0.5">${p.howToUse}</div>
+                </div>
+              `).join("")}
+              ${r.stylingGuide.techniqueAndTakedown ? `<div><strong>Technique &amp; Takedown:</strong> ${r.stylingGuide.techniqueAndTakedown}</div>` : ""}
+            </div>
+          ` : ""}
+
+          <div class="space-y-2">
+            <h4 class="text-xs font-bold uppercase text-[#355243]">Face Skin Routine</h4>
+            ${r.skinAssessment ? `<p class="text-xs text-[#726862]">${r.skinAssessment}</p>` : ""}
+            ${skinSteps.map(s => `
+              <div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs">
+                <div class="font-bold">${s.step}</div>
+                <div class="text-[#594E47] mt-0.5">${s.detail}</div>
+                ${s.productUsed ? `<div class="text-[11px] text-[#355243] font-semibold mt-1">Product/Step: ${s.productUsed}</div>` : ""}
+              </div>
+            `).join("")}
+          </div>
+
+          <div class="space-y-2">
+            <h4 class="text-xs font-bold uppercase text-[#5B2C6F]">Body Care Routine</h4>
+            ${bodySteps.map(s => `
+              <div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs">
+                <div class="font-bold">${s.step}</div>
+                <div class="text-[#594E47] mt-0.5">${s.detail}</div>
+                ${s.productUsed ? `<div class="text-[11px] text-[#5B2C6F] font-semibold mt-1">Product/Step: ${s.productUsed}</div>` : ""}
+              </div>
+            `).join("")}
+          </div>
+
+          ${(r.proTreatments && r.proTreatments.length) ? `
+            <div class="space-y-1.5 pt-2 border-t border-[#EAE3D9]">
+              <h4 class="text-xs font-bold uppercase text-[#231F1D]">Salon, Dermatologist &amp; Esthetician Suggestions</h4>
+              ${r.proTreatments.map(pt => `
+                <div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs">
+                  <div class="flex justify-between font-bold">
+                    <span class="text-[#A9772B]">${pt.provider}: ${pt.treatment}</span>
+                    <span class="text-[10px] text-[#726862]">${pt.cadence || ""}</span>
+                  </div>
+                  <div class="text-[#594E47] mt-0.5">${pt.why}</div>
+                </div>
+              `).join("")}
+            </div>
+          ` : ""}
+
+          ${(r.missingProducts && r.missingProducts.length) ? `
+            <div class="space-y-1.5 pt-2 border-t border-[#EAE3D9]">
+              <h4 class="text-xs font-bold uppercase text-[#9A3412]">Suggested Additions From Check-In</h4>
+              ${r.missingProducts.map(m => `
+                <div class="p-2 rounded-lg bg-amber-50/70 text-xs flex justify-between items-start gap-2">
+                  <div>
+                    <strong>${m.name}</strong> ${m.store ? `(${m.store})` : ""}
+                    <div class="text-[#594E47]">${m.reason}</div>
+                  </div>
+                  <span class="font-bold text-[#8A5E1B] shrink-0">${m.estimatedPrice || ""}</span>
+                </div>
+              `).join("")}
+            </div>
+          ` : ""}
+        </div>
+      `;
+    }
+
+    // ---------- BARCODE & PHOTO STASH SCANNER ----------
+    async function openBarcodeScanner() {
+      const box = document.getElementById("scannerBox");
+      const status = document.getElementById("scanStatusMsg");
+      box.classList.remove("hidden");
+      status.textContent = "Point camera at barcode or type code below...";
+      status.classList.remove("hidden");
+      try {
+        if (window.ZXing) {
+          codeReader = new ZXing.BrowserMultiFormatReader();
+          await codeReader.decodeFromVideoDevice(null, document.getElementById("barcodeVideo"), (result) => {
+            if (result) {
+              const code = result.getText();
+              closeBarcodeScanner();
+              lookupBarcode(code);
+            }
+          });
+        }
+      } catch (e) {
+        status.textContent = "Camera unavailable; enter barcode digits below or snap a product photo.";
+      }
+    }
+
+    function closeBarcodeScanner() {
+      if (codeReader) {
+        try { codeReader.reset(); } catch (e) {}
+        codeReader = null;
+      }
+      document.getElementById("scannerBox").classList.add("hidden");
+    }
+
+    async function lookupBarcode(code) {
+      const clean = (code || "").trim();
+      if (!clean) return;
+      const status = document.getElementById("scanStatusMsg");
+      status.textContent = `Looking up ${clean}...`;
+      status.classList.remove("hidden");
+      try {
+        const res = await fetch(`https://world.openbeautyfacts.org/api/v0/product/${encodeURIComponent(clean)}.json`);
+        const data = await res.json();
+        if (data.status === 1 && data.product) {
+          const p = data.product;
+          const tags = (p.categories_tags || []).join(" ").toLowerCase();
+          const domain = tags.includes("body") || tags.includes("soap") ? "body" : tags.includes("face") || tags.includes("skin") ? "skin" : "hair";
+          state.inventory.unshift({
+            id: Date.now().toString(),
+            name: p.product_name || `Product ${clean}`,
+            brand: p.brands || "",
+            domain,
+            category: "Other",
+            notes: `Barcode #${clean}`
+          });
+          saveState();
+          renderStash();
+          status.textContent = `Added ${p.product_name || clean} to stash.`;
+        } else {
+          status.textContent = `Barcode ${clean} not found. Try snapping a photo of the bottle/bar.`;
+        }
+      } catch (e) {
+        status.textContent = "Barcode lookup error.";
+      }
+    }
+
+    async function handleProductPhotoScan(e) {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const status = document.getElementById("scanStatusMsg");
+      status.textContent = "Analyzing product photo...";
+      status.classList.remove("hidden");
+      try {
+        const imageBase64 = await compressImageToDataURL(file, 800);
+        const res = await fetch("/api/analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mode: "product_photo", imageBase64, profile: state.profile })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.result) throw new Error(data.error || "Scan failed");
+        const item = data.result;
+        state.inventory.unshift({
+          id: Date.now().toString(),
+          name: item.name || "Scanned Product",
+          brand: item.brand || "",
+          domain: ["hair", "skin", "body"].includes(item.domain) ? item.domain : "hair",
+          category: item.category || "Other",
+          notes: `${item.safetyNote || ""} ${(item.keyIngredients || []).join(", ")}`.trim()
+        });
+        saveState();
+        renderStash();
+        status.textContent = `Added ${item.name} to stash.`;
+      } catch (err) {
+        status.textContent = err.message;
+      } finally {
+        e.target.value = "";
+      }
+    }
+
+    function addManualProduct() {
+      const name = document.getElementById("manName").value.trim();
+      if (!name) return;
+      state.inventory.unshift({
+        id: Date.now().toString(),
+        name,
+        brand: "",
+        domain: document.getElementById("manDomain").value,
+        category: document.getElementById("manCategory").value,
+        notes: ""
+      });
+      document.getElementById("manName").value = "";
+      saveState();
+      renderStash();
+    }
+
+    function removeProduct(id) {
+      state.inventory = state.inventory.filter(i => i.id !== id);
+      saveState();
+      renderStash();
+    }
+
+    let currentStashFilter = "all";
+    function filterStash(f) {
+      currentStashFilter = f;
+      ["all", "hair", "skin", "body"].forEach(k => {
+        document.getElementById(`f-${k}`).className = k === f
+          ? "px-2.5 py-1 rounded-full bg-[#231F1D] text-white font-medium"
+          : "px-2.5 py-1 rounded-full bg-white border border-[#DDD4C8]";
+      });
+      renderStash();
+    }
+
+    function renderStash() {
+      const list = document.getElementById("stashList");
+      const items = currentStashFilter === "all" ? state.inventory : state.inventory.filter(i => i.domain === currentStashFilter);
+      document.getElementById("stashCount").textContent = state.inventory.length;
+      if (!items.length) {
+        list.innerHTML = `<div class="card p-4 text-xs text-[#726862]">Your stash is empty. Scan a barcode, snap a product photo, or add an item above.</div>`;
+        return;
+      }
+      list.innerHTML = items.map(i => `
+        <div class="card p-3 flex items-start justify-between gap-2">
+          <div>
+            <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#F8F3EA] text-[#8A5E1B]">${i.domain} • ${i.category}</span>
+            <div class="text-xs font-bold mt-1">${i.name}</div>
+            ${i.notes ? `<div class="text-[11px] text-[#726862] mt-0.5">${i.notes}</div>` : ""}
+          </div>
+          <button onclick="removeProduct('${i.id}')" class="text-xs text-[#726862] px-1.5">✕</button>
+        </div>
+      `).join("");
+    }
+
+    // ---------- STORE & PRICE RECOMMENDATIONS ----------
+    function renderStoreChips() {
+      const box = document.getElementById("storeChipsContainer");
+      box.innerHTML = ALL_STORES.map(store => {
+        const active = (state.shoppingPrefs.stores || []).includes(store);
+        return `
+          <button type="button" onclick="toggleStorePref('${store}')"
+            class="px-2.5 py-1 rounded-full text-xs font-semibold border ${
+              active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#726862] border-[#DDD4C8]"
+            }">
+            ${active ? "✓ " : "+ "}${store}
+          </button>
+        `;
+      }).join("");
+    }
+
+    function toggleStorePref(store) {
+      const arr = state.shoppingPrefs.stores || [];
+      const idx = arr.indexOf(store);
+      if (idx >= 0) arr.splice(idx, 1);
+      else arr.push(store);
+      state.shoppingPrefs.stores = arr;
+      document.getElementById("q_stores").value = arr.join(", ");
+      saveState();
+      renderStoreChips();
+    }
+
+    function updateBudgetSetting(val) {
+      const num = Number(val) || 30;
+      state.shoppingPrefs.maxPrice = num;
+      document.getElementById("budgetValLabel").textContent = num;
+      document.getElementById("budgetBadge").textContent = num;
+      document.getElementById("q_maxPrice").value = num;
+      saveState();
+    }
+
+    async function fetchStoreRecommendations() {
+      collectProfileFromInputs();
+      const btn = document.getElementById("findDealsBtn");
+      const status = document.getElementById("shopStatusMsg");
+      btn.disabled = true;
+      btn.textContent = "Searching...";
+      status.textContent = "Finding store & price matches tailored to your profile, wig/braid mode & styling tools...";
+      status.classList.remove("hidden");
+
+      try {
+        const res = await fetch("/api/analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            mode: "shop_recs",
+            profile: state.profile,
+            currentHairState: state.currentHairState,
+            selectedStylingMethod: state.selectedStylingMethod,
+            activeTriggers: state.activeTriggers,
+            weather: state.weather,
+            inventory: state.inventory,
+            shoppingPrefs: {
+              maxPrice: state.shoppingPrefs.maxPrice,
+              stores: state.shoppingPrefs.stores,
+              focusArea: document.getElementById("shopFocusSelect").value
+            }
+          })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.result?.recommendations) throw new Error(data.error || "Failed to fetch recommendations");
+        state.shopRecommendations = data.result.recommendations;
+        saveState();
+        renderShopResults(state.shopRecommendations);
+        status.classList.add("hidden");
+      } catch (err) {
+        status.textContent = err.message;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "🔍 Find Matches";
+      }
+    }
+
+    function addRecToStash(idx) {
+      const item = (state.shopRecommendations || [])[idx];
+      if (!item) return;
+      state.inventory.unshift({
+        id: Date.now().toString(),
+        name: item.name,
+        brand: "",
+        domain: ["hair", "skin", "body"].includes(item.domain) ? item.domain : "hair",
+        category: item.category || "Other",
+        notes: `${item.price || ""} at ${item.bestStore || ""}`.trim()
+      });
+      saveState();
+      renderStash();
+      alert(`Added "${item.name}" to your stash.`);
+    }
+
+    function renderShopResults(recs) {
+      const list = document.getElementById("shopResultsList");
+      if (!recs || !recs.length) {
+        list.innerHTML = `<div class="card p-4 text-xs text-[#726862]">No recommendations generated yet. Fill out your profile or click <strong>Find Matches</strong>.</div>`;
+        return;
+      }
+      list.innerHTML = recs.map((r, idx) => `
+        <div class="card p-3.5 space-y-1.5">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#F8F3EA] text-[#8A5E1B]">${r.domain} • ${r.category}</span>
+              <h4 class="text-sm font-bold mt-1">${r.name}</h4>
+              <div class="text-[11px] font-semibold text-[#231F1D]">Store: ${r.bestStore || "Any"} ${r.alsoAt ? `• Also: ${r.alsoAt}` : ""}</div>
+            </div>
+            <div class="text-sm font-extrabold text-[#2E6F40] shrink-0">${r.price || ""}</div>
+          </div>
+          <p class="text-xs text-[#594E47]">${r.whyItFits}</p>
+          <div class="pt-1 flex justify-end">
+            <button onclick="addRecToStash(${idx})" class="text-xs font-semibold px-3 py-1 rounded-lg bg-[#FAF8F5] border border-[#DDD4C8]">+ Add to Stash</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function init() {
+      syncInputsFromState();
+      setBuilderStep(state.currentStep || 1);
+      renderEnergyButton();
+      renderHairModeChips();
+      renderProfileSummary();
+      renderTriggers();
+      renderStash();
+      updateBudgetSetting(state.shoppingPrefs.maxPrice || 30);
+      renderStoreChips();
+      renderShopResults(state.shopRecommendations || []);
+      if (state.lastAIRoutine) renderAIRoutine(state.lastAIRoutine);
+      fetchLocalClimate();
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("/sw.js").catch(() => {});
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
