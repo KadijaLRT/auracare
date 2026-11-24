@@ -1,4 +1,7 @@
-# AuraCare — Blank-Slate Hair, Face & Body Studio (v2.8)
+# AuraCare — Blank-Slate Hair, Face & Body Studio (v2.9)
+
+**What's new in v2.9:** barcode scans now save the product's ingredient list and front image from Open Beauty Facts / Open Food Facts (via `fetchBeautyProduct`). The Stash tab shows a thumbnail and a tap-to-open Ingredients section, duplicate barcodes are skipped, product text is HTML-escaped before display, and ingredient lists (capped at 600 characters, no image URLs) are passed to the AI so routine and shopping advice can use them. The service worker cache name was bumped to `auracare-blank-v2-9` so installed Home Screen copies pick up the update. Saved data is preserved.
+
 
 Thoroughly debugged scanner and API pipeline for iOS Safari / Home Screen PWAs:
 1. **iOS Safari Live Camera + Fallback Chain (`index.html` & `public/index.html`):**

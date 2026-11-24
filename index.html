@@ -993,7 +993,7 @@
             imageBase64: pendingCheckinImage,
             profile: state.profile,
             weather: state.weather,
-            inventory: state.inventory,
+            inventory: slimInventory(state.inventory),
             lowEnergyMode: state.lowEnergyMode,
             shoppingPrefs: {
               maxPrice: state.shoppingPrefs.maxPrice,
@@ -1161,55 +1161,136 @@
       }
     }
 
+    // ---------- OPEN BEAUTY / FOOD FACTS LOOKUP (name, brand, ingredients, front image) ----------
+    function escHtml(v) {
+      return String(v == null ? "" : v)
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+    }
+
+    function safeHttpsUrl(u) {
+      try {
+        const parsed = new URL(String(u || ""));
+        return parsed.protocol === "https:" ? parsed.href : null;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    // Inventory sent to the AI keeps ingredient lists (useful for routine advice) but drops image URLs and caps length.
+    function slimInventory(items) {
+      return (items || []).map(i => {
+        const { imageUrl, ...rest } = i || {};
+        if (typeof rest.ingredients === "string" && rest.ingredients.length > 600) {
+          rest.ingredients = rest.ingredients.slice(0, 600) + "...";
+        }
+        return rest;
+      });
+    }
+
+    async function fetchBeautyProduct(barcode) {
+      const clean = String(barcode || "").replace(/[^0-9A-Za-z]/g, "").trim();
+      if (!clean) return { found: false, barcode: clean };
+
+      const fields = [
+        "product_name", "product_name_en", "generic_name", "brands",
+        "ingredients_text", "ingredients_text_en",
+        "image_front_url", "image_front_small_url", "categories_tags"
+      ].join(",");
+      const id = encodeURIComponent(clean);
+
+      // Same order as before: Open Beauty Facts v2, v0, then Open Food Facts v2.
+      // No custom User-Agent header: browsers (Safari especially) ignore or block it,
+      // and a custom header can trigger a CORS preflight that these APIs may reject.
+      const endpoints = [
+        `https://world.openbeautyfacts.org/api/v2/product/${id}.json?fields=${fields}`,
+        `https://world.openbeautyfacts.org/api/v0/product/${id}.json`,
+        `https://world.openfoodfacts.org/api/v2/product/${id}.json?fields=${fields}`
+      ];
+
+      let lastError = null;
+      for (const url of endpoints) {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 8000);
+        try {
+          const response = await fetch(url, { signal: controller.signal });
+          if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+          const data = await response.json();
+
+          // Product missing from this crowdsourced database: try the next one.
+          if (!data || !data.product || data.status === 0 || data.status === "failure") continue;
+
+          const p = data.product;
+          const name = p.product_name || p.product_name_en || p.generic_name || "";
+          const brand = p.brands || "";
+          if (!name && !brand) continue;
+
+          return {
+            found: true,
+            barcode: clean,
+            name: name || "Unknown Product",
+            brand: brand || "Unknown Brand",
+            ingredients: (p.ingredients_text || p.ingredients_text_en || "").trim(),
+            imageUrl: safeHttpsUrl(p.image_front_url || p.image_front_small_url),
+            categoriesTags: Array.isArray(p.categories_tags) ? p.categories_tags : []
+          };
+        } catch (error) {
+          lastError = error;
+          console.error("Beauty product lookup failed:", url, error);
+        } finally {
+          clearTimeout(timer);
+        }
+      }
+      return lastError ? { found: false, barcode: clean, error: lastError.message } : { found: false, barcode: clean };
+    }
+
     async function lookupBarcode(code) {
       const clean = String(code || "").replace(/[^0-9A-Za-z]/g, "").trim();
       if (!clean) return;
       const status = document.getElementById("scanStatusMsg");
-      status.textContent = `Looking up barcode ${clean}...`;
       status.classList.remove("hidden");
 
-      const endpoints = [
-        `https://world.openbeautyfacts.org/api/v2/product/${encodeURIComponent(clean)}.json`,
-        `https://world.openbeautyfacts.org/api/v0/product/${encodeURIComponent(clean)}.json`,
-        `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(clean)}.json`
-      ];
-
-      for (const url of endpoints) {
-        try {
-          const res = await fetch(url);
-          const data = await res.json();
-          if (data && data.status === 1 && data.product) {
-            const p = data.product;
-            const rawName = p.product_name || p.product_name_en || p.generic_name || "";
-            const brand = p.brands || "";
-            if (rawName || brand) {
-              const fullName = brand && !rawName.toLowerCase().includes(brand.toLowerCase())
-                ? `${brand} ${rawName}`.trim()
-                : (rawName || brand);
-              const tags = `${(p.categories_tags || []).join(" ")} ${fullName}`.toLowerCase();
-              const domain = (tags.includes("body") || tags.includes("soap") || tags.includes("powder") || tags.includes("lotion") || tags.includes("butter"))
-                ? "body"
-                : (tags.includes("face") || tags.includes("facial") || tags.includes("cleanser") || tags.includes("sunscreen") || tags.includes("serum"))
-                  ? "skin"
-                  : "hair";
-              state.inventory.unshift({
-                id: Date.now().toString(),
-                name: fullName,
-                brand,
-                domain,
-                category: "Other",
-                notes: `Scanned barcode #${clean}`
-              });
-              saveState();
-              renderStash();
-              status.textContent = `✓ Added "${fullName}" to your stash!`;
-              return;
-            }
-          }
-        } catch (_) {}
+      if (state.inventory.some(i => i.barcode === clean)) {
+        status.textContent = `Barcode #${clean} is already in your stash.`;
+        return;
       }
 
-      status.textContent = `Barcode #${clean} wasn't in the open database—tap "Snap Label / Barcode" to identify the bottle with AI!`;
+      status.textContent = `Looking up barcode ${clean}...`;
+      const result = await fetchBeautyProduct(clean);
+
+      if (!result.found) {
+        status.textContent = `Barcode #${clean} wasn't in the open database. Tap "Snap Label / Barcode" to identify the bottle with AI!`;
+        return;
+      }
+
+      const rawName = result.name === "Unknown Product" ? "" : result.name;
+      const brand = result.brand === "Unknown Brand" ? "" : result.brand;
+      const fullName = brand && !rawName.toLowerCase().includes(brand.toLowerCase())
+        ? `${brand} ${rawName}`.trim()
+        : (rawName || brand);
+      const tags = `${result.categoriesTags.join(" ")} ${fullName}`.toLowerCase();
+      const domain = (tags.includes("body") || tags.includes("soap") || tags.includes("powder") || tags.includes("lotion") || tags.includes("butter"))
+        ? "body"
+        : (tags.includes("face") || tags.includes("facial") || tags.includes("cleanser") || tags.includes("sunscreen") || tags.includes("serum"))
+          ? "skin"
+          : "hair";
+
+      state.inventory.unshift({
+        id: Date.now().toString(),
+        name: fullName,
+        brand,
+        domain,
+        category: "Other",
+        notes: `Scanned barcode #${clean}`,
+        barcode: clean,
+        ingredients: result.ingredients,
+        imageUrl: result.imageUrl
+      });
+      saveState();
+      renderStash();
+      status.textContent = result.ingredients
+        ? `✓ Added "${fullName}" with its ingredient list to your stash!`
+        : `✓ Added "${fullName}" to your stash (no ingredient list in the database).`;
     }
 
     async function analyzeBase64ProductImage(imageBase64) {
@@ -1289,7 +1370,16 @@
         list.innerHTML = `<div class="card p-4 text-xs text-[#726862]">Your stash is empty. Scan a barcode, snap a product photo, or add an item (including homemade body powder) above.</div>`;
         return;
       }
-      list.innerHTML = items.map(i => `<div class="card p-3 flex items-start justify-between gap-2"><div><span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#F8F3EA] text-[#8A5E1B]">${i.domain} • ${i.category}</span><div class="text-xs font-bold mt-1">${i.name}</div>${i.notes ? `<div class="text-[11px] text-[#726862] mt-0.5">${i.notes}</div>` : ""}</div><button type="button" onclick="removeProduct('${i.id}')" class="text-xs text-[#726862] px-1.5">✕</button></div>`).join("");
+      list.innerHTML = items.map(i => {
+        const img = safeHttpsUrl(i.imageUrl);
+        const thumb = img
+          ? `<img src="${escHtml(img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'" class="w-12 h-12 rounded-lg object-cover bg-[#F8F3EA] flex-shrink-0" />`
+          : "";
+        const ingr = i.ingredients
+          ? `<details class="mt-1"><summary class="text-[11px] text-[#8A5E1B] font-semibold cursor-pointer">Ingredients</summary><div class="text-[11px] text-[#726862] mt-0.5">${escHtml(i.ingredients)}</div></details>`
+          : "";
+        return `<div class="card p-3 flex items-start justify-between gap-2"><div class="flex items-start gap-2.5 min-w-0">${thumb}<div class="min-w-0"><span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#F8F3EA] text-[#8A5E1B]">${escHtml(i.domain)} • ${escHtml(i.category)}</span><div class="text-xs font-bold mt-1">${escHtml(i.name)}</div>${i.notes ? `<div class="text-[11px] text-[#726862] mt-0.5">${escHtml(i.notes)}</div>` : ""}${ingr}</div></div><button type="button" onclick="removeProduct('${escHtml(i.id)}')" class="text-xs text-[#726862] px-1.5">✕</button></div>`;
+      }).join("");
     }
 
     function renderStoreChips() {
@@ -1344,7 +1434,7 @@
             selectedStylingMethod: state.selectedStylingMethod,
             activeTriggers: state.activeTriggers,
             weather: state.weather,
-            inventory: state.inventory,
+            inventory: slimInventory(state.inventory),
             shoppingPrefs: {
               maxPrice: state.shoppingPrefs.maxPrice,
               stores: getEffectiveStores(),
