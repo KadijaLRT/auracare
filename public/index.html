@@ -68,7 +68,7 @@
           <span class="text-xs font-bold text-[#A9772B]">Step <span id="stepNumLabel">1</span> of 5</span>
         </div>
         <p class="text-xs text-[#726862]">
-          Starts blank. Tap the options that fit you—open text boxes are only included where custom details (like your city, custom oil mix, or specific hair color/allergies) help.
+          Starts blank. Tap the options that fit you—open text boxes are only included where custom details (like your city, custom oil or body powder mix, or specific hair color/allergies) help.
         </p>
         <div class="w-full bg-[#ECE5DC] h-2 rounded-full overflow-hidden">
           <div id="builderProgressBar" class="bg-[#A9772B] h-full transition-all" style="width: 20%"></div>
@@ -198,9 +198,9 @@
         </div>
       </div>
 
-      <!-- STEP 4: BODY CARE OPTIONS -->
+      <!-- STEP 4: BODY CARE OPTIONS (INCLUDING BODY POWDER) -->
       <div id="step-4" class="card p-4 space-y-3 hidden">
-        <h2 class="text-sm font-bold">4. Body Care (Washes, Bar Soaps, Lotions, Butters &amp; Oils)</h2>
+        <h2 class="text-sm font-bold">4. Body Care (Washes, Bar Soaps, Lotions, Butters, Oils &amp; Powders)</h2>
 
         <div>
           <label class="block text-xs font-semibold mb-1.5">Body Skin Concerns &amp; Trouble Areas (tap all that apply)</label>
@@ -213,8 +213,9 @@
         </div>
 
         <div>
-          <label class="block text-xs font-semibold mb-1.5">Preferred Body Moisture &amp; Scent Style (tap all that apply)</label>
+          <label class="block text-xs font-semibold mb-1.5">Preferred Body Moisture, Powder &amp; Scent Style (tap all that apply)</label>
           <div id="chips_bodyMoisturePref" class="flex flex-wrap gap-1.5"></div>
+          <input id="q_customBodyPowderNotes" type="text" placeholder="Optional: homemade body powder recipe/ingredients (e.g., arrowroot, cornstarch, kaolin clay, essential oils)..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2 bg-[#FAF8F5] mt-2" />
         </div>
 
         <div class="flex justify-between pt-1">
@@ -300,7 +301,7 @@
       <div class="card p-4 space-y-3">
         <h2 class="text-base font-bold">State Check-In (Selectable + Optional Photo/Note)</h2>
 
-        <!-- Current Protective Style / Hair Mode Selector -->
+        <!-- Current Hair / Protective Style State Selector (Includes Relaxed Hair) -->
         <div class="space-y-1.5">
           <label class="block text-[11px] font-bold uppercase tracking-wider text-[#726862]">1. Current Hair / Protective Style State</label>
           <div id="hairModeChipsBox" class="flex flex-wrap gap-1.5"></div>
@@ -310,7 +311,7 @@
         <div class="space-y-1.5">
           <label class="block text-[11px] font-bold uppercase tracking-wider text-[#726862]">2. Curling Iron or Roller / Curler Method</label>
           <select id="stylingMethodSelect" onchange="updateStylingMethod(this.value)" class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5] font-medium">
-            <option value="None / Air Dry / Natural">None / Air Dry / Protective Set</option>
+            <option value="None / Air Dry / Protective Set">None / Air Dry / Protective Set</option>
             <option value="Curling Iron / Curling Wand (Heat)">Curling Iron / Curling Wand (Direct Heat)</option>
             <option value="Hot Rollers / Heated Setter">Hot Rollers / Heated Setter</option>
             <option value="Foam / Sponge Rollers">Foam / Sponge Rollers</option>
@@ -354,7 +355,7 @@
       <div class="card p-4 space-y-3">
         <div>
           <h2 class="text-base font-bold">My Product Stash (Starts Blank)</h2>
-          <p class="text-xs text-[#726862]">Scan barcodes, snap bottle/bar photos, or add hair, styling, wig/braid, face &amp; body items you own.</p>
+          <p class="text-xs text-[#726862]">Scan barcodes, snap bottle/bar photos, or add hair, styling, wig/braid, face &amp; body items (including homemade body powder).</p>
         </div>
 
         <div class="grid grid-cols-2 gap-2">
@@ -382,8 +383,8 @@
         <p id="scanStatusMsg" class="text-xs text-[#8A5E1B] font-medium hidden"></p>
 
         <div class="pt-2 border-t border-[#EAE3D9] space-y-2">
-          <div class="text-xs font-semibold">Add Product Manually</div>
-          <input id="manName" type="text" placeholder="Product name..." class="w-full text-xs border border-[#DDD4C8] rounded-lg p-2 bg-[#FAF8F5]" />
+          <div class="text-xs font-semibold">Add Product or Homemade Mix Manually</div>
+          <input id="manName" type="text" placeholder="Product name (e.g., Homemade Body Powder, Olaplex No. 3)..." class="w-full text-xs border border-[#DDD4C8] rounded-lg p-2 bg-[#FAF8F5]" />
           <div class="grid grid-cols-2 gap-2">
             <select id="manDomain" class="text-xs border border-[#DDD4C8] rounded-lg p-2 bg-white">
               <option value="hair">Hair &amp; Styling</option>
@@ -410,6 +411,7 @@
               <option value="Body Lotion / Cream">Body Lotion / Cream</option>
               <option value="Body Butter">Body Butter</option>
               <option value="Body Oil">Body Oil</option>
+              <option value="Body Powder / Dusting Powder">Body Powder / Dusting Powder</option>
             </select>
           </div>
           <button onclick="addManualProduct()" class="w-full py-2 rounded-lg bg-[#231F1D] text-white text-xs font-semibold">+ Add to Stash</button>
@@ -436,7 +438,7 @@
         <div class="flex items-center justify-between">
           <div>
             <h2 class="text-base font-bold">Recommended Additions (Store &amp; Price)</h2>
-            <p class="text-xs text-[#726862]">Tailored to your profile, wig/braid status, curling/roller tools, preferred stores &amp; budget</p>
+            <p class="text-xs text-[#726862]">Tailored to your profile, current hair state, curling/roller tools, preferred stores &amp; budget</p>
           </div>
           <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-[#F8F3EA] text-[#8A5E1B]">Max $<span id="budgetBadge">30</span></span>
         </div>
@@ -461,7 +463,7 @@
             <option value="Curling iron heat protectants & roller setting mousses/lotions">Curling Iron &amp; Roller Styling</option>
             <option value="Hair care, bond repair, scalp & hydration">Core Hair Care Gaps</option>
             <option value="Face cleanser, treatment, moisturizer & SPF">Face Skincare Gaps</option>
-            <option value="Body wash, bar soap, lotion, body butter & body oil">Body Care Gaps</option>
+            <option value="Body wash, bar soap, lotion, body butter, body oil & dusting powder essentials">Body Care Gaps</option>
           </select>
           <button id="findDealsBtn" onclick="fetchStoreRecommendations()" class="py-2.5 px-3 rounded-xl bg-[#231F1D] text-white text-xs font-semibold">
             🔍 Find Matches
@@ -476,8 +478,8 @@
     <!-- TAB 5: STYLING & PROTECTIVE GUIDE + ROOT CAUSES + PRO TREATMENTS -->
     <section id="tab-triggers" class="hidden space-y-4">
       <div class="card p-4 space-y-2">
-        <h2 class="text-base font-bold">Wigs, Braids &amp; Roller / Curling Product Rules</h2>
-        <p class="text-xs text-[#726862]">Quick reference for protective styles and styling tools—select yours in Check-In for custom product picks.</p>
+        <h2 class="text-base font-bold">Relaxed Hair, Wigs, Braids, Rollers &amp; Body Powder Rules</h2>
+        <p class="text-xs text-[#726862]">Quick reference for protective styles, styling tools, and body layering—select yours in Check-In for custom picks.</p>
         <div id="stylingReferenceBox" class="space-y-2 pt-1 text-xs"></div>
       </div>
 
@@ -525,7 +527,6 @@
   <script>
     const ALL_STORES = ["Walmart", "Target", "Ulta Beauty", "CVS", "Walgreens", "Sally Beauty", "Amazon"];
 
-    // Selectable Option Banks for Guided Profile Builder
     const PROFILE_OPTIONS = {
       ageRange: ["Under 20", "20s", "30s", "40s", "50+"],
       skinTone: [
@@ -626,6 +627,7 @@
       bodyConcerns: [
         "Dry / Ashy Skin",
         "Rough Elbows, Knees & Heels",
+        "Chafing / Sweat & Friction Zones",
         "Body Bumps / Keratosis Pilaris (KP)",
         "Ingrown Hairs / Razor Bumps",
         "Body Dark Marks / Uneven Tone",
@@ -644,9 +646,11 @@
         "Rich Body Cream",
         "Whipped Body Butter",
         "Body Oil (Damp Skin Seal)",
-        "Lotion + Body Butter/Oil Layering",
+        "Homemade / DIY Body Powder",
+        "Dusting / Talc-Free Body Powder",
+        "Lotion + Butter/Oil + Body Powder Layering",
         "Fragrance-Free Only",
-        "Scent Layering / Gourmand / Warm Scents"
+        "Scent Layering / Warm / Gourmand Scents"
       ],
       maxPrice: [
         "Under $15",
@@ -667,7 +671,8 @@
     };
 
     const HAIR_PROTECTIVE_MODES = [
-      "Hair Out / Natural",
+      "Relaxed Hair (Out / Styled)",
+      "Natural / Unrelaxed Hair Out",
       "Wearing a Wig (Unit On)",
       "Wig Prep / Braids Underneath",
       "Braid Extensions Installed",
@@ -675,6 +680,10 @@
     ];
 
     const STYLING_REFERENCE_GUIDE = [
+      {
+        title: "Relaxed Hair (Out / Styled)",
+        note: "Focus on bond repair + protein-moisture balance, protect the line of demarcation where new growth meets relaxed strands, moisturize with water-based leave-in before sealing ends/temples with light oil, and keep direct heat low."
+      },
       {
         title: "Wearing a Wig (Unit On & Hair Underneath)",
         note: "Cleanse scalp between cornrows with diluted micellar/witch hazel or no-rinse scalp foam, lightly mist braids underneath, seal edges without heavy glue/gel buildup, and wear a satin wig grip or melt band instead of tight elastic."
@@ -694,6 +703,10 @@
       {
         title: "Velcro Rollers & Satin Heatless Rods",
         note: "Velcro rollers work best on dry or 90% blown-dry hair with heat protectant and root-lift spray (roll away from fragile temples). Satin heatless rods work best on slightly misted hair with a drop of lightweight smoothing serum."
+      },
+      {
+        title: "Body Layering with Homemade Body Powder",
+        note: "1) Cleanse with gentle bar soap/body wash -> 2) Apply lotion on damp skin -> 3) Seal dry spots with body butter or body oil -> 4) Dust homemade body powder with a puff on friction/sweat zones (underarms, inner thighs, under-bust, feet) or over sticky lotion/oil for a silky finish."
       }
     ];
 
@@ -708,6 +721,7 @@
       { label: "Hormonal or stress shifts", domain: "skin", note: "Hormones and stress can trigger breakouts, oil changes, shedding, or hyperpigmentation." },
       { label: "Barrier irritation / over-exfoliation", domain: "skin", note: "Overusing actives or harsh cleansers causes stinging, dryness, and rebound spots." },
       { label: "Body dryness / harsh soap stripping", domain: "body", note: "Drying soaps and hot water strip body lipids; apply lotion on damp skin and seal with butter/oil." },
+      { label: "Body chafing / sweat / friction zones", domain: "body", note: "Use breathable barrier moisture plus talc-free or homemade body powder on high-friction areas." },
       { label: "Body bumps / KP / ingrown hairs", domain: "body", note: "Keratin plugs or shaving/waxing friction can cause bumps or dark marks; gentle exfoliation + moisture helps." }
     ];
 
@@ -721,8 +735,8 @@
       return {
         lowEnergyMode: false,
         currentStep: 1,
-        currentHairState: "Hair Out / Natural",
-        selectedStylingMethod: "None / Air Dry / Natural",
+        currentHairState: "Relaxed Hair (Out / Styled)",
+        selectedStylingMethod: "None / Air Dry / Protective Set",
         profile: {
           ageRange: "",
           skinTone: [],
@@ -746,6 +760,7 @@
           bodyConcerns: [],
           bodyCleansePref: [],
           bodyMoisturePref: [],
+          customBodyPowderNotes: "",
           proPrefs: []
         },
         shoppingPrefs: {
@@ -766,17 +781,17 @@
       };
     }
 
-    let state = JSON.parse(localStorage.getItem("auracare_blank_state_v22") || "null") || createBlankState();
+    let state = JSON.parse(localStorage.getItem("auracare_blank_state_v23") || "null") || createBlankState();
     let pendingCheckinImage = null;
     let codeReader = null;
 
     function saveState() {
-      localStorage.setItem("auracare_blank_state_v22", JSON.stringify(state));
+      localStorage.setItem("auracare_blank_state_v23", JSON.stringify(state));
     }
 
     function wipeAllToBlank() {
       if (!confirm("Wipe all profile selections, owned products, and saved results back to completely blank?")) return;
-      localStorage.removeItem("auracare_blank_state_v22");
+      localStorage.removeItem("auracare_blank_state_v23");
       state = createBlankState();
       pendingCheckinImage = null;
       document.getElementById("aiResultContainer").innerHTML = "";
@@ -849,7 +864,7 @@
           ? Array.isArray(currentVal) && currentVal.includes(opt)
           : currentVal === opt;
         return `
-          <button type="button" onclick="${onClickFnName}('${fieldName}', '${opt.replace(/'/g, "\'")}')"
+          <button type="button" onclick="${onClickFnName}('${fieldName}', '${opt.replace(/'/g, "'")}')"
             class="text-[11px] px-2.5 py-1.5 rounded-full border font-semibold transition ${
               active
                 ? "bg-[#231F1D] text-white border-[#231F1D]"
@@ -950,8 +965,9 @@
       document.getElementById("q_sensitivities").value = p.sensitivities || "";
       document.getElementById("q_hairColorDetail").value = p.hairColorDetail || "";
       document.getElementById("q_customOilNotes").value = p.customOilNotes || "";
+      document.getElementById("q_customBodyPowderNotes").value = p.customBodyPowderNotes || "";
       document.getElementById("q_extraStores").value = state.shoppingPrefs.extraStores || "";
-      document.getElementById("stylingMethodSelect").value = state.selectedStylingMethod || "None / Air Dry / Natural";
+      document.getElementById("stylingMethodSelect").value = state.selectedStylingMethod || "None / Air Dry / Protective Set";
     }
 
     function collectProfileFromInputs() {
@@ -959,6 +975,7 @@
       state.profile.sensitivities = document.getElementById("q_sensitivities").value.trim();
       state.profile.hairColorDetail = document.getElementById("q_hairColorDetail").value.trim();
       state.profile.customOilNotes = document.getElementById("q_customOilNotes").value.trim();
+      state.profile.customBodyPowderNotes = document.getElementById("q_customBodyPowderNotes").value.trim();
       state.shoppingPrefs.extraStores = document.getElementById("q_extraStores").value.trim();
       saveState();
       renderProfileSummary();
@@ -999,7 +1016,7 @@
         ["Hair Concerns & Goals", [...(p.hairIssues || []), ...(p.hairGoals || [])].filter(Boolean).join(" • ")],
         ["Wigs, Braids & Styling", [...(p.protectiveStyles || []), ...(p.stylingTools || []), p.customOilNotes].filter(Boolean).join(" • ")],
         ["Face", [p.faceType, ...(p.faceConcerns || []), p.faceRoutinePref].filter(Boolean).join(" • ")],
-        ["Body", [...(p.bodyConcerns || []), ...(p.bodyCleansePref || []), ...(p.bodyMoisturePref || [])].filter(Boolean).join(" • ")],
+        ["Body & Powder", [...(p.bodyConcerns || []), ...(p.bodyCleansePref || []), ...(p.bodyMoisturePref || []), p.customBodyPowderNotes].filter(Boolean).join(" • ")],
         ["Shopping", `$${state.shoppingPrefs.maxPrice} max${storesList.length ? ` • ${storesList.join(", ")}` : ""}`],
         ["Pro Care", (p.proPrefs || []).join(" • ")]
       ].filter(([, v]) => v);
@@ -1193,7 +1210,7 @@
 
       btn.disabled = true;
       btn.textContent = "Generating routines...";
-      status.textContent = "Analyzing profile, wig/braid status, curling/roller method, stash & weather/AQI...";
+      status.textContent = "Analyzing profile, hair state, curling/roller method, body care & weather/AQI...";
       status.classList.remove("hidden");
 
       try {
@@ -1296,7 +1313,7 @@
           </div>
 
           <div class="space-y-2">
-            <h4 class="text-xs font-bold uppercase text-[#5B2C6F]">Body Care Routine</h4>
+            <h4 class="text-xs font-bold uppercase text-[#5B2C6F]">Body Care &amp; Body Powder Layering Routine</h4>
             ${bodySteps.map(s => `
               <div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs">
                 <div class="font-bold">${s.step}</div>
@@ -1382,7 +1399,7 @@
         if (data.status === 1 && data.product) {
           const p = data.product;
           const tags = (p.categories_tags || []).join(" ").toLowerCase();
-          const domain = tags.includes("body") || tags.includes("soap") ? "body" : tags.includes("face") || tags.includes("skin") ? "skin" : "hair";
+          const domain = tags.includes("body") || tags.includes("soap") || tags.includes("powder") ? "body" : tags.includes("face") || tags.includes("skin") ? "skin" : "hair";
           state.inventory.unshift({
             id: Date.now().toString(),
             name: p.product_name || `Product ${clean}`,
@@ -1474,7 +1491,7 @@
       const items = currentStashFilter === "all" ? state.inventory : state.inventory.filter(i => i.domain === currentStashFilter);
       document.getElementById("stashCount").textContent = state.inventory.length;
       if (!items.length) {
-        list.innerHTML = `<div class="card p-4 text-xs text-[#726862]">Your stash is empty. Scan a barcode, snap a product photo, or add an item above.</div>`;
+        list.innerHTML = `<div class="card p-4 text-xs text-[#726862]">Your stash is empty. Scan a barcode, snap a product photo, or add an item (including homemade body powder) above.</div>`;
         return;
       }
       list.innerHTML = items.map(i => `
@@ -1534,7 +1551,7 @@
       const status = document.getElementById("shopStatusMsg");
       btn.disabled = true;
       btn.textContent = "Searching...";
-      status.textContent = "Finding store & price matches tailored to your profile, wig/braid mode & styling tools...";
+      status.textContent = "Finding store & price matches tailored to your profile, hair mode & styling tools...";
       status.classList.remove("hidden");
 
       try {
