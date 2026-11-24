@@ -1,6 +1,6 @@
 {
   "name": "auracare-blank-onboarding",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "private": true,
-  "description": "Blank-slate installable PWA for Hair (including wigs, braid extensions, heat curling & rollers/curlers), Face & Body care with guided profile builder, Groq Vision/Text AI, barcode scanner, weather/AQI, store/price finder, and pro treatment recommendations"
+  "description": "Blank-slate installable PWA for Hair (selectable relaxed/colored options, wigs, braids, heat curling & rollers), Face & Body care with guided chip-selectable profile builder, Groq Vision/Text AI, barcode scanner, weather/AQI, store/price finder, and pro treatments"
 }

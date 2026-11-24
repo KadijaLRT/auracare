@@ -60,7 +60,7 @@
 
   <main class="max-w-lg mx-auto px-4 pt-4 space-y-4">
 
-    <!-- TAB 1: GUIDED PROFILE BUILDER (DETAILED QUESTIONS) -->
+    <!-- TAB 1: GUIDED PROFILE BUILDER (TAP-TO-SELECT OPTIONS + OPTIONAL OPEN DETAILS) -->
     <section id="tab-builder" class="space-y-4">
       <div class="card p-4 space-y-2 bg-gradient-to-br from-white to-[#F8F3EA]">
         <div class="flex items-center justify-between">
@@ -68,7 +68,7 @@
           <span class="text-xs font-bold text-[#A9772B]">Step <span id="stepNumLabel">1</span> of 5</span>
         </div>
         <p class="text-xs text-[#726862]">
-          Starting from a blank slate. Answer as many questions as you want—everything is optional until you save, and every detail shapes your routines, protective style care (wigs/braids), curling &amp; roller products, store/price picks, and pro treatments.
+          Starts blank. Tap the options that fit you—open text boxes are only included where custom details (like your city, custom oil mix, or specific hair color/allergies) help.
         </p>
         <div class="w-full bg-[#ECE5DC] h-2 rounded-full overflow-hidden">
           <div id="builderProgressBar" class="bg-[#A9772B] h-full transition-all" style="width: 20%"></div>
@@ -84,82 +84,87 @@
 
       <!-- STEP 1: DEMOGRAPHICS, LOCATION, SCHEDULE & ENVIRONMENT -->
       <div id="step-1" class="card p-4 space-y-3">
-        <h2 class="text-sm font-bold">1. Demographics, Location &amp; Daily Environment</h2>
+        <h2 class="text-sm font-bold">1. Basics, Location &amp; Daily Environment</h2>
 
         <div>
-          <label class="block text-xs font-semibold mb-1">Age range &amp; gender / demographic context (optional)</label>
-          <input id="q_demographics" type="text" placeholder="Type your age range, identity, or relevant background..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+          <label class="block text-xs font-semibold mb-1.5">Age Range (select one)</label>
+          <div id="chips_ageRange" class="flex flex-wrap gap-1.5"></div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold mb-1.5">Skin Tone &amp; Melanin Context (tap all that apply)</label>
+          <div id="chips_skinTone" class="flex flex-wrap gap-1.5"></div>
         </div>
 
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="block text-xs font-semibold mb-1">City, State / Region (for Weather &amp; AQI)</label>
-            <input id="q_city" type="text" placeholder="e.g., City, State" class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+            <label class="block text-xs font-semibold mb-1">City, State (for Weather &amp; AQI)</label>
+            <input id="q_city" type="text" placeholder="e.g., Bloomfield, CT" class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
           </div>
           <div>
-            <label class="block text-xs font-semibold mb-1">Or use current GPS</label>
-            <button type="button" onclick="useGPSForProfile()" class="w-full py-2.5 px-3 rounded-xl border border-[#A9772B] text-[#A9772B] text-xs font-semibold">📍 Detect GPS Location</button>
+            <label class="block text-xs font-semibold mb-1">Or detect automatically</label>
+            <button type="button" onclick="useGPSForProfile()" class="w-full py-2.5 px-3 rounded-xl border border-[#A9772B] text-[#A9772B] text-xs font-semibold">📍 Use Live GPS</button>
           </div>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold mb-1">Work / sleep schedule &amp; indoor air conditions (e.g., day/night shifts, AC, dry heat, hard tap water)</label>
-          <textarea id="q_scheduleEnv" rows="2" placeholder="Describe your daily schedule, indoor air, water hardness, or pollution exposure..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]"></textarea>
+          <label class="block text-xs font-semibold mb-1.5">Schedule &amp; Environment Factors (tap all that apply)</label>
+          <div id="chips_envFactors" class="flex flex-wrap gap-1.5"></div>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold mb-1">Health, allergies, sensitivities, or medications affecting hair/skin (optional)</label>
-          <input id="q_sensitivities" type="text" placeholder="e.g., fragrance allergy, sensitive scalp, retinoid use, low iron..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+          <label class="block text-xs font-semibold mb-1">Specific Allergies, Sensitivities, or Notes (optional open field)</label>
+          <input id="q_sensitivities" type="text" placeholder="e.g., fragrance allergy, low iron, retinoid prescription..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
         </div>
 
         <div class="flex justify-end pt-1">
-          <button type="button" onclick="setBuilderStep(2)" class="px-4 py-2 rounded-xl bg-[#231F1D] text-white text-xs font-semibold">Next: Hair, Wigs &amp; Rollers →</button>
+          <button type="button" onclick="setBuilderStep(2)" class="px-4 py-2 rounded-xl bg-[#231F1D] text-white text-xs font-semibold">Next: Hair &amp; Style →</button>
         </div>
       </div>
 
-      <!-- STEP 2: HAIR, PROTECTIVE STYLES (WIGS/BRAIDS) & CURLING/ROLLER TOOLS -->
+      <!-- STEP 2: HAIR, RELAXED & COLORED OPTIONS, PROTECTIVE STYLES & ROLLERS -->
       <div id="step-2" class="card p-4 space-y-3 hidden">
-        <h2 class="text-sm font-bold">2. Hair, Protective Styles (Wigs/Braids) &amp; Styling Tools</h2>
+        <h2 class="text-sm font-bold">2. Hair Type, Chemical/Color History &amp; Styling Tools</h2>
 
         <div>
-          <label class="block text-xs font-semibold mb-1">Natural hair texture &amp; strand thickness (fine, medium, coarse; straight, wavy, curly, coily)</label>
-          <input id="q_hairTexture" type="text" placeholder="Describe curl/wave pattern and strand thickness..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+          <label class="block text-xs font-semibold mb-1.5">Natural Hair Texture &amp; Strand Thickness (tap all that apply)</label>
+          <div id="chips_hairTexture" class="flex flex-wrap gap-1.5"></div>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold mb-1">Chemical, color, or heat history (relaxed, texturized, bleached/dyed, keratin, heat tools)</label>
-          <input id="q_hairChemical" type="text" placeholder="List any dye, bleach, relaxer, perm, or heat styling..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+          <label class="block text-xs font-semibold mb-1.5">Chemical, Color &amp; Heat History (tap all that apply)</label>
+          <div id="chips_hairChemical" class="flex flex-wrap gap-1.5"></div>
+          <input id="q_hairColorDetail" type="text" placeholder="Optional: exact color/chemical note (e.g., honey blonde dye, relaxer touch-up timing)..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2 bg-[#FAF8F5] mt-2" />
         </div>
 
         <div>
-          <label class="block text-xs font-semibold mb-1">Scalp condition &amp; problem zones (temples/edges, crown, ends, dryness, oiliness, flakes, shedding)</label>
-          <input id="q_hairIssues" type="text" placeholder="Where is your hair changing, breaking, or needing attention?" class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
-        </div>
-
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block text-xs font-semibold mb-1">Wash frequency</label>
-            <input id="q_washFreq" type="text" placeholder="e.g., weekly, biweekly" class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold mb-1">Top hair goal</label>
-            <input id="q_hairGoal" type="text" placeholder="e.g., stop breakage, moisture" class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
-          </div>
+          <label class="block text-xs font-semibold mb-1.5">Scalp &amp; Hair Problem Zones (tap all that apply)</label>
+          <div id="chips_hairIssues" class="flex flex-wrap gap-1.5"></div>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold mb-1">Protective styles worn (wigs, lace fronts, glueless units, knotless/box braids, cornrows, weave)</label>
-          <input id="q_protectiveStyles" type="text" placeholder="Do you wear wigs or braid extensions? How long do you keep them in, and how is your hair braided underneath?" class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+          <label class="block text-xs font-semibold mb-1.5">Wash Frequency (select one)</label>
+          <div id="chips_washFreq" class="flex flex-wrap gap-1.5"></div>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold mb-1">Styling tools &amp; rollers used (curling iron/wand, hot rollers, foam/sponge rollers, flexi rods, velcro rollers, satin heatless rods)</label>
-          <input id="q_stylingTools" type="text" placeholder="List the curling irons or roller types you use (or want to use)..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+          <label class="block text-xs font-semibold mb-1.5">Top Hair Goals (tap all that apply)</label>
+          <div id="chips_hairGoals" class="flex flex-wrap gap-1.5"></div>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold mb-1">Custom oil blends or night-time hair habits (optional)</label>
-          <input id="q_hairHabits" type="text" placeholder="e.g., custom oil mix, silk bonnet/scarf..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+          <label class="block text-xs font-semibold mb-1.5">Protective Styles Worn (tap all that apply)</label>
+          <div id="chips_protectiveStyles" class="flex flex-wrap gap-1.5"></div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold mb-1.5">Curling Tools &amp; Rollers Used (tap all that apply)</label>
+          <div id="chips_stylingTools" class="flex flex-wrap gap-1.5"></div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold mb-1">Custom Hair Oil Blend / DIY Concoction (optional open field)</label>
+          <input id="q_customOilNotes" type="text" placeholder="If you make your own oil mix, list the oils here..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
         </div>
 
         <div class="flex justify-between pt-1">
@@ -168,23 +173,23 @@
         </div>
       </div>
 
-      <!-- STEP 3: FACE SKINCARE QUESTIONS -->
+      <!-- STEP 3: FACE SKINCARE OPTIONS -->
       <div id="step-3" class="card p-4 space-y-3 hidden">
         <h2 class="text-sm font-bold">3. Face Skin Type, Concerns &amp; Routine Style</h2>
 
         <div>
-          <label class="block text-xs font-semibold mb-1">Face skin type (dry, oily, combination, normal, sensitive/reactive)</label>
-          <input id="q_faceType" type="text" placeholder="Describe how your face feels through the day..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+          <label class="block text-xs font-semibold mb-1.5">Face Skin Type (select one)</label>
+          <div id="chips_faceType" class="flex flex-wrap gap-1.5"></div>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold mb-1">Top face concerns (hyperpigmentation/dark spots, acne/breakouts, redness, fine lines, dullness, dehydration)</label>
-          <input id="q_faceConcerns" type="text" placeholder="List what you want to improve or prevent on your face..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+          <label class="block text-xs font-semibold mb-1.5">Face Skin Concerns &amp; Goals (tap all that apply)</label>
+          <div id="chips_faceConcerns" class="flex flex-wrap gap-1.5"></div>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold mb-1">Current daily face routine &amp; preferred complexity (simple 2-3 steps vs. multi-step)</label>
-          <input id="q_faceRoutinePref" type="text" placeholder="e.g., prefer minimal steps, need SPF, avoid heavy creams..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+          <label class="block text-xs font-semibold mb-1.5">Preferred Daily Face Routine Complexity (select one)</label>
+          <div id="chips_faceRoutinePref" class="flex flex-wrap gap-1.5"></div>
         </div>
 
         <div class="flex justify-between pt-1">
@@ -193,23 +198,23 @@
         </div>
       </div>
 
-      <!-- STEP 4: BODY CARE QUESTIONS -->
+      <!-- STEP 4: BODY CARE OPTIONS -->
       <div id="step-4" class="card p-4 space-y-3 hidden">
         <h2 class="text-sm font-bold">4. Body Care (Washes, Bar Soaps, Lotions, Butters &amp; Oils)</h2>
 
         <div>
-          <label class="block text-xs font-semibold mb-1">Body skin condition &amp; trouble spots (dryness/ashiness, elbows/knees/heels, body acne, keratosis pilaris/bumps, ingrown hairs, dark marks)</label>
-          <input id="q_bodyConcerns" type="text" placeholder="Describe how your body skin behaves and where it gets dry or bumpy..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+          <label class="block text-xs font-semibold mb-1.5">Body Skin Concerns &amp; Trouble Areas (tap all that apply)</label>
+          <div id="chips_bodyConcerns" class="flex flex-wrap gap-1.5"></div>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold mb-1">Preferred cleansing format (body wash, bar soap, exfoliating scrub, shower oil)</label>
-          <input id="q_bodyCleansePref" type="text" placeholder="e.g., bar soap, creamy body wash, both..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+          <label class="block text-xs font-semibold mb-1.5">Preferred Body Cleansing Formats (tap all that apply)</label>
+          <div id="chips_bodyCleansePref" class="flex flex-wrap gap-1.5"></div>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold mb-1">Preferred moisture &amp; scent style (light lotion, rich cream, whipped body butter, body oil, fragrance-free vs. scented)</label>
-          <input id="q_bodyMoisturePref" type="text" placeholder="e.g., lotion + body butter or body oil, fragrance-free..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+          <label class="block text-xs font-semibold mb-1.5">Preferred Body Moisture &amp; Scent Style (tap all that apply)</label>
+          <div id="chips_bodyMoisturePref" class="flex flex-wrap gap-1.5"></div>
         </div>
 
         <div class="flex justify-between pt-1">
@@ -220,27 +225,22 @@
 
       <!-- STEP 5: BUDGET, STORES & PRO TREATMENT PREFERENCES -->
       <div id="step-5" class="card p-4 space-y-3 hidden">
-        <h2 class="text-sm font-bold">5. Budget, Stores &amp; Pro Treatment Preferences</h2>
+        <h2 class="text-sm font-bold">5. Budget, Preferred Stores &amp; Pro Treatments</h2>
 
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block text-xs font-semibold mb-1">Max price per product ($ USD)</label>
-            <input id="q_maxPrice" type="number" min="5" max="200" step="1" placeholder="e.g., 25 or 30" class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold mb-1">Shopping style</label>
-            <input id="q_shopStyle" type="text" placeholder="e.g., drugstore, beauty supply, online" class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
-          </div>
+        <div>
+          <label class="block text-xs font-semibold mb-1.5">Max Price Per Product (select one)</label>
+          <div id="chips_maxPrice" class="flex flex-wrap gap-1.5"></div>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold mb-1">Preferred stores (type any stores you actually shop at)</label>
-          <input id="q_stores" type="text" placeholder="e.g., Walmart, Target, Ulta, CVS, Walgreens, Sally Beauty, Amazon..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+          <label class="block text-xs font-semibold mb-1.5">Preferred Stores (tap all stores you shop at)</label>
+          <div id="chips_stores" class="flex flex-wrap gap-1.5"></div>
+          <input id="q_extraStores" type="text" placeholder="Optional: any other local or online store..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2 bg-[#FAF8F5] mt-2" />
         </div>
 
         <div>
-          <label class="block text-xs font-semibold mb-1">Open to Salon, Dermatologist, or Esthetician treatments? (budget / goals / questions)</label>
-          <input id="q_proPrefs" type="text" placeholder="e.g., interested in derm or esthetician options, hair salon treatments..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+          <label class="block text-xs font-semibold mb-1.5">Salon, Dermatologist &amp; Esthetician Interests (tap all that apply)</label>
+          <div id="chips_proPrefs" class="flex flex-wrap gap-1.5"></div>
         </div>
 
         <div class="flex items-center justify-between pt-2 gap-2">
@@ -262,7 +262,7 @@
       </div>
     </section>
 
-    <!-- TAB 2: CHECK-IN & AI ROUTINES (HAIR + WIGS/BRAIDS + CURLERS/ROLLERS + FACE + BODY + PRO) -->
+    <!-- TAB 2: CHECK-IN & AI ROUTINES -->
     <section id="tab-checkin" class="hidden space-y-4">
       <!-- Weather & AQI Card -->
       <div class="card p-4 bg-gradient-to-br from-white to-[#F8F3EA]">
@@ -292,13 +292,13 @@
           </div>
         </div>
         <p id="climateAdviceText" class="text-xs text-[#594E47]">
-          Enter your location in the <strong>Profile</strong> tab to pull live weather, humidity, UV, and AQI for your hair, face, and body.
+          Select or enter your city in the <strong>Profile</strong> tab to pull live weather, humidity, UV, and AQI.
         </p>
       </div>
 
       <!-- Check-In Form -->
       <div class="card p-4 space-y-3">
-        <h2 class="text-base font-bold">State Check-In (Photo or Description)</h2>
+        <h2 class="text-base font-bold">State Check-In (Selectable + Optional Photo/Note)</h2>
 
         <!-- Current Protective Style / Hair Mode Selector -->
         <div class="space-y-1.5">
@@ -323,15 +323,15 @@
 
         <!-- Root-Cause & Change Factors -->
         <div class="space-y-1">
-          <span class="text-[11px] font-bold uppercase tracking-wider text-[#726862]">3. Root-Cause &amp; Change Factors (Toggle any that apply)</span>
+          <span class="text-[11px] font-bold uppercase tracking-wider text-[#726862]">3. Today's Symptoms &amp; Change Factors (Tap all that apply)</span>
           <div id="triggerChipsBox" class="flex flex-wrap gap-1.5 pt-1"></div>
         </div>
 
-        <textarea id="checkinInput" rows="3" placeholder="Describe how your hair (or wig/braids), face, or body skin looks or feels right now, or attach a photo..." class="w-full rounded-xl border border-[#DDD4C8] p-3 text-sm bg-[#FAF8F5]"></textarea>
+        <textarea id="checkinInput" rows="2" placeholder="Optional note or extra details, or attach a photo below..." class="w-full rounded-xl border border-[#DDD4C8] p-3 text-xs bg-[#FAF8F5]"></textarea>
 
         <div class="flex items-center gap-2">
           <label class="flex-1 cursor-pointer flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border border-dashed border-[#A9772B] bg-[#F8F3EA] text-xs font-semibold text-[#8A5E1B]">
-            <span>📸 Snap / Upload Photo</span>
+            <span>📸 Snap / Upload Photo (Optional)</span>
             <input type="file" id="checkinPhotoInput" accept="image/*" capture="environment" class="hidden" onchange="handleCheckinPhoto(event)" />
           </label>
           <button id="clearPhotoBtn" onclick="clearCheckinPhoto()" class="hidden px-3 py-2.5 rounded-xl bg-red-50 text-red-700 text-xs font-semibold">Remove</button>
@@ -525,6 +525,147 @@
   <script>
     const ALL_STORES = ["Walmart", "Target", "Ulta Beauty", "CVS", "Walgreens", "Sally Beauty", "Amazon"];
 
+    // Selectable Option Banks for Guided Profile Builder
+    const PROFILE_OPTIONS = {
+      ageRange: ["Under 20", "20s", "30s", "40s", "50+"],
+      skinTone: [
+        "Deep / Rich Melanin",
+        "Medium-Deep / Brown",
+        "Olive / Tan",
+        "Fair / Light",
+        "Prone to Hyperpigmentation / Dark Marks"
+      ],
+      envFactors: [
+        "Overnight / Shift Work",
+        "Daytime Schedule",
+        "Dry Indoor Heat / AC (HVAC)",
+        "Hard Tap Water",
+        "High Outdoor Pollution / Smoke",
+        "Frequent Sun / UV Exposure"
+      ],
+      hairTexture: [
+        "Fine Strands",
+        "Medium Strands",
+        "Coarse Strands",
+        "Straight (Type 1)",
+        "Wavy (Type 2)",
+        "Curly (Type 3)",
+        "Coily / Kinky (Type 4)"
+      ],
+      hairChemical: [
+        "Relaxed",
+        "Colored / Dyed",
+        "Bleached / Lightened / Highlighted",
+        "Natural / Virgin (No Chemicals)",
+        "Texturized / Permed",
+        "Keratin / Smoothing Treated",
+        "Frequent Heat Styling"
+      ],
+      hairIssues: [
+        "Temple / Edge Breakage",
+        "Dry / Brittle Ends",
+        "Line-of-Demarcation Shedding",
+        "Brassiness / Color Fade",
+        "Dry / Flaky Scalp",
+        "Oily Scalp / Product Buildup",
+        "Thinning / Excess Shedding"
+      ],
+      washFreq: [
+        "2–3x Per Week",
+        "Weekly (Every 7 Days)",
+        "Biweekly (Every 14 Days)",
+        "Every 3–4 Weeks"
+      ],
+      hairGoals: [
+        "Stop Breakage & Rebuild Bonds",
+        "Moisture & Elasticity",
+        "Edge / Temple Regrowth",
+        "Color Protection & Shine",
+        "Frizz Control & Curl Hold",
+        "Scalp Health"
+      ],
+      protectiveStyles: [
+        "None (Hair Out)",
+        "Lace Front / Glueless Wigs",
+        "Braids / Cornrows Under Wig",
+        "Box Braids / Knotless Braids",
+        "Sew-In Weave / Crochet",
+        "Twists / Faux Locs"
+      ],
+      stylingTools: [
+        "None / Air Dry",
+        "Curling Iron / Curling Wand",
+        "Hot Rollers",
+        "Foam / Sponge Rollers",
+        "Flexi Rods",
+        "Velcro Rollers",
+        "Magnetic Wet-Set Rollers",
+        "Satin / Heatless Curling Rod"
+      ],
+      faceType: [
+        "Dry",
+        "Oily",
+        "Combination",
+        "Normal",
+        "Sensitive / Reactive"
+      ],
+      faceConcerns: [
+        "Dark Spots / Hyperpigmentation",
+        "Acne / Hormonal Breakouts",
+        "Dehydration / Tightness",
+        "Dullness / Uneven Texture",
+        "Redness / Barrier Damage",
+        "Fine Lines / Anti-Aging",
+        "Large Pores / Excess Shine"
+      ],
+      faceRoutinePref: [
+        "Minimal (2–3 Steps: Cleanse, Moisturize, SPF)",
+        "Moderate (4–5 Steps + Targeted Serum)",
+        "Full Multi-Step Routine"
+      ],
+      bodyConcerns: [
+        "Dry / Ashy Skin",
+        "Rough Elbows, Knees & Heels",
+        "Body Bumps / Keratosis Pilaris (KP)",
+        "Ingrown Hairs / Razor Bumps",
+        "Body Dark Marks / Uneven Tone",
+        "Back / Chest Breakouts",
+        "Sensitive / Eczema-Prone"
+      ],
+      bodyCleansePref: [
+        "Moisturizing Bar Soap",
+        "Creamy / Hydrating Body Wash",
+        "Exfoliating Body Scrub",
+        "Shower Oil",
+        "Antibacterial / Deodorant Bar"
+      ],
+      bodyMoisturePref: [
+        "Lightweight Body Lotion",
+        "Rich Body Cream",
+        "Whipped Body Butter",
+        "Body Oil (Damp Skin Seal)",
+        "Lotion + Body Butter/Oil Layering",
+        "Fragrance-Free Only",
+        "Scent Layering / Gourmand / Warm Scents"
+      ],
+      maxPrice: [
+        "Under $15",
+        "Under $20",
+        "Under $30",
+        "Under $45",
+        "Under $60"
+      ],
+      proPrefs: [
+        "Hair Salon (Bond Repair / Gloss / Trim)",
+        "Hair Salon (Tension-Free Braids / Silk Press)",
+        "Dermatologist (Scalp / Hairline Evaluation)",
+        "Dermatologist (Dark Spots / Acne / KP Rx)",
+        "Esthetician (Hydrating / Barrier Facials)",
+        "Esthetician (Mandelic/Lactic Peels or Body Care)",
+        "At-Home Care Only Right Now"
+      ]
+    };
+
     const HAIR_PROTECTIVE_MODES = [
       "Hair Out / Natural",
       "Wearing a Wig (Unit On)",
@@ -544,7 +685,7 @@
       },
       {
         title: "Curling Iron / Wand & Hot Rollers (Direct Heat)",
-        note: "Always apply a silicone or polymer thermal heat protectant before heat, keep temperature moderate for chemically treated/fine hair, and let curls cool completely in your hand or pinned before finger-combing."
+        note: "Always apply a silicone or polymer thermal heat protectant before heat, keep temperature moderate for relaxed/colored/fine hair, and let curls cool completely before finger-combing."
       },
       {
         title: "Foam / Sponge Rollers, Flexi Rods & Magnetic Wet Sets",
@@ -557,6 +698,7 @@
     ];
 
     const TRIGGER_FACTORS = [
+      { label: "Temple / edge breakage", domain: "hair", note: "Fine temple hairs snap easily from tension, dryness, or chemical overlap; keep styles loose and seal damp hair." },
       { label: "Wig band / cap friction on edges", domain: "hair", note: "Wig combs, tight bands, or adhesive can thin the hairline; use a velvet/silicone grip and alcohol-free remover." },
       { label: "Braid extension tension / buildup", domain: "hair", note: "Heavy extensions pull follicles and trap product at the base; use lightweight sprays and scalp cleansers." },
       { label: "Heat styling dryness / curl drop", domain: "hair", note: "Curling irons and hot rollers need thermal protection and humidity-shielding hold so curls last without scorching." },
@@ -582,32 +724,34 @@
         currentHairState: "Hair Out / Natural",
         selectedStylingMethod: "None / Air Dry / Natural",
         profile: {
-          demographics: "",
+          ageRange: "",
+          skinTone: [],
           city: "",
           lat: null,
           lon: null,
-          scheduleEnv: "",
+          envFactors: [],
           sensitivities: "",
-          hairTexture: "",
-          hairChemical: "",
-          hairIssues: "",
+          hairTexture: [],
+          hairChemical: [],
+          hairColorDetail: "",
+          hairIssues: [],
           washFreq: "",
-          hairGoal: "",
-          protectiveStyles: "",
-          stylingTools: "",
-          hairHabits: "",
+          hairGoals: [],
+          protectiveStyles: [],
+          stylingTools: [],
+          customOilNotes: "",
           faceType: "",
-          faceConcerns: "",
+          faceConcerns: [],
           faceRoutinePref: "",
-          bodyConcerns: "",
-          bodyCleansePref: "",
-          bodyMoisturePref: "",
-          shopStyle: "",
-          proPrefs: ""
+          bodyConcerns: [],
+          bodyCleansePref: [],
+          bodyMoisturePref: [],
+          proPrefs: []
         },
         shoppingPrefs: {
           maxPrice: 30,
-          stores: []
+          stores: [],
+          extraStores: ""
         },
         activeTriggers: [],
         inventory: [],
@@ -622,17 +766,17 @@
       };
     }
 
-    let state = JSON.parse(localStorage.getItem("auracare_blank_state_v21") || "null") || createBlankState();
+    let state = JSON.parse(localStorage.getItem("auracare_blank_state_v22") || "null") || createBlankState();
     let pendingCheckinImage = null;
     let codeReader = null;
 
     function saveState() {
-      localStorage.setItem("auracare_blank_state_v21", JSON.stringify(state));
+      localStorage.setItem("auracare_blank_state_v22", JSON.stringify(state));
     }
 
     function wipeAllToBlank() {
-      if (!confirm("Wipe all profile answers, owned products, and saved results back to completely blank?")) return;
-      localStorage.removeItem("auracare_blank_state_v21");
+      if (!confirm("Wipe all profile selections, owned products, and saved results back to completely blank?")) return;
+      localStorage.removeItem("auracare_blank_state_v22");
       state = createBlankState();
       pendingCheckinImage = null;
       document.getElementById("aiResultContainer").innerHTML = "";
@@ -670,6 +814,94 @@
       btn.classList.toggle("bg-emerald-50", state.lowEnergyMode);
     }
 
+    // ---------- CHIP SELECTOR HELPERS ----------
+    function toggleSingleOption(field, value) {
+      state.profile[field] = state.profile[field] === value ? "" : value;
+      saveState();
+      renderAllProfileChips();
+      renderProfileSummary();
+    }
+
+    function toggleMultiOption(field, value) {
+      if (!Array.isArray(state.profile[field])) state.profile[field] = [];
+      const idx = state.profile[field].indexOf(value);
+      if (idx >= 0) state.profile[field].splice(idx, 1);
+      else state.profile[field].push(value);
+      saveState();
+      renderAllProfileChips();
+      renderProfileSummary();
+    }
+
+    function selectPriceOption(label) {
+      const num = Number(label.replace(/[^0-9]/g, "")) || 30;
+      state.shoppingPrefs.maxPrice = num;
+      saveState();
+      renderAllProfileChips();
+      updateBudgetSetting(num);
+      renderProfileSummary();
+    }
+
+    function renderChipGroup(containerId, options, currentVal, isMulti, onClickFnName, fieldName) {
+      const box = document.getElementById(containerId);
+      if (!box) return;
+      box.innerHTML = options.map(opt => {
+        const active = isMulti
+          ? Array.isArray(currentVal) && currentVal.includes(opt)
+          : currentVal === opt;
+        return `
+          <button type="button" onclick="${onClickFnName}('${fieldName}', '${opt.replace(/'/g, "\'")}')"
+            class="text-[11px] px-2.5 py-1.5 rounded-full border font-semibold transition ${
+              active
+                ? "bg-[#231F1D] text-white border-[#231F1D]"
+                : "bg-white text-[#594E47] border-[#DDD4C8]"
+            }">
+            ${active ? "✓ " : "+ "}${opt}
+          </button>
+        `;
+      }).join("");
+    }
+
+    function renderAllProfileChips() {
+      const p = state.profile;
+      renderChipGroup("chips_ageRange", PROFILE_OPTIONS.ageRange, p.ageRange, false, "toggleSingleOption", "ageRange");
+      renderChipGroup("chips_skinTone", PROFILE_OPTIONS.skinTone, p.skinTone, true, "toggleMultiOption", "skinTone");
+      renderChipGroup("chips_envFactors", PROFILE_OPTIONS.envFactors, p.envFactors, true, "toggleMultiOption", "envFactors");
+
+      renderChipGroup("chips_hairTexture", PROFILE_OPTIONS.hairTexture, p.hairTexture, true, "toggleMultiOption", "hairTexture");
+      renderChipGroup("chips_hairChemical", PROFILE_OPTIONS.hairChemical, p.hairChemical, true, "toggleMultiOption", "hairChemical");
+      renderChipGroup("chips_hairIssues", PROFILE_OPTIONS.hairIssues, p.hairIssues, true, "toggleMultiOption", "hairIssues");
+      renderChipGroup("chips_washFreq", PROFILE_OPTIONS.washFreq, p.washFreq, false, "toggleSingleOption", "washFreq");
+      renderChipGroup("chips_hairGoals", PROFILE_OPTIONS.hairGoals, p.hairGoals, true, "toggleMultiOption", "hairGoals");
+      renderChipGroup("chips_protectiveStyles", PROFILE_OPTIONS.protectiveStyles, p.protectiveStyles, true, "toggleMultiOption", "protectiveStyles");
+      renderChipGroup("chips_stylingTools", PROFILE_OPTIONS.stylingTools, p.stylingTools, true, "toggleMultiOption", "stylingTools");
+
+      renderChipGroup("chips_faceType", PROFILE_OPTIONS.faceType, p.faceType, false, "toggleSingleOption", "faceType");
+      renderChipGroup("chips_faceConcerns", PROFILE_OPTIONS.faceConcerns, p.faceConcerns, true, "toggleMultiOption", "faceConcerns");
+      renderChipGroup("chips_faceRoutinePref", PROFILE_OPTIONS.faceRoutinePref, p.faceRoutinePref, false, "toggleSingleOption", "faceRoutinePref");
+
+      renderChipGroup("chips_bodyConcerns", PROFILE_OPTIONS.bodyConcerns, p.bodyConcerns, true, "toggleMultiOption", "bodyConcerns");
+      renderChipGroup("chips_bodyCleansePref", PROFILE_OPTIONS.bodyCleansePref, p.bodyCleansePref, true, "toggleMultiOption", "bodyCleansePref");
+      renderChipGroup("chips_bodyMoisturePref", PROFILE_OPTIONS.bodyMoisturePref, p.bodyMoisturePref, true, "toggleMultiOption", "bodyMoisturePref");
+
+      const currentPriceLabel = `Under $${state.shoppingPrefs.maxPrice}`;
+      renderChipGroup("chips_maxPrice", PROFILE_OPTIONS.maxPrice, currentPriceLabel, false, "selectPriceOption", "maxPrice");
+
+      const storeBox = document.getElementById("chips_stores");
+      storeBox.innerHTML = ALL_STORES.map(store => {
+        const active = (state.shoppingPrefs.stores || []).includes(store);
+        return `
+          <button type="button" onclick="toggleStorePref('${store}')"
+            class="text-[11px] px-2.5 py-1.5 rounded-full border font-semibold transition ${
+              active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#594E47] border-[#DDD4C8]"
+            }">
+            ${active ? "✓ " : "+ "}${store}
+          </button>
+        `;
+      }).join("");
+
+      renderChipGroup("chips_proPrefs", PROFILE_OPTIONS.proPrefs, p.proPrefs, true, "toggleMultiOption", "proPrefs");
+    }
+
     // ---------- PROTECTIVE STYLE & STYLING TOOL CONTROLS ----------
     function setHairState(modeLabel) {
       state.currentHairState = modeLabel;
@@ -697,7 +929,7 @@
       saveState();
     }
 
-    // ---------- PROFILE BUILDER ----------
+    // ---------- PROFILE BUILDER NAVIGATION & INPUT SYNC ----------
     function setBuilderStep(step) {
       state.currentStep = step;
       saveState();
@@ -714,64 +946,32 @@
 
     function syncInputsFromState() {
       const p = state.profile;
-      document.getElementById("q_demographics").value = p.demographics || "";
       document.getElementById("q_city").value = p.city || "";
-      document.getElementById("q_scheduleEnv").value = p.scheduleEnv || "";
       document.getElementById("q_sensitivities").value = p.sensitivities || "";
-      document.getElementById("q_hairTexture").value = p.hairTexture || "";
-      document.getElementById("q_hairChemical").value = p.hairChemical || "";
-      document.getElementById("q_hairIssues").value = p.hairIssues || "";
-      document.getElementById("q_washFreq").value = p.washFreq || "";
-      document.getElementById("q_hairGoal").value = p.hairGoal || "";
-      document.getElementById("q_protectiveStyles").value = p.protectiveStyles || "";
-      document.getElementById("q_stylingTools").value = p.stylingTools || "";
-      document.getElementById("q_hairHabits").value = p.hairHabits || "";
-      document.getElementById("q_faceType").value = p.faceType || "";
-      document.getElementById("q_faceConcerns").value = p.faceConcerns || "";
-      document.getElementById("q_faceRoutinePref").value = p.faceRoutinePref || "";
-      document.getElementById("q_bodyConcerns").value = p.bodyConcerns || "";
-      document.getElementById("q_bodyCleansePref").value = p.bodyCleansePref || "";
-      document.getElementById("q_bodyMoisturePref").value = p.bodyMoisturePref || "";
-      document.getElementById("q_maxPrice").value = state.shoppingPrefs.maxPrice || 30;
-      document.getElementById("q_shopStyle").value = p.shopStyle || "";
-      document.getElementById("q_stores").value = (state.shoppingPrefs.stores || []).join(", ");
-      document.getElementById("q_proPrefs").value = p.proPrefs || "";
+      document.getElementById("q_hairColorDetail").value = p.hairColorDetail || "";
+      document.getElementById("q_customOilNotes").value = p.customOilNotes || "";
+      document.getElementById("q_extraStores").value = state.shoppingPrefs.extraStores || "";
       document.getElementById("stylingMethodSelect").value = state.selectedStylingMethod || "None / Air Dry / Natural";
     }
 
     function collectProfileFromInputs() {
-      state.profile = {
-        ...state.profile,
-        demographics: document.getElementById("q_demographics").value.trim(),
-        city: document.getElementById("q_city").value.trim(),
-        scheduleEnv: document.getElementById("q_scheduleEnv").value.trim(),
-        sensitivities: document.getElementById("q_sensitivities").value.trim(),
-        hairTexture: document.getElementById("q_hairTexture").value.trim(),
-        hairChemical: document.getElementById("q_hairChemical").value.trim(),
-        hairIssues: document.getElementById("q_hairIssues").value.trim(),
-        washFreq: document.getElementById("q_washFreq").value.trim(),
-        hairGoal: document.getElementById("q_hairGoal").value.trim(),
-        protectiveStyles: document.getElementById("q_protectiveStyles").value.trim(),
-        stylingTools: document.getElementById("q_stylingTools").value.trim(),
-        hairHabits: document.getElementById("q_hairHabits").value.trim(),
-        faceType: document.getElementById("q_faceType").value.trim(),
-        faceConcerns: document.getElementById("q_faceConcerns").value.trim(),
-        faceRoutinePref: document.getElementById("q_faceRoutinePref").value.trim(),
-        bodyConcerns: document.getElementById("q_bodyConcerns").value.trim(),
-        bodyCleansePref: document.getElementById("q_bodyCleansePref").value.trim(),
-        bodyMoisturePref: document.getElementById("q_bodyMoisturePref").value.trim(),
-        shopStyle: document.getElementById("q_shopStyle").value.trim(),
-        proPrefs: document.getElementById("q_proPrefs").value.trim()
-      };
-      const priceInput = Number(document.getElementById("q_maxPrice").value);
-      if (priceInput > 0) state.shoppingPrefs.maxPrice = priceInput;
-
-      const rawStores = document.getElementById("q_stores").value.trim();
-      if (rawStores) {
-        state.shoppingPrefs.stores = rawStores.split(",").map(s => s.trim()).filter(Boolean);
-      }
+      state.profile.city = document.getElementById("q_city").value.trim();
+      state.profile.sensitivities = document.getElementById("q_sensitivities").value.trim();
+      state.profile.hairColorDetail = document.getElementById("q_hairColorDetail").value.trim();
+      state.profile.customOilNotes = document.getElementById("q_customOilNotes").value.trim();
+      state.shoppingPrefs.extraStores = document.getElementById("q_extraStores").value.trim();
       saveState();
       renderProfileSummary();
+    }
+
+    function getEffectiveStores() {
+      const base = [...(state.shoppingPrefs.stores || [])];
+      if (state.shoppingPrefs.extraStores) {
+        state.shoppingPrefs.extraStores.split(",").map(s => s.trim()).filter(Boolean).forEach(s => {
+          if (!base.includes(s)) base.push(s);
+        });
+      }
+      return base;
     }
 
     async function completeProfileSetup() {
@@ -791,18 +991,17 @@
 
     function renderProfileSummary() {
       const p = state.profile;
+      const storesList = getEffectiveStores();
       const entries = [
-        ["Location", p.city],
-        ["Demographics", p.demographics],
-        ["Schedule & Env", p.scheduleEnv],
-        ["Sensitivities", p.sensitivities],
-        ["Hair", [p.hairTexture, p.hairChemical, p.hairIssues, p.washFreq && `Wash: ${p.washFreq}`, p.hairGoal && `Goal: ${p.hairGoal}`].filter(Boolean).join(" • ")],
-        ["Wigs & Braids", p.protectiveStyles],
-        ["Rollers & Styling", p.stylingTools],
-        ["Face", [p.faceType, p.faceConcerns, p.faceRoutinePref].filter(Boolean).join(" • ")],
-        ["Body", [p.bodyConcerns, p.bodyCleansePref, p.bodyMoisturePref].filter(Boolean).join(" • ")],
-        ["Budget & Stores", `$${state.shoppingPrefs.maxPrice} max • ${(state.shoppingPrefs.stores || []).join(", ") || "None specified"}`],
-        ["Pro Care", p.proPrefs]
+        ["Basics", [p.ageRange, ...(p.skinTone || []), p.city].filter(Boolean).join(" • ")],
+        ["Environment", [...(p.envFactors || []), p.sensitivities].filter(Boolean).join(" • ")],
+        ["Hair", [...(p.hairTexture || []), ...(p.hairChemical || []), p.hairColorDetail, p.washFreq && `Wash: ${p.washFreq}`].filter(Boolean).join(" • ")],
+        ["Hair Concerns & Goals", [...(p.hairIssues || []), ...(p.hairGoals || [])].filter(Boolean).join(" • ")],
+        ["Wigs, Braids & Styling", [...(p.protectiveStyles || []), ...(p.stylingTools || []), p.customOilNotes].filter(Boolean).join(" • ")],
+        ["Face", [p.faceType, ...(p.faceConcerns || []), p.faceRoutinePref].filter(Boolean).join(" • ")],
+        ["Body", [...(p.bodyConcerns || []), ...(p.bodyCleansePref || []), ...(p.bodyMoisturePref || [])].filter(Boolean).join(" • ")],
+        ["Shopping", `$${state.shoppingPrefs.maxPrice} max${storesList.length ? ` • ${storesList.join(", ")}` : ""}`],
+        ["Pro Care", (p.proPrefs || []).join(" • ")]
       ].filter(([, v]) => v);
 
       const pill = document.getElementById("profileStatusPill");
@@ -1012,7 +1211,10 @@
             weather: state.weather,
             inventory: state.inventory,
             lowEnergyMode: state.lowEnergyMode,
-            shoppingPrefs: state.shoppingPrefs
+            shoppingPrefs: {
+              maxPrice: state.shoppingPrefs.maxPrice,
+              stores: getEffectiveStores()
+            }
           })
         });
         const data = await resp.json();
@@ -1309,9 +1511,10 @@
       if (idx >= 0) arr.splice(idx, 1);
       else arr.push(store);
       state.shoppingPrefs.stores = arr;
-      document.getElementById("q_stores").value = arr.join(", ");
       saveState();
+      renderAllProfileChips();
       renderStoreChips();
+      renderProfileSummary();
     }
 
     function updateBudgetSetting(val) {
@@ -1319,8 +1522,10 @@
       state.shoppingPrefs.maxPrice = num;
       document.getElementById("budgetValLabel").textContent = num;
       document.getElementById("budgetBadge").textContent = num;
-      document.getElementById("q_maxPrice").value = num;
+      document.getElementById("maxPriceSlider").value = num;
       saveState();
+      renderAllProfileChips();
+      renderProfileSummary();
     }
 
     async function fetchStoreRecommendations() {
@@ -1346,7 +1551,7 @@
             inventory: state.inventory,
             shoppingPrefs: {
               maxPrice: state.shoppingPrefs.maxPrice,
-              stores: state.shoppingPrefs.stores,
+              stores: getEffectiveStores(),
               focusArea: document.getElementById("shopFocusSelect").value
             }
           })
@@ -1384,7 +1589,7 @@
     function renderShopResults(recs) {
       const list = document.getElementById("shopResultsList");
       if (!recs || !recs.length) {
-        list.innerHTML = `<div class="card p-4 text-xs text-[#726862]">No recommendations generated yet. Fill out your profile or click <strong>Find Matches</strong>.</div>`;
+        list.innerHTML = `<div class="card p-4 text-xs text-[#726862]">No recommendations generated yet. Select your profile options or click <strong>Find Matches</strong>.</div>`;
         return;
       }
       list.innerHTML = recs.map((r, idx) => `
@@ -1407,6 +1612,7 @@
 
     function init() {
       syncInputsFromState();
+      renderAllProfileChips();
       setBuilderStep(state.currentStep || 1);
       renderEnergyButton();
       renderHairModeChips();

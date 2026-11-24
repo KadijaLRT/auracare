@@ -15,8 +15,8 @@ export default async function handler(req, res) {
       mode = 'routine', // 'routine' | 'product_photo' | 'shop_recs'
       description = '',
       activeTriggers = [],
-      currentHairState = 'Natural / Out',
-      selectedStylingMethod = 'None / Air Dry',
+      currentHairState = 'Hair Out / Natural',
+      selectedStylingMethod = 'None / Air Dry / Natural',
       imageBase64 = null,
       profile = {},
       weather = {},
@@ -141,7 +141,7 @@ Return ONLY valid JSON (no markdown fences) with this exact structure:
     const systemInstructions = `You are an expert trichologist, dermatologist advisor, and licensed esthetician building a practical Hair, Face & Body care plan based ONLY on the user's stated profile, current check-in, protective style state, styling method, stash, weather/AQI, and active triggers. Do not assume unstated demographics or traits.
 - User Profile: ${JSON.stringify(profile || {})}
 - Current Hair Protective State: ${currentHairState} (If wearing a wig: cover scalp care underneath, wig-cap/band edge friction protection, moisturizing braids/cornrows under the unit, and unit maintenance. If wearing braid extensions: cover diluted/no-rinse scalp cleansing, braid spray/leave-in misting without heavy buildup, edge tension relief, and takedown prep.)
-- Selected Styling Tool / Roller Method: ${selectedStylingMethod} (Provide exact prep, setting/heat products, temperature/drying precautions, and takedown steps specific to that tool: e.g., curling iron -> heat protectant + lightweight thermal hold; hot rollers -> thermal primer + cooling before unrolling; foam/sponge rollers -> setting foam/lotion + satin end papers + full dry time; flexi rods -> wrapping mousse/lotion + lightweight oil seal; velcro rollers -> blowout/heat protectant + root lift spray; satin/heatless curlers -> damp/mist prep + light serum.)
+- Selected Styling Tool / Roller Method: ${selectedStylingMethod} (Provide exact prep, setting/heat products, temperature/drying precautions, and takedown steps specific to that tool.)
 - Active Change Triggers Selected: ${JSON.stringify(activeTriggers || [])}
 - Location & Live Weather/Air Quality: ${JSON.stringify(weather || {})}
 - Current Owned Inventory: ${JSON.stringify(inventory || [])}
