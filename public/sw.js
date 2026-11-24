@@ -1,4 +1,4 @@
-const CACHE_NAME = 'auracare-blank-v2-9';
+const CACHE_NAME = 'auracare-blank-v2-10';
 const ASSETS = ['/', '/index.html', '/manifest.json', '/icon.svg'];
 
 self.addEventListener('install', (e) => {

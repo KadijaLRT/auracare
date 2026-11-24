@@ -1,4 +1,5 @@
-async function callGroqChat(apiKey, model, messages, temperature = 0.2, max_tokens = 2000) {
+async function callGroqChat(apiKey, model, messages, temperature = 0.2, max_tokens = 900) {
+  const safeMaxTokens = Math.min(Number(max_tokens) || 900, 950);
   const groqResp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -8,7 +9,7 @@ async function callGroqChat(apiKey, model, messages, temperature = 0.2, max_toke
     body: JSON.stringify({
       model,
       temperature,
-      max_tokens,
+      max_tokens: safeMaxTokens,
       messages
     })
   });
@@ -39,8 +40,7 @@ function parseJsonLoose(rawText) {
     const startIdx = cleaned.indexOf('{');
     const endIdx = cleaned.lastIndexOf('}');
     if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
-      const candidate = cleaned.slice(startIdx, endIdx + 1);
-      return JSON.parse(candidate);
+      return JSON.parse(cleaned.slice(startIdx, endIdx + 1));
     }
     throw new Error('Model response could not be parsed as valid JSON.');
   }
@@ -78,15 +78,8 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'No product photo provided.' });
       }
 
-      const visionPrompt = `You are a cosmetic chemist and beauty inventory assistant. Examine this product photo (front label, back ingredients, or barcode label) and extract product details into strict JSON with keys:
-- "name": string (exact product name and brand)
-- "brand": string (brand name)
-- "domain": string ("hair", "skin", or "body")
-- "category": string (one of: "Bond Repair", "Shampoo", "Clarifying / Chelating Shampoo", "Deep Conditioner", "Protein Treatment", "Leave-In / Mist", "Hair Oil / Sealant", "Heat Protectant", "Setting Mousse / Foam / Lotion", "Wig / Braid Scalp & Edge Care", "Face Cleanser", "Face Treatment", "Face Moisturizer", "Sunscreen", "Body Wash / Bar Soap", "Body Scrub / Exfoliant", "Body Lotion / Cream", "Body Butter", "Body Oil", "Body Powder / Dusting Powder", "Other")
-- "keyIngredients": array of 3-5 notable active/beneficial ingredients or warnings
-- "safetyNote": string (1 short sentence on compatibility and precautions based on the user's profile: ${JSON.stringify(profile || {})})
-
-Return ONLY valid JSON, no markdown fences or extra text.`;
+      const visionPrompt = `Read this product label/barcode photo and return ONLY compact JSON (no <think>, no markdown):
+{"name":"Brand & Product Name","brand":"Brand","domain":"hair|skin|body","category":"Bond Repair|Shampoo|Clarifying / Chelating Shampoo|Deep Conditioner|Protein Treatment|Leave-In / Mist|Hair Oil / Sealant|Heat Protectant|Setting Mousse / Foam / Lotion|Wig / Braid Scalp & Edge Care|Face Cleanser|Face Treatment|Face Moisturizer|Sunscreen|Body Wash / Bar Soap|Body Scrub / Exfoliant|Body Lotion / Cream|Body Butter|Body Oil|Body Powder / Dusting Powder|Other","keyIngredients":["ing1","ing2"],"safetyNote":"1 short note for profile"}`;
 
       const rawText = await callGroqChat(
         apiKey,
@@ -101,7 +94,7 @@ Return ONLY valid JSON, no markdown fences or extra text.`;
           }
         ],
         0.2,
-        1400
+        850
       );
 
       return res.status(200).json({ result: parseJsonLoose(rawText) });
@@ -114,39 +107,19 @@ Return ONLY valid JSON, no markdown fences or extra text.`;
         : 'Any store';
       const focusArea = shoppingPrefs.focusArea || 'All missing hair, face & body essentials';
 
-      const shopPrompt = `You are a trichologist, licensed esthetician, and smart beauty shopper.
-Recommend 6 specific, real hair, face, and body care products tailored strictly to the user's profile, current hair state (relaxed hair, natural hair, wig, or braid extensions), and styling tools (curling iron, hot rollers, foam/flexi/velcro/satin rollers):
-- User Profile: ${JSON.stringify(profile || {})}
-- Current Hair Mode: ${currentHairState}
-- Selected Styling Method / Rollers / Heat Tool: ${selectedStylingMethod}
-- Active Change Triggers Selected: ${JSON.stringify(activeTriggers || [])}
-- Location & Live Weather/AQI: ${JSON.stringify(weather || {})}
-- Products User ALREADY OWNS (including any homemade body powder or custom oil mixes — DO NOT recommend duplicates): ${JSON.stringify(inventory || [])}
-- Preferred Stores: ${stores}
-- Maximum Price Per Item: $${maxPrice} USD (EVERY item MUST be strictly $${maxPrice} or under!)
-- Focus Filter: ${focusArea}
-
-Return ONLY valid JSON (no markdown fences) with this exact structure:
-{
-  "recommendations": [
-    {
-      "name": "Exact Brand & Product Name",
-      "domain": "hair" or "skin" or "body",
-      "category": "Category string",
-      "price": "$14.99",
-      "numericPrice": 14.99,
-      "bestStore": "Best matching store from their preferred list",
-      "alsoAt": "Other stores where commonly sold",
-      "whyItFits": "1 short sentence explaining how it matches their profile, current hair state, roller/curling tool, body layering (including body powder if used), weather/AQI, and stash gaps."
-    }
-  ]
-}`;
+      const shopPrompt = `Recommend 5 specific products <=$${maxPrice} at [${stores}] for focus "${focusArea}".
+Profile: ${JSON.stringify(profile || {})}
+Hair mode: ${currentHairState} | Styling: ${selectedStylingMethod} | Triggers: ${(activeTriggers || []).join(', ')}
+Weather/AQI: ${JSON.stringify(weather || {})}
+Owned stash (skip duplicates): ${JSON.stringify((inventory || []).map(i => i.name))}
+Return ONLY compact JSON:
+{"recommendations":[{"name":"Brand Product","domain":"hair|skin|body","category":"Category","price":"$14.99","numericPrice":14.99,"bestStore":"Store","alsoAt":"Store2","whyItFits":"1 short reason"}]}`;
 
       let rawText;
       try {
-        rawText = await callGroqChat(apiKey, 'openai/gpt-oss-120b', [{ role: 'user', content: shopPrompt }], 0.3, 1800);
+        rawText = await callGroqChat(apiKey, 'openai/gpt-oss-120b', [{ role: 'user', content: shopPrompt }], 0.3, 950);
       } catch (_) {
-        rawText = await callGroqChat(apiKey, 'qwen/qwen3.8-27b', [{ role: 'user', content: shopPrompt }], 0.3, 1800);
+        rawText = await callGroqChat(apiKey, 'qwen/qwen3.8-27b', [{ role: 'user', content: shopPrompt }], 0.3, 950);
       }
 
       return res.status(200).json({ result: parseJsonLoose(rawText) });
@@ -157,61 +130,23 @@ Return ONLY valid JSON (no markdown fences) with this exact structure:
       ? shoppingPrefs.stores.join(', ')
       : 'Any store';
 
-    const systemInstructions = `You are an expert trichologist, dermatologist advisor, and licensed esthetician building a practical Hair, Face & Body care plan based ONLY on the user's stated profile, current check-in, current hair state, styling method, stash, weather/AQI, and active triggers. Do not assume unstated demographics or traits.
-- User Profile: ${JSON.stringify(profile || {})}
-- Current Hair State: ${currentHairState}
-- Selected Styling Tool / Roller Method: ${selectedStylingMethod}
-- Active Change Triggers Selected: ${JSON.stringify(activeTriggers || [])}
-- Location & Live Weather/Air Quality: ${JSON.stringify(weather || {})}
-- Current Owned Inventory: ${JSON.stringify(inventory || [])}
-- Preferred Stores: ${stores}
-- Max Budget Per New Item: $${maxPrice}
-- Low-Energy / Short Mode: ${lowEnergyMode ? 'YES (keep each routine to max 2-3 essential steps)' : 'NO (full tailored routine)'}
+    const systemInstructions = `Build a concise Hair, Face & Body care plan from the user's profile, check-in, stash, triggers, and weather/AQI without assuming unstated traits. Max price per item: $${maxPrice}. Stores: ${stores}. ${lowEnergyMode ? 'Keep routines to 2 short steps each.' : 'Keep each step brief and actionable.'}
+Return ONLY compact JSON:
+{"climateImpact":"1-2 sentences","rootCauseInsights":[{"cause":"Cause","fix":"1 short fix"}],"hairAssessment":"1 sentence","skinAssessment":"1 sentence","hairRoutine":[{"step":"Step","detail":"Brief action","productUsed":"Stash item or step","essential":true}],"stylingGuide":{"method":"${selectedStylingMethod}","prepAndProtection":"Brief prep","recommendedProducts":[{"productType":"Type","suggestion":"Product <=$${maxPrice}","howToUse":"Brief tip"}],"techniqueAndTakedown":"Brief tip"},"skinRoutine":[{"step":"Step","detail":"Brief action","productUsed":"Stash item or step","essential":true}],"bodyRoutine":[{"step":"Step","detail":"Brief wash/lotion/butter/oil/powder action","productUsed":"Stash item or step","essential":true}],"proTreatments":[{"provider":"Salon|Dermatologist|Esthetician","treatment":"Service","why":"Brief reason","cadence":"Cadence"}],"missingProducts":[{"name":"Product","domain":"hair|skin|body","store":"Store","reason":"Brief reason","estimatedPrice":"$14.99"}]}`;
 
-Return ONLY valid JSON (no markdown fences) with this exact structure:
-{
-  "climateImpact": "2-3 concise sentences explaining how current local temperature, humidity/dew point, UV, and AQI affect their hair, face, and body.",
-  "rootCauseInsights": [
-    { "cause": "Non-weather trigger or factor relevant to their check-in/profile", "fix": "1-2 short actionable sentences on how to address it." }
-  ],
-  "hairAssessment": "1-2 concise sentences assessing their hair/scalp state.",
-  "skinAssessment": "1-2 concise sentences assessing their face & body skin state.",
-  "hairRoutine": [
-    { "step": "Step title", "detail": "Short actionable instruction", "productUsed": "Product from stash or general step", "essential": true }
-  ],
-  "stylingGuide": {
-    "method": "${selectedStylingMethod}",
-    "prepAndProtection": "How to prep hair/extensions and protect from heat or tension before using this tool/roller.",
-    "recommendedProducts": [
-      { "productType": "Product type", "suggestion": "Specific product name under $${maxPrice} at their preferred store", "howToUse": "1 short sentence" }
-    ],
-    "techniqueAndTakedown": "Key setting, temperature, drying, and unrolling/takedown tips."
-  },
-  "skinRoutine": [
-    { "step": "Step title", "detail": "Short actionable instruction", "productUsed": "Product from stash or general step", "essential": true }
-  ],
-  "bodyRoutine": [
-    { "step": "Step title", "detail": "Short actionable instruction covering body wash/bar soap, lotion, body butter, body oil, and body powder placement", "productUsed": "Product from stash or general step", "essential": true }
-  ],
-  "proTreatments": [
-    { "provider": "Salon" or "Dermatologist" or "Esthetician", "treatment": "Exact service name", "why": "Why it helps their specific profile/state and what precautions to ask about", "cadence": "Recommended cadence" }
-  ],
-  "missingProducts": [
-    { "name": "Specific Brand & Product Name", "domain": "hair|skin|body", "store": "Preferred store", "reason": "Why it fills a gap in their current stash", "estimatedPrice": "$14.99" }
-  ]
-}`;
-
-    const userPrompt = `Current Check-In Description: ${description || 'Generate a routine based on my profile, current hair state, styling tool, active triggers, current stash, and local weather/AQI.'}
-Current Hair State: ${currentHairState}
-Selected Styling Method: ${selectedStylingMethod}
-Active Triggers: ${activeTriggers.length ? activeTriggers.join(', ') : 'None selected'}`;
+    const userPrompt = `Check-in: ${description || 'Routine check-in'}
+Hair mode: ${currentHairState} | Styling: ${selectedStylingMethod}
+Triggers: ${(activeTriggers || []).join(', ') || 'None'}
+Profile: ${JSON.stringify(profile || {})}
+Weather/AQI: ${JSON.stringify(weather || {})}
+Stash: ${JSON.stringify((inventory || []).map(i => `${i.name} (${i.category})`))}`;
 
     const messages = imageBase64
       ? [
           {
             role: 'user',
             content: [
-              { type: 'text', text: systemInstructions + '\n\n' + userPrompt },
+              { type: 'text', text: systemInstructions + '\n' + userPrompt },
               { type: 'image_url', image_url: { url: imageBase64 } }
             ]
           }
@@ -226,9 +161,9 @@ Active Triggers: ${activeTriggers.length ? activeTriggers.join(', ') : 'None sel
 
     let rawText;
     try {
-      rawText = await callGroqChat(apiKey, primaryModel, messages, 0.3, 2400);
+      rawText = await callGroqChat(apiKey, primaryModel, messages, 0.3, 950);
     } catch (_) {
-      rawText = await callGroqChat(apiKey, fallbackModel, messages, 0.3, 2400);
+      rawText = await callGroqChat(apiKey, fallbackModel, messages, 0.3, 950);
     }
 
     return res.status(200).json({ result: parseJsonLoose(rawText) });

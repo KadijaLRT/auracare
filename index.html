@@ -11,7 +11,6 @@
   <link rel="apple-touch-icon" href="/icon.svg" />
   <title>AuraCare — Blank Profile &amp; Care Studio</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <style>
     :root {
       --bg: #FAF8F5;
@@ -317,40 +316,13 @@
       <div class="card p-4 space-y-3">
         <div>
           <h2 class="text-base font-bold">My Product Stash (Starts Blank)</h2>
-          <p class="text-xs text-[#726862]">Use live rear camera barcode scan, snap a barcode/bottle photo, or enter a barcode/product manually.</p>
+          <p class="text-xs text-[#726862]">Snap a product label photo or add items manually below.</p>
         </div>
 
-        <div class="grid grid-cols-2 gap-2">
-          <button id="liveScanBtn" type="button" onclick="openBarcodeScanner()" class="py-3 px-3 rounded-xl bg-[#231F1D] text-white text-xs font-semibold flex items-center justify-center gap-1.5">
-            <span>🏁</span> Live Barcode Scan
-          </button>
-          <label class="cursor-pointer py-3 px-3 rounded-xl bg-[#A9772B] text-white text-xs font-semibold flex items-center justify-center gap-1.5 text-center">
-            <span>📷</span> Snap Label / Barcode
-            <input type="file" id="productPhotoInput" accept="image/*" capture="environment" class="hidden" onchange="handleProductPhotoScan(event)" />
-          </label>
-        </div>
-
-        <!-- Live Camera & Barcode Scanner Panel -->
-        <div id="scannerBox" class="hidden space-y-2.5 pt-2">
-          <div class="relative rounded-xl overflow-hidden bg-black aspect-[4/3]">
-            <video id="liveCameraVideo" autoplay playsinline muted class="w-full h-full object-cover"></video>
-            <div class="pointer-events-none absolute inset-x-6 top-1/2 -translate-y-1/2 h-0.5 bg-amber-400 shadow-[0_0_8px_#fbbf24]"></div>
-          </div>
-
-          <div class="flex gap-2 items-center">
-            <button type="button" onclick="captureFrameAndScan()" class="flex-1 py-2 px-2.5 rounded-lg bg-[#A9772B] text-white text-xs font-semibold">
-              📸 Capture Frame &amp; Scan
-            </button>
-            <button type="button" onclick="closeBarcodeScanner()" class="px-3 py-2 rounded-lg bg-gray-200 text-gray-800 text-xs font-semibold">
-              Stop Camera
-            </button>
-          </div>
-
-          <div class="flex gap-2">
-            <input id="manualBarcodeInput" type="text" inputmode="numeric" placeholder="Or type barcode digits (e.g., 071249343326)..." class="flex-1 text-xs border border-[#DDD4C8] rounded-lg px-2.5 py-2" />
-            <button type="button" onclick="lookupBarcode(document.getElementById('manualBarcodeInput').value)" class="px-3 py-2 rounded-lg bg-[#231F1D] text-white text-xs font-semibold">Lookup</button>
-          </div>
-        </div>
+        <label class="cursor-pointer w-full py-3 px-4 rounded-xl bg-[#A9772B] text-white text-xs font-bold flex items-center justify-center gap-2 text-center shadow-sm">
+          <span>📷</span> Snap Product Label
+          <input type="file" id="productPhotoInput" accept="image/*" capture="environment" class="hidden" onchange="handleProductPhotoScan(event)" />
+        </label>
 
         <p id="scanStatusMsg" class="text-xs text-[#8A5E1B] font-medium hidden"></p>
 
@@ -597,21 +569,18 @@
       };
     }
 
-    let state = normalizeState(JSON.parse(localStorage.getItem("auracare_blank_state_v28") || "null"));
+    let state = normalizeState(JSON.parse(localStorage.getItem("auracare_blank_state_v210") || "null"));
     let pendingCheckinImage = null;
-    let cameraStream = null;
-    let scanLoopTimer = null;
-    let nativeBarcodeDetector = null;
-    let frameCanvas = null;
+
 
     function saveState() {
       state = normalizeState(state);
-      localStorage.setItem("auracare_blank_state_v28", JSON.stringify(state));
+      localStorage.setItem("auracare_blank_state_v210", JSON.stringify(state));
     }
 
     function wipeAllToBlank() {
       if (!confirm("Wipe all profile selections, owned products, and saved results back to completely blank?")) return;
-      localStorage.removeItem("auracare_blank_state_v28");
+      localStorage.removeItem("auracare_blank_state_v210");
       state = createBlankState();
       pendingCheckinImage = null;
       document.getElementById("aiResultContainer").innerHTML = "";
@@ -632,7 +601,6 @@
           nav.classList.add("text-[#726862]");
         }
       });
-      if (tab !== "stash") closeBarcodeScanner();
     }
 
     function toggleEnergyMode() {
@@ -993,7 +961,7 @@
             imageBase64: pendingCheckinImage,
             profile: state.profile,
             weather: state.weather,
-            inventory: slimInventory(state.inventory),
+            inventory: state.inventory,
             lowEnergyMode: state.lowEnergyMode,
             shoppingPrefs: {
               maxPrice: state.shoppingPrefs.maxPrice,
@@ -1050,249 +1018,6 @@
       `;
     }
 
-    // ---------- DIRECT iOS SAFARI CAMERA STREAM + BARCODE / AI LABEL SCANNER ----------
-    async function openBarcodeScanner() {
-      const box = document.getElementById("scannerBox");
-      const status = document.getElementById("scanStatusMsg");
-      const video = document.getElementById("liveCameraVideo");
-
-      box.classList.remove("hidden");
-      status.textContent = "Requesting rear camera permission...";
-      status.classList.remove("hidden");
-
-      await closeBarcodeScanner(false);
-
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        status.textContent = "Live camera requires HTTPS in Safari. Tap 'Snap Label / Barcode' or type the barcode below.";
-        return;
-      }
-
-      try {
-        cameraStream = await navigator.mediaDevices.getUserMedia({
-          audio: false,
-          video: {
-            facingMode: { ideal: "environment" },
-            width: { ideal: 1280 },
-            height: { ideal: 720 }
-          }
-        });
-        video.srcObject = cameraStream;
-        await video.play().catch(() => {});
-        status.textContent = "Camera live! Point at a barcode or tap 'Capture Frame & Scan' (or 'Snap Label / Barcode' for AI label scan).";
-
-        if ("BarcodeDetector" in window) {
-          try {
-            nativeBarcodeDetector = new window.BarcodeDetector({
-              formats: ["upc_a", "upc_e", "ean_13", "ean_8", "code_128", "code_39", "qr_code"]
-            });
-          } catch (_) {
-            nativeBarcodeDetector = null;
-          }
-        }
-
-        scanLoopTimer = setInterval(async () => {
-          if (!cameraStream || video.readyState < 2) return;
-          try {
-            if (nativeBarcodeDetector) {
-              const codes = await nativeBarcodeDetector.detect(video);
-              if (codes && codes.length > 0 && codes[0].rawValue) {
-                const found = codes[0].rawValue;
-                await closeBarcodeScanner(true);
-                await lookupBarcode(found);
-              }
-            }
-          } catch (_) {}
-        }, 450);
-      } catch (err) {
-        status.textContent = `Camera error (${err.name || "unavailable"}). Use 'Snap Label / Barcode' or enter digits below.`;
-      }
-    }
-
-    async function captureFrameAndScan() {
-      const video = document.getElementById("liveCameraVideo");
-      const status = document.getElementById("scanStatusMsg");
-      status.classList.remove("hidden");
-
-      if (!cameraStream || video.readyState < 2) {
-        status.textContent = "Camera frame not ready yet—tap 'Snap Label / Barcode' instead.";
-        return;
-      }
-
-      if (!frameCanvas) frameCanvas = document.createElement("canvas");
-      frameCanvas.width = video.videoWidth || 640;
-      frameCanvas.height = video.videoHeight || 480;
-      const ctx = frameCanvas.getContext("2d");
-      ctx.drawImage(video, 0, 0, frameCanvas.width, frameCanvas.height);
-
-      if (nativeBarcodeDetector) {
-        try {
-          const codes = await nativeBarcodeDetector.detect(frameCanvas);
-          if (codes && codes.length > 0 && codes[0].rawValue) {
-            const found = codes[0].rawValue;
-            await closeBarcodeScanner(true);
-            await lookupBarcode(found);
-            return;
-          }
-        } catch (_) {}
-      }
-
-      const dataUrl = frameCanvas.toDataURL("image/jpeg", 0.85);
-      await closeBarcodeScanner(true);
-      await analyzeBase64ProductImage(dataUrl);
-    }
-
-    async function closeBarcodeScanner(hideBox = true) {
-      if (scanLoopTimer) {
-        clearInterval(scanLoopTimer);
-        scanLoopTimer = null;
-      }
-      if (cameraStream) {
-        cameraStream.getTracks().forEach(track => {
-          try { track.stop(); } catch (_) {}
-        });
-        cameraStream = null;
-      }
-      const video = document.getElementById("liveCameraVideo");
-      if (video) {
-        try { video.srcObject = null; } catch (_) {}
-      }
-      if (hideBox) {
-        document.getElementById("scannerBox").classList.add("hidden");
-      }
-    }
-
-    // ---------- OPEN BEAUTY / FOOD FACTS LOOKUP (name, brand, ingredients, front image) ----------
-    function escHtml(v) {
-      return String(v == null ? "" : v)
-        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
-    }
-
-    function safeHttpsUrl(u) {
-      try {
-        const parsed = new URL(String(u || ""));
-        return parsed.protocol === "https:" ? parsed.href : null;
-      } catch (_) {
-        return null;
-      }
-    }
-
-    // Inventory sent to the AI keeps ingredient lists (useful for routine advice) but drops image URLs and caps length.
-    function slimInventory(items) {
-      return (items || []).map(i => {
-        const { imageUrl, ...rest } = i || {};
-        if (typeof rest.ingredients === "string" && rest.ingredients.length > 600) {
-          rest.ingredients = rest.ingredients.slice(0, 600) + "...";
-        }
-        return rest;
-      });
-    }
-
-    async function fetchBeautyProduct(barcode) {
-      const clean = String(barcode || "").replace(/[^0-9A-Za-z]/g, "").trim();
-      if (!clean) return { found: false, barcode: clean };
-
-      const fields = [
-        "product_name", "product_name_en", "generic_name", "brands",
-        "ingredients_text", "ingredients_text_en",
-        "image_front_url", "image_front_small_url", "categories_tags"
-      ].join(",");
-      const id = encodeURIComponent(clean);
-
-      // Same order as before: Open Beauty Facts v2, v0, then Open Food Facts v2.
-      // No custom User-Agent header: browsers (Safari especially) ignore or block it,
-      // and a custom header can trigger a CORS preflight that these APIs may reject.
-      const endpoints = [
-        `https://world.openbeautyfacts.org/api/v2/product/${id}.json?fields=${fields}`,
-        `https://world.openbeautyfacts.org/api/v0/product/${id}.json`,
-        `https://world.openfoodfacts.org/api/v2/product/${id}.json?fields=${fields}`
-      ];
-
-      let lastError = null;
-      for (const url of endpoints) {
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 8000);
-        try {
-          const response = await fetch(url, { signal: controller.signal });
-          if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
-          const data = await response.json();
-
-          // Product missing from this crowdsourced database: try the next one.
-          if (!data || !data.product || data.status === 0 || data.status === "failure") continue;
-
-          const p = data.product;
-          const name = p.product_name || p.product_name_en || p.generic_name || "";
-          const brand = p.brands || "";
-          if (!name && !brand) continue;
-
-          return {
-            found: true,
-            barcode: clean,
-            name: name || "Unknown Product",
-            brand: brand || "Unknown Brand",
-            ingredients: (p.ingredients_text || p.ingredients_text_en || "").trim(),
-            imageUrl: safeHttpsUrl(p.image_front_url || p.image_front_small_url),
-            categoriesTags: Array.isArray(p.categories_tags) ? p.categories_tags : []
-          };
-        } catch (error) {
-          lastError = error;
-          console.error("Beauty product lookup failed:", url, error);
-        } finally {
-          clearTimeout(timer);
-        }
-      }
-      return lastError ? { found: false, barcode: clean, error: lastError.message } : { found: false, barcode: clean };
-    }
-
-    async function lookupBarcode(code) {
-      const clean = String(code || "").replace(/[^0-9A-Za-z]/g, "").trim();
-      if (!clean) return;
-      const status = document.getElementById("scanStatusMsg");
-      status.classList.remove("hidden");
-
-      if (state.inventory.some(i => i.barcode === clean)) {
-        status.textContent = `Barcode #${clean} is already in your stash.`;
-        return;
-      }
-
-      status.textContent = `Looking up barcode ${clean}...`;
-      const result = await fetchBeautyProduct(clean);
-
-      if (!result.found) {
-        status.textContent = `Barcode #${clean} wasn't in the open database. Tap "Snap Label / Barcode" to identify the bottle with AI!`;
-        return;
-      }
-
-      const rawName = result.name === "Unknown Product" ? "" : result.name;
-      const brand = result.brand === "Unknown Brand" ? "" : result.brand;
-      const fullName = brand && !rawName.toLowerCase().includes(brand.toLowerCase())
-        ? `${brand} ${rawName}`.trim()
-        : (rawName || brand);
-      const tags = `${result.categoriesTags.join(" ")} ${fullName}`.toLowerCase();
-      const domain = (tags.includes("body") || tags.includes("soap") || tags.includes("powder") || tags.includes("lotion") || tags.includes("butter"))
-        ? "body"
-        : (tags.includes("face") || tags.includes("facial") || tags.includes("cleanser") || tags.includes("sunscreen") || tags.includes("serum"))
-          ? "skin"
-          : "hair";
-
-      state.inventory.unshift({
-        id: Date.now().toString(),
-        name: fullName,
-        brand,
-        domain,
-        category: "Other",
-        notes: `Scanned barcode #${clean}`,
-        barcode: clean,
-        ingredients: result.ingredients,
-        imageUrl: result.imageUrl
-      });
-      saveState();
-      renderStash();
-      status.textContent = result.ingredients
-        ? `✓ Added "${fullName}" with its ingredient list to your stash!`
-        : `✓ Added "${fullName}" to your stash (no ingredient list in the database).`;
-    }
-
     async function analyzeBase64ProductImage(imageBase64) {
       const status = document.getElementById("scanStatusMsg");
       status.textContent = "Reading product label with AI...";
@@ -1329,7 +1054,7 @@
       status.textContent = "Preparing photo...";
       status.classList.remove("hidden");
       try {
-        const imageBase64 = await compressImageToDataURL(file, 900);
+        const imageBase64 = await compressImageToDataURL(file, 768);
         await analyzeBase64ProductImage(imageBase64);
       } catch (err) {
         status.textContent = err.message;
@@ -1370,16 +1095,7 @@
         list.innerHTML = `<div class="card p-4 text-xs text-[#726862]">Your stash is empty. Scan a barcode, snap a product photo, or add an item (including homemade body powder) above.</div>`;
         return;
       }
-      list.innerHTML = items.map(i => {
-        const img = safeHttpsUrl(i.imageUrl);
-        const thumb = img
-          ? `<img src="${escHtml(img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'" class="w-12 h-12 rounded-lg object-cover bg-[#F8F3EA] flex-shrink-0" />`
-          : "";
-        const ingr = i.ingredients
-          ? `<details class="mt-1"><summary class="text-[11px] text-[#8A5E1B] font-semibold cursor-pointer">Ingredients</summary><div class="text-[11px] text-[#726862] mt-0.5">${escHtml(i.ingredients)}</div></details>`
-          : "";
-        return `<div class="card p-3 flex items-start justify-between gap-2"><div class="flex items-start gap-2.5 min-w-0">${thumb}<div class="min-w-0"><span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#F8F3EA] text-[#8A5E1B]">${escHtml(i.domain)} • ${escHtml(i.category)}</span><div class="text-xs font-bold mt-1">${escHtml(i.name)}</div>${i.notes ? `<div class="text-[11px] text-[#726862] mt-0.5">${escHtml(i.notes)}</div>` : ""}${ingr}</div></div><button type="button" onclick="removeProduct('${escHtml(i.id)}')" class="text-xs text-[#726862] px-1.5">✕</button></div>`;
-      }).join("");
+      list.innerHTML = items.map(i => `<div class="card p-3 flex items-start justify-between gap-2"><div><span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#F8F3EA] text-[#8A5E1B]">${i.domain} • ${i.category}</span><div class="text-xs font-bold mt-1">${i.name}</div>${i.notes ? `<div class="text-[11px] text-[#726862] mt-0.5">${i.notes}</div>` : ""}</div><button type="button" onclick="removeProduct('${i.id}')" class="text-xs text-[#726862] px-1.5">✕</button></div>`).join("");
     }
 
     function renderStoreChips() {
@@ -1434,7 +1150,7 @@
             selectedStylingMethod: state.selectedStylingMethod,
             activeTriggers: state.activeTriggers,
             weather: state.weather,
-            inventory: slimInventory(state.inventory),
+            inventory: state.inventory,
             shoppingPrefs: {
               maxPrice: state.shoppingPrefs.maxPrice,
               stores: getEffectiveStores(),

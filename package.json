@@ -1,6 +1,6 @@
 {
   "name": "auracare-blank-onboarding",
-  "version": "2.9.0",
+  "version": "2.10.0",
   "private": true,
-  "description": "Blank-slate installable iPhone PWA for Hair, Face & Body care with iOS Safari live camera barcode scanning (BarcodeDetector + html5-qrcode + file/photo decode), Groq Vision label reading, weather/AQI, store/price finder, and pro treatments"
+  "description": "Blank-slate installable iPhone PWA for Hair, Face & Body care with fixed Groq on_demand output token limits (<= 900 max_tokens), live rear camera barcode scan, photo label scan, weather/AQI, store/price finder, and pro treatments"
 }
