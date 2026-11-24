@@ -68,17 +68,17 @@
           <span class="text-xs font-bold text-[#A9772B]">Step <span id="stepNumLabel">1</span> of 5</span>
         </div>
         <p class="text-xs text-[#726862]">
-          Starts blank. Tap the options that fit you—open text boxes are only included where custom details (like your city, custom oil or body powder mix, or specific hair color/allergies) help.
+          Selections and text fields auto-save immediately to your device as you tap or type.
         </p>
         <div class="w-full bg-[#ECE5DC] h-2 rounded-full overflow-hidden">
           <div id="builderProgressBar" class="bg-[#A9772B] h-full transition-all" style="width: 20%"></div>
         </div>
         <div class="grid grid-cols-5 gap-1 pt-1 text-[10px] font-semibold">
-          <button onclick="setBuilderStep(1)" id="stp-1" class="py-1.5 rounded-lg bg-[#231F1D] text-white">1. Basics</button>
-          <button onclick="setBuilderStep(2)" id="stp-2" class="py-1.5 rounded-lg bg-white border border-[#DDD4C8]">2. Hair &amp; Style</button>
-          <button onclick="setBuilderStep(3)" id="stp-3" class="py-1.5 rounded-lg bg-white border border-[#DDD4C8]">3. Face</button>
-          <button onclick="setBuilderStep(4)" id="stp-4" class="py-1.5 rounded-lg bg-white border border-[#DDD4C8]">4. Body</button>
-          <button onclick="setBuilderStep(5)" id="stp-5" class="py-1.5 rounded-lg bg-white border border-[#DDD4C8]">5. Shop &amp; Pro</button>
+          <button type="button" onclick="setBuilderStep(1)" id="stp-1" class="py-1.5 rounded-lg bg-[#231F1D] text-white">1. Basics</button>
+          <button type="button" onclick="setBuilderStep(2)" id="stp-2" class="py-1.5 rounded-lg bg-white border border-[#DDD4C8]">2. Hair &amp; Style</button>
+          <button type="button" onclick="setBuilderStep(3)" id="stp-3" class="py-1.5 rounded-lg bg-white border border-[#DDD4C8]">3. Face</button>
+          <button type="button" onclick="setBuilderStep(4)" id="stp-4" class="py-1.5 rounded-lg bg-white border border-[#DDD4C8]">4. Body</button>
+          <button type="button" onclick="setBuilderStep(5)" id="stp-5" class="py-1.5 rounded-lg bg-white border border-[#DDD4C8]">5. Shop &amp; Pro</button>
         </div>
       </div>
 
@@ -99,7 +99,7 @@
         <div class="grid grid-cols-2 gap-2">
           <div>
             <label class="block text-xs font-semibold mb-1">City, State (for Weather &amp; AQI)</label>
-            <input id="q_city" type="text" placeholder="e.g., Bloomfield, CT" class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+            <input id="q_city" type="text" oninput="persistTextFields()" onchange="persistTextFields()" placeholder="e.g., Bloomfield, CT" class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
           </div>
           <div>
             <label class="block text-xs font-semibold mb-1">Or detect automatically</label>
@@ -114,10 +114,11 @@
 
         <div>
           <label class="block text-xs font-semibold mb-1">Specific Allergies, Sensitivities, or Notes (optional open field)</label>
-          <input id="q_sensitivities" type="text" placeholder="e.g., fragrance allergy, low iron, retinoid prescription..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+          <input id="q_sensitivities" type="text" oninput="persistTextFields()" onchange="persistTextFields()" placeholder="e.g., fragrance allergy, low iron, retinoid prescription..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
         </div>
 
-        <div class="flex justify-end pt-1">
+        <div class="flex justify-between items-center pt-1">
+          <button type="button" onclick="saveProfileNow(false)" class="px-3 py-2 rounded-xl border border-[#DDD4C8] text-xs font-semibold">Save Progress</button>
           <button type="button" onclick="setBuilderStep(2)" class="px-4 py-2 rounded-xl bg-[#231F1D] text-white text-xs font-semibold">Next: Hair &amp; Style →</button>
         </div>
       </div>
@@ -134,7 +135,7 @@
         <div>
           <label class="block text-xs font-semibold mb-1.5">Chemical, Color &amp; Heat History (tap all that apply)</label>
           <div id="chips_hairChemical" class="flex flex-wrap gap-1.5"></div>
-          <input id="q_hairColorDetail" type="text" placeholder="Optional: exact color/chemical note (e.g., honey blonde dye, relaxer touch-up timing)..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2 bg-[#FAF8F5] mt-2" />
+          <input id="q_hairColorDetail" type="text" oninput="persistTextFields()" onchange="persistTextFields()" placeholder="Optional: exact color/chemical note (e.g., honey blonde dye, relaxer touch-up timing)..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2 bg-[#FAF8F5] mt-2" />
         </div>
 
         <div>
@@ -164,7 +165,7 @@
 
         <div>
           <label class="block text-xs font-semibold mb-1">Custom Hair Oil Blend / DIY Concoction (optional open field)</label>
-          <input id="q_customOilNotes" type="text" placeholder="If you make your own oil mix, list the oils here..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+          <input id="q_customOilNotes" type="text" oninput="persistTextFields()" onchange="persistTextFields()" placeholder="If you make your own oil mix, list the oils here..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
         </div>
 
         <div class="flex justify-between pt-1">
@@ -215,7 +216,7 @@
         <div>
           <label class="block text-xs font-semibold mb-1.5">Preferred Body Moisture, Powder &amp; Scent Style (tap all that apply)</label>
           <div id="chips_bodyMoisturePref" class="flex flex-wrap gap-1.5"></div>
-          <input id="q_customBodyPowderNotes" type="text" placeholder="Optional: homemade body powder recipe/ingredients (e.g., arrowroot, cornstarch, kaolin clay, essential oils)..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2 bg-[#FAF8F5] mt-2" />
+          <input id="q_customBodyPowderNotes" type="text" oninput="persistTextFields()" onchange="persistTextFields()" placeholder="Optional: homemade body powder recipe/ingredients (e.g., arrowroot, cornstarch, kaolin clay, essential oils)..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2 bg-[#FAF8F5] mt-2" />
         </div>
 
         <div class="flex justify-between pt-1">
@@ -236,7 +237,7 @@
         <div>
           <label class="block text-xs font-semibold mb-1.5">Preferred Stores (tap all stores you shop at)</label>
           <div id="chips_stores" class="flex flex-wrap gap-1.5"></div>
-          <input id="q_extraStores" type="text" placeholder="Optional: any other local or online store..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2 bg-[#FAF8F5] mt-2" />
+          <input id="q_extraStores" type="text" oninput="persistTextFields()" onchange="persistTextFields()" placeholder="Optional: any other local or online store..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2 bg-[#FAF8F5] mt-2" />
         </div>
 
         <div>
@@ -257,7 +258,7 @@
       <div id="profileSummaryCard" class="card p-4 space-y-2 hidden">
         <div class="flex items-center justify-between">
           <h3 class="text-xs font-bold uppercase tracking-wider text-[#726862]">Current Saved Profile</h3>
-          <button onclick="switchTab('checkin')" class="text-xs font-semibold text-[#A9772B] underline">Open Check-In →</button>
+          <button type="button" onclick="switchTab('checkin')" class="text-xs font-semibold text-[#A9772B] underline">Open Check-In →</button>
         </div>
         <div id="profileSummaryBody" class="text-xs text-[#3D3530] space-y-1"></div>
       </div>
@@ -272,7 +273,7 @@
             <span>🌤️</span>
             <h2 class="text-sm font-bold" id="locationHeading">No Location Set</h2>
           </div>
-          <button onclick="fetchLocalClimate()" class="text-xs font-semibold text-[#A9772B] underline">Refresh Weather/AQI</button>
+          <button type="button" onclick="fetchLocalClimate()" class="text-xs font-semibold text-[#A9772B] underline">Refresh Weather/AQI</button>
         </div>
         <div class="grid grid-cols-4 gap-2 text-center my-2">
           <div class="bg-white rounded-xl p-2 border border-[#EAE3D9]">
@@ -301,7 +302,7 @@
       <div class="card p-4 space-y-3">
         <h2 class="text-base font-bold">State Check-In (Selectable + Optional Photo/Note)</h2>
 
-        <!-- Current Hair / Protective Style State Selector (Includes Relaxed Hair) -->
+        <!-- Current Hair / Protective Style State Selector -->
         <div class="space-y-1.5">
           <label class="block text-[11px] font-bold uppercase tracking-wider text-[#726862]">1. Current Hair / Protective Style State</label>
           <div id="hairModeChipsBox" class="flex flex-wrap gap-1.5"></div>
@@ -335,13 +336,13 @@
             <span>📸 Snap / Upload Photo (Optional)</span>
             <input type="file" id="checkinPhotoInput" accept="image/*" capture="environment" class="hidden" onchange="handleCheckinPhoto(event)" />
           </label>
-          <button id="clearPhotoBtn" onclick="clearCheckinPhoto()" class="hidden px-3 py-2.5 rounded-xl bg-red-50 text-red-700 text-xs font-semibold">Remove</button>
+          <button id="clearPhotoBtn" type="button" onclick="clearCheckinPhoto()" class="hidden px-3 py-2.5 rounded-xl bg-red-50 text-red-700 text-xs font-semibold">Remove</button>
         </div>
         <div id="checkinPhotoPreviewBox" class="hidden">
           <img id="checkinPhotoPreview" class="w-full h-40 object-cover rounded-xl border border-[#EAE3D9]" alt="Check-in preview" />
         </div>
 
-        <button id="generateRoutineBtn" onclick="generateAIRoutine()" class="w-full py-3 rounded-xl bg-[#231F1D] text-white font-semibold text-sm">
+        <button id="generateRoutineBtn" type="button" onclick="generateAIRoutine()" class="w-full py-3 rounded-xl bg-[#231F1D] text-white font-semibold text-sm">
           ✨ Generate Tailored Routines, Styling Products &amp; Pro Care
         </button>
         <p id="aiStatusMsg" class="text-xs text-center text-[#726862] hidden"></p>
@@ -359,7 +360,7 @@
         </div>
 
         <div class="grid grid-cols-2 gap-2">
-          <button onclick="openBarcodeScanner()" class="py-3 px-3 rounded-xl bg-[#231F1D] text-white text-xs font-semibold flex items-center justify-center gap-1.5">
+          <button type="button" onclick="openBarcodeScanner()" class="py-3 px-3 rounded-xl bg-[#231F1D] text-white text-xs font-semibold flex items-center justify-center gap-1.5">
             <span>🏁</span> Scan Barcode
           </button>
           <label class="cursor-pointer py-3 px-3 rounded-xl bg-[#A9772B] text-white text-xs font-semibold flex items-center justify-center gap-1.5">
@@ -375,8 +376,8 @@
           </div>
           <div class="flex gap-2">
             <input id="manualBarcodeInput" type="text" placeholder="Enter barcode digits..." class="flex-1 text-xs border border-[#DDD4C8] rounded-lg px-2.5 py-2" />
-            <button onclick="lookupBarcode(document.getElementById('manualBarcodeInput').value)" class="px-3 py-2 rounded-lg bg-[#231F1D] text-white text-xs font-semibold">Lookup</button>
-            <button onclick="closeBarcodeScanner()" class="px-3 py-2 rounded-lg bg-gray-200 text-gray-800 text-xs font-semibold">Close</button>
+            <button type="button" onclick="lookupBarcode(document.getElementById('manualBarcodeInput').value)" class="px-3 py-2 rounded-lg bg-[#231F1D] text-white text-xs font-semibold">Lookup</button>
+            <button type="button" onclick="closeBarcodeScanner()" class="px-3 py-2 rounded-lg bg-gray-200 text-gray-800 text-xs font-semibold">Close</button>
           </div>
         </div>
 
@@ -414,7 +415,7 @@
               <option value="Body Powder / Dusting Powder">Body Powder / Dusting Powder</option>
             </select>
           </div>
-          <button onclick="addManualProduct()" class="w-full py-2 rounded-lg bg-[#231F1D] text-white text-xs font-semibold">+ Add to Stash</button>
+          <button type="button" onclick="addManualProduct()" class="w-full py-2 rounded-lg bg-[#231F1D] text-white text-xs font-semibold">+ Add to Stash</button>
         </div>
       </div>
 
@@ -422,10 +423,10 @@
         <div class="flex items-center justify-between px-1">
           <h3 class="text-sm font-bold">Owned Items (<span id="stashCount">0</span>)</h3>
           <div class="flex gap-1 text-xs">
-            <button onclick="filterStash('all')" id="f-all" class="px-2.5 py-1 rounded-full bg-[#231F1D] text-white font-medium">All</button>
-            <button onclick="filterStash('hair')" id="f-hair" class="px-2.5 py-1 rounded-full bg-white border border-[#DDD4C8]">Hair</button>
-            <button onclick="filterStash('skin')" id="f-skin" class="px-2.5 py-1 rounded-full bg-white border border-[#DDD4C8]">Face</button>
-            <button onclick="filterStash('body')" id="f-body" class="px-2.5 py-1 rounded-full bg-white border border-[#DDD4C8]">Body</button>
+            <button type="button" onclick="filterStash('all')" id="f-all" class="px-2.5 py-1 rounded-full bg-[#231F1D] text-white font-medium">All</button>
+            <button type="button" onclick="filterStash('hair')" id="f-hair" class="px-2.5 py-1 rounded-full bg-white border border-[#DDD4C8]">Hair</button>
+            <button type="button" onclick="filterStash('skin')" id="f-skin" class="px-2.5 py-1 rounded-full bg-white border border-[#DDD4C8]">Face</button>
+            <button type="button" onclick="filterStash('body')" id="f-body" class="px-2.5 py-1 rounded-full bg-white border border-[#DDD4C8]">Body</button>
           </div>
         </div>
         <div id="stashList" class="space-y-2"></div>
@@ -465,7 +466,7 @@
             <option value="Face cleanser, treatment, moisturizer & SPF">Face Skincare Gaps</option>
             <option value="Body wash, bar soap, lotion, body butter, body oil & dusting powder essentials">Body Care Gaps</option>
           </select>
-          <button id="findDealsBtn" onclick="fetchStoreRecommendations()" class="py-2.5 px-3 rounded-xl bg-[#231F1D] text-white text-xs font-semibold">
+          <button id="findDealsBtn" type="button" onclick="fetchStoreRecommendations()" class="py-2.5 px-3 rounded-xl bg-[#231F1D] text-white text-xs font-semibold">
             🔍 Find Matches
           </button>
         </div>
@@ -501,23 +502,23 @@
   <!-- Bottom Navigation (5 Tabs) -->
   <nav class="fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-md border-t border-[#EAE3D9] px-1 pt-2 pb-[calc(8px+env(safe-area-inset-bottom))]">
     <div class="max-w-lg mx-auto grid grid-cols-5 text-center text-[10px]">
-      <button onclick="switchTab('builder')" id="nav-builder" class="tab-active flex flex-col items-center gap-0.5 py-1">
+      <button type="button" onclick="switchTab('builder')" id="nav-builder" class="tab-active flex flex-col items-center gap-0.5 py-1">
         <span class="text-base">📝</span>
         <span>Profile</span>
       </button>
-      <button onclick="switchTab('checkin')" id="nav-checkin" class="text-[#726862] flex flex-col items-center gap-0.5 py-1">
+      <button type="button" onclick="switchTab('checkin')" id="nav-checkin" class="text-[#726862] flex flex-col items-center gap-0.5 py-1">
         <span class="text-base">✨</span>
         <span>Check-In</span>
       </button>
-      <button onclick="switchTab('stash')" id="nav-stash" class="text-[#726862] flex flex-col items-center gap-0.5 py-1">
+      <button type="button" onclick="switchTab('stash')" id="nav-stash" class="text-[#726862] flex flex-col items-center gap-0.5 py-1">
         <span class="text-base">🧴</span>
         <span>My Stash</span>
       </button>
-      <button onclick="switchTab('shop')" id="nav-shop" class="text-[#726862] flex flex-col items-center gap-0.5 py-1">
+      <button type="button" onclick="switchTab('shop')" id="nav-shop" class="text-[#726862] flex flex-col items-center gap-0.5 py-1">
         <span class="text-base">🏷️</span>
         <span>Shop</span>
       </button>
-      <button onclick="switchTab('triggers')" id="nav-triggers" class="text-[#726862] flex flex-col items-center gap-0.5 py-1">
+      <button type="button" onclick="switchTab('triggers')" id="nav-triggers" class="text-[#726862] flex flex-col items-center gap-0.5 py-1">
         <span class="text-base">🩺</span>
         <span>Pro &amp; Style</span>
       </button>
@@ -781,17 +782,44 @@
       };
     }
 
-    let state = JSON.parse(localStorage.getItem("auracare_blank_state_v23") || "null") || createBlankState();
+    function normalizeState(raw) {
+      const base = createBlankState();
+      if (!raw || typeof raw !== "object") return base;
+      const mergedProfile = { ...base.profile, ...(raw.profile && typeof raw.profile === "object" ? raw.profile : {}) };
+      ["skinTone", "envFactors", "hairTexture", "hairChemical", "hairIssues", "hairGoals", "protectiveStyles", "stylingTools", "faceConcerns", "bodyConcerns", "bodyCleansePref", "bodyMoisturePref", "proPrefs"].forEach(arrKey => {
+        if (!Array.isArray(mergedProfile[arrKey])) mergedProfile[arrKey] = [];
+      });
+      const mergedShop = { ...base.shoppingPrefs, ...(raw.shoppingPrefs && typeof raw.shoppingPrefs === "object" ? raw.shoppingPrefs : {}) };
+      if (!Array.isArray(mergedShop.stores)) mergedShop.stores = [];
+      mergedShop.maxPrice = Number(mergedShop.maxPrice) || 30;
+
+      return {
+        ...base,
+        ...raw,
+        currentStep: Number(raw.currentStep) || 1,
+        currentHairState: raw.currentHairState || base.currentHairState,
+        selectedStylingMethod: raw.selectedStylingMethod || base.selectedStylingMethod,
+        profile: mergedProfile,
+        shoppingPrefs: mergedShop,
+        activeTriggers: Array.isArray(raw.activeTriggers) ? raw.activeTriggers : [],
+        inventory: Array.isArray(raw.inventory) ? raw.inventory : [],
+        weather: { ...base.weather, ...(raw.weather && typeof raw.weather === "object" ? raw.weather : {}) },
+        shopRecommendations: Array.isArray(raw.shopRecommendations) ? raw.shopRecommendations : []
+      };
+    }
+
+    let state = normalizeState(JSON.parse(localStorage.getItem("auracare_blank_state_v24") || "null"));
     let pendingCheckinImage = null;
     let codeReader = null;
 
     function saveState() {
-      localStorage.setItem("auracare_blank_state_v23", JSON.stringify(state));
+      state = normalizeState(state);
+      localStorage.setItem("auracare_blank_state_v24", JSON.stringify(state));
     }
 
     function wipeAllToBlank() {
       if (!confirm("Wipe all profile selections, owned products, and saved results back to completely blank?")) return;
-      localStorage.removeItem("auracare_blank_state_v23");
+      localStorage.removeItem("auracare_blank_state_v24");
       state = createBlankState();
       pendingCheckinImage = null;
       document.getElementById("aiResultContainer").innerHTML = "";
@@ -801,6 +829,7 @@
 
     // ---------- NAVIGATION & ENERGY ----------
     function switchTab(tab) {
+      persistTextFields();
       ["builder", "checkin", "stash", "shop", "triggers"].forEach(t => {
         document.getElementById(`tab-${t}`).classList.toggle("hidden", t !== tab);
         const nav = document.getElementById(`nav-${t}`);
@@ -831,6 +860,7 @@
 
     // ---------- CHIP SELECTOR HELPERS ----------
     function toggleSingleOption(field, value) {
+      persistTextFields();
       state.profile[field] = state.profile[field] === value ? "" : value;
       saveState();
       renderAllProfileChips();
@@ -838,6 +868,7 @@
     }
 
     function toggleMultiOption(field, value) {
+      persistTextFields();
       if (!Array.isArray(state.profile[field])) state.profile[field] = [];
       const idx = state.profile[field].indexOf(value);
       if (idx >= 0) state.profile[field].splice(idx, 1);
@@ -848,6 +879,7 @@
     }
 
     function selectPriceOption(label) {
+      persistTextFields();
       const num = Number(label.replace(/[^0-9]/g, "")) || 30;
       state.shoppingPrefs.maxPrice = num;
       saveState();
@@ -946,6 +978,7 @@
 
     // ---------- PROFILE BUILDER NAVIGATION & INPUT SYNC ----------
     function setBuilderStep(step) {
+      persistTextFields();
       state.currentStep = step;
       saveState();
       for (let i = 1; i <= 5; i++) {
@@ -970,8 +1003,14 @@
       document.getElementById("stylingMethodSelect").value = state.selectedStylingMethod || "None / Air Dry / Protective Set";
     }
 
-    function collectProfileFromInputs() {
-      state.profile.city = document.getElementById("q_city").value.trim();
+    function persistTextFields() {
+      const prevCity = state.profile.city || "";
+      const nextCity = document.getElementById("q_city").value.trim();
+      if (nextCity !== prevCity) {
+        state.profile.lat = null;
+        state.profile.lon = null;
+      }
+      state.profile.city = nextCity;
       state.profile.sensitivities = document.getElementById("q_sensitivities").value.trim();
       state.profile.hairColorDetail = document.getElementById("q_hairColorDetail").value.trim();
       state.profile.customOilNotes = document.getElementById("q_customOilNotes").value.trim();
@@ -979,6 +1018,16 @@
       state.shoppingPrefs.extraStores = document.getElementById("q_extraStores").value.trim();
       saveState();
       renderProfileSummary();
+    }
+
+    function saveProfileNow(goToCheckin) {
+      persistTextFields();
+      const banner = document.getElementById("profileSavedBanner");
+      banner.classList.remove("hidden");
+      setTimeout(() => {
+        banner.classList.add("hidden");
+        if (goToCheckin) switchTab("checkin");
+      }, 600);
     }
 
     function getEffectiveStores() {
@@ -992,18 +1041,13 @@
     }
 
     async function completeProfileSetup() {
-      collectProfileFromInputs();
-      if (state.profile.city && (!state.profile.lat || !state.profile.lon)) {
+      persistTextFields();
+      if (state.profile.city && (state.profile.lat === null || state.profile.lon === null)) {
         await geocodeCity(state.profile.city);
-      } else if (state.profile.lat && state.profile.lon) {
-        fetchLocalClimate();
+      } else if (state.profile.lat !== null && state.profile.lon !== null) {
+        await fetchLocalClimate();
       }
-      const banner = document.getElementById("profileSavedBanner");
-      banner.classList.remove("hidden");
-      setTimeout(() => {
-        banner.classList.add("hidden");
-        switchTab("checkin");
-      }, 600);
+      saveProfileNow(true);
     }
 
     function renderProfileSummary() {
@@ -1023,7 +1067,7 @@
 
       const pill = document.getElementById("profileStatusPill");
       if (entries.length) {
-        pill.textContent = "Profile Active";
+        pill.textContent = "Profile Saved";
         pill.className = "text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900";
         document.getElementById("profileSummaryCard").classList.remove("hidden");
         document.getElementById("profileSummaryBody").innerHTML = entries
@@ -1054,6 +1098,7 @@
     }
 
     function useGPSForProfile() {
+      persistTextFields();
       if (!navigator.geolocation) return alert("Geolocation not supported.");
       navigator.geolocation.getCurrentPosition(async (pos) => {
         state.profile.lat = pos.coords.latitude;
@@ -1151,7 +1196,7 @@
               <div class="text-xs font-bold">${t.label} <span class="text-[10px] uppercase text-[#726862]">(${t.domain})</span></div>
               <div class="text-xs text-[#594E47] mt-0.5">${t.note}</div>
             </div>
-            <button onclick="toggleTrigger('${t.label}')" class="text-[11px] font-semibold px-2 py-1 rounded-lg border shrink-0 ${active ? "bg-[#231F1D] text-white" : "bg-white"}">
+            <button type="button" onclick="toggleTrigger('${t.label}')" class="text-[11px] font-semibold px-2 py-1 rounded-lg border shrink-0 ${active ? "bg-[#231F1D] text-white" : "bg-white"}">
               ${active ? "Active" : "Track"}
             </button>
           </div>
@@ -1203,7 +1248,7 @@
     }
 
     async function generateAIRoutine() {
-      collectProfileFromInputs();
+      persistTextFields();
       const btn = document.getElementById("generateRoutineBtn");
       const status = document.getElementById("aiStatusMsg");
       const description = document.getElementById("checkinInput").value.trim();
@@ -1501,7 +1546,7 @@
             <div class="text-xs font-bold mt-1">${i.name}</div>
             ${i.notes ? `<div class="text-[11px] text-[#726862] mt-0.5">${i.notes}</div>` : ""}
           </div>
-          <button onclick="removeProduct('${i.id}')" class="text-xs text-[#726862] px-1.5">✕</button>
+          <button type="button" onclick="removeProduct('${i.id}')" class="text-xs text-[#726862] px-1.5">✕</button>
         </div>
       `).join("");
     }
@@ -1523,7 +1568,8 @@
     }
 
     function toggleStorePref(store) {
-      const arr = state.shoppingPrefs.stores || [];
+      persistTextFields();
+      const arr = [...(state.shoppingPrefs.stores || [])];
       const idx = arr.indexOf(store);
       if (idx >= 0) arr.splice(idx, 1);
       else arr.push(store);
@@ -1546,7 +1592,7 @@
     }
 
     async function fetchStoreRecommendations() {
-      collectProfileFromInputs();
+      persistTextFields();
       const btn = document.getElementById("findDealsBtn");
       const status = document.getElementById("shopStatusMsg");
       btn.disabled = true;
@@ -1621,7 +1667,7 @@
           </div>
           <p class="text-xs text-[#594E47]">${r.whyItFits}</p>
           <div class="pt-1 flex justify-end">
-            <button onclick="addRecToStash(${idx})" class="text-xs font-semibold px-3 py-1 rounded-lg bg-[#FAF8F5] border border-[#DDD4C8]">+ Add to Stash</button>
+            <button type="button" onclick="addRecToStash(${idx})" class="text-xs font-semibold px-3 py-1 rounded-lg bg-[#FAF8F5] border border-[#DDD4C8]">+ Add to Stash</button>
           </div>
         </div>
       `).join("");
