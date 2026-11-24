@@ -1,3 +1,51 @@
+async function callGroqChat(apiKey, model, messages, temperature = 0.2, max_tokens = 2000) {
+  const groqResp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      model,
+      temperature,
+      max_tokens,
+      messages
+    })
+  });
+
+  const data = await groqResp.json().catch(() => ({}));
+  if (!groqResp.ok) {
+    const err = new Error(data.error?.message || `Groq API error (${groqResp.status})`);
+    err.status = groqResp.status;
+    throw err;
+  }
+
+  let content = data.choices?.[0]?.message?.content;
+  if (Array.isArray(content)) {
+    content = content.map((part) => (typeof part === 'string' ? part : part?.text || '')).join('\n');
+  }
+  return typeof content === 'string' ? content : JSON.stringify(content || {});
+}
+
+function parseJsonLoose(rawText) {
+  let cleaned = String(rawText || '')
+    .replace(/<think>[\s\S]*?<\/think>/gi, '')
+    .replace(/```json|```/gi, '')
+    .trim();
+
+  try {
+    return JSON.parse(cleaned);
+  } catch (_) {
+    const startIdx = cleaned.indexOf('{');
+    const endIdx = cleaned.lastIndexOf('}');
+    if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+      const candidate = cleaned.slice(startIdx, endIdx + 1);
+      return JSON.parse(candidate);
+    }
+    throw new Error('Model response could not be parsed as valid JSON.');
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -12,11 +60,11 @@ export default async function handler(req, res) {
 
   try {
     const {
-      mode = 'routine', // 'routine' | 'product_photo' | 'shop_recs'
+      mode = 'routine',
       description = '',
       activeTriggers = [],
       currentHairState = 'Relaxed Hair (Out / Styled)',
-      selectedStylingMethod = 'None / Air Dry / Natural',
+      selectedStylingMethod = 'None / Air Dry / Protective Set',
       imageBase64 = null,
       profile = {},
       weather = {},
@@ -30,46 +78,33 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'No product photo provided.' });
       }
 
-      const visionPrompt = `You are a cosmetic chemist and beauty inventory assistant. Examine this product photo and extract product details into strict JSON with keys:
-- "name": string (exact product name)
+      const visionPrompt = `You are a cosmetic chemist and beauty inventory assistant. Examine this product photo (front label, back ingredients, or barcode label) and extract product details into strict JSON with keys:
+- "name": string (exact product name and brand)
 - "brand": string (brand name)
 - "domain": string ("hair", "skin", or "body")
 - "category": string (one of: "Bond Repair", "Shampoo", "Clarifying / Chelating Shampoo", "Deep Conditioner", "Protein Treatment", "Leave-In / Mist", "Hair Oil / Sealant", "Heat Protectant", "Setting Mousse / Foam / Lotion", "Wig / Braid Scalp & Edge Care", "Face Cleanser", "Face Treatment", "Face Moisturizer", "Sunscreen", "Body Wash / Bar Soap", "Body Scrub / Exfoliant", "Body Lotion / Cream", "Body Butter", "Body Oil", "Body Powder / Dusting Powder", "Other")
 - "keyIngredients": array of 3-5 notable active/beneficial ingredients or warnings
 - "safetyNote": string (1 short sentence on compatibility and precautions based on the user's profile: ${JSON.stringify(profile || {})})
 
-Return ONLY valid JSON, no markdown fences.`;
+Return ONLY valid JSON, no markdown fences or extra text.`;
 
-      const groqResp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: 'llama-3.2-11b-vision-preview',
-          temperature: 0.2,
-          max_tokens: 550,
-          messages: [
-            {
-              role: 'user',
-              content: [
-                { type: 'text', text: visionPrompt },
-                { type: 'image_url', image_url: { url: imageBase64 } }
-              ]
-            }
-          ]
-        })
-      });
+      const rawText = await callGroqChat(
+        apiKey,
+        'qwen/qwen3.8-27b',
+        [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: visionPrompt },
+              { type: 'image_url', image_url: { url: imageBase64 } }
+            ]
+          }
+        ],
+        0.2,
+        1400
+      );
 
-      const data = await groqResp.json();
-      if (!groqResp.ok) {
-        return res.status(groqResp.status).json({ error: data.error?.message || 'Groq Vision API error' });
-      }
-
-      const rawText = data.choices?.[0]?.message?.content || '{}';
-      const cleaned = rawText.replace(/```json|```/g, '').trim();
-      return res.status(200).json({ result: JSON.parse(cleaned) });
+      return res.status(200).json({ result: parseJsonLoose(rawText) });
     }
 
     if (mode === 'shop_recs') {
@@ -107,32 +142,16 @@ Return ONLY valid JSON (no markdown fences) with this exact structure:
   ]
 }`;
 
-      const groqResp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
-          temperature: 0.3,
-          max_tokens: 1200,
-          messages: [{ role: 'user', content: shopPrompt }]
-        })
-      });
-
-      const data = await groqResp.json();
-      if (!groqResp.ok) {
-        return res.status(groqResp.status).json({ error: data.error?.message || 'Groq API error' });
+      let rawText;
+      try {
+        rawText = await callGroqChat(apiKey, 'openai/gpt-oss-120b', [{ role: 'user', content: shopPrompt }], 0.3, 1800);
+      } catch (_) {
+        rawText = await callGroqChat(apiKey, 'qwen/qwen3.8-27b', [{ role: 'user', content: shopPrompt }], 0.3, 1800);
       }
 
-      const rawText = data.choices?.[0]?.message?.content || '{}';
-      const cleaned = rawText.replace(/```json|```/g, '').trim();
-      return res.status(200).json({ result: JSON.parse(cleaned) });
+      return res.status(200).json({ result: parseJsonLoose(rawText) });
     }
 
-    // Routine generation mode
-    const model = imageBase64 ? 'llama-3.2-11b-vision-preview' : 'llama-3.3-70b-versatile';
     const maxPrice = Number(shoppingPrefs.maxPrice) || 30;
     const stores = Array.isArray(shoppingPrefs.stores) && shoppingPrefs.stores.length
       ? shoppingPrefs.stores.join(', ')
@@ -140,9 +159,8 @@ Return ONLY valid JSON (no markdown fences) with this exact structure:
 
     const systemInstructions = `You are an expert trichologist, dermatologist advisor, and licensed esthetician building a practical Hair, Face & Body care plan based ONLY on the user's stated profile, current check-in, current hair state, styling method, stash, weather/AQI, and active triggers. Do not assume unstated demographics or traits.
 - User Profile: ${JSON.stringify(profile || {})}
-- Current Hair State: ${currentHairState} (If "Relaxed Hair (Out / Styled)": prioritize bond/protein-moisture balance, line-of-demarcation protection, low heat, and gentle moisture sealing. If wearing a wig: cover scalp care underneath, wig-cap/band edge friction protection, moisturizing braids/cornrows under the unit, and unit maintenance. If wearing braid extensions: cover diluted/no-rinse scalp cleansing, braid spray/leave-in misting without heavy buildup, edge tension relief, and takedown prep.)
-- Selected Styling Tool / Roller Method: ${selectedStylingMethod} (Provide exact prep, setting/heat products, temperature/drying precautions, and takedown steps specific to that tool.)
-- Body Care & Homemade Body Powder Note: If the user makes or uses homemade body powder / dusting powder, integrate it properly into the body routine (e.g., cleanse -> apply body lotion/cream on damp skin -> seal dry areas with body butter/oil -> dust body powder on friction/sweat-prone areas like underarms, inner thighs, under-bust, feet, or over sticky lotion/oil for a silky dry finish, keeping powder away from inhalation/mucous membranes).
+- Current Hair State: ${currentHairState}
+- Selected Styling Tool / Roller Method: ${selectedStylingMethod}
 - Active Change Triggers Selected: ${JSON.stringify(activeTriggers || [])}
 - Location & Live Weather/Air Quality: ${JSON.stringify(weather || {})}
 - Current Owned Inventory: ${JSON.stringify(inventory || [])}
@@ -152,11 +170,11 @@ Return ONLY valid JSON (no markdown fences) with this exact structure:
 
 Return ONLY valid JSON (no markdown fences) with this exact structure:
 {
-  "climateImpact": "2-3 concise sentences explaining how current local temperature, humidity/dew point, UV, and AQI affect their hair (including relaxed hair/wigs/braids/curls), face, and body.",
+  "climateImpact": "2-3 concise sentences explaining how current local temperature, humidity/dew point, UV, and AQI affect their hair, face, and body.",
   "rootCauseInsights": [
     { "cause": "Non-weather trigger or factor relevant to their check-in/profile", "fix": "1-2 short actionable sentences on how to address it." }
   ],
-  "hairAssessment": "1-2 concise sentences assessing their hair/scalp state including current relaxed/natural/wig/braid status.",
+  "hairAssessment": "1-2 concise sentences assessing their hair/scalp state.",
   "skinAssessment": "1-2 concise sentences assessing their face & body skin state.",
   "hairRoutine": [
     { "step": "Step title", "detail": "Short actionable instruction", "productUsed": "Product from stash or general step", "essential": true }
@@ -165,21 +183,21 @@ Return ONLY valid JSON (no markdown fences) with this exact structure:
     "method": "${selectedStylingMethod}",
     "prepAndProtection": "How to prep hair/extensions and protect from heat or tension before using this tool/roller.",
     "recommendedProducts": [
-      { "productType": "e.g., Thermal Heat Protectant / Setting Mousse / End Papers", "suggestion": "Specific product name under $${maxPrice} at their preferred store", "howToUse": "1 short sentence" }
+      { "productType": "Product type", "suggestion": "Specific product name under $${maxPrice} at their preferred store", "howToUse": "1 short sentence" }
     ],
-    "techniqueAndTakedown": "Key setting, temperature, drying, and unrolling/takedown tips so curls hold without breakage or frizz."
+    "techniqueAndTakedown": "Key setting, temperature, drying, and unrolling/takedown tips."
   },
   "skinRoutine": [
     { "step": "Step title", "detail": "Short actionable instruction", "productUsed": "Product from stash or general step", "essential": true }
   ],
   "bodyRoutine": [
-    { "step": "Step title", "detail": "Short actionable instruction covering body wash/bar soap, lotion, body butter, body oil, and body powder placement", "productUsed": "Product from stash (including homemade body powder if applicable) or general step", "essential": true }
+    { "step": "Step title", "detail": "Short actionable instruction covering body wash/bar soap, lotion, body butter, body oil, and body powder placement", "productUsed": "Product from stash or general step", "essential": true }
   ],
   "proTreatments": [
     { "provider": "Salon" or "Dermatologist" or "Esthetician", "treatment": "Exact service name", "why": "Why it helps their specific profile/state and what precautions to ask about", "cadence": "Recommended cadence" }
   ],
   "missingProducts": [
-    { "name": "Specific Brand & Product Name", "domain": "hair|skin|body", "store": "Preferred store", "reason": "Why it fills a gap in their current stash, protective style, or styling setup", "estimatedPrice": "$14.99" }
+    { "name": "Specific Brand & Product Name", "domain": "hair|skin|body", "store": "Preferred store", "reason": "Why it fills a gap in their current stash", "estimatedPrice": "$14.99" }
   ]
 }`;
 
@@ -203,28 +221,17 @@ Active Triggers: ${activeTriggers.length ? activeTriggers.join(', ') : 'None sel
           { role: 'user', content: userPrompt }
         ];
 
-    const groqResp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model,
-        temperature: 0.3,
-        max_tokens: 1850,
-        messages
-      })
-    });
+    const primaryModel = imageBase64 ? 'qwen/qwen3.8-27b' : 'openai/gpt-oss-120b';
+    const fallbackModel = imageBase64 ? 'openai/gpt-oss-120b' : 'qwen/qwen3.8-27b';
 
-    const data = await groqResp.json();
-    if (!groqResp.ok) {
-      return res.status(groqResp.status).json({ error: data.error?.message || 'Groq API error' });
+    let rawText;
+    try {
+      rawText = await callGroqChat(apiKey, primaryModel, messages, 0.3, 2400);
+    } catch (_) {
+      rawText = await callGroqChat(apiKey, fallbackModel, messages, 0.3, 2400);
     }
 
-    const rawText = data.choices?.[0]?.message?.content || '{}';
-    const cleaned = rawText.replace(/```json|```/g, '').trim();
-    return res.status(200).json({ result: JSON.parse(cleaned) });
+    return res.status(200).json({ result: parseJsonLoose(rawText) });
   } catch (err) {
     return res.status(500).json({ error: err.message || 'Server error analyzing request' });
   }

@@ -1,6 +1,6 @@
 {
   "name": "auracare-blank-onboarding",
-  "version": "2.4.0",
+  "version": "2.8.0",
   "private": true,
-  "description": "Blank-slate installable PWA for Hair (including Relaxed Hair, wigs, braids, heat curling & rollers), Face & Body care (including homemade body powder, bar soaps, washes, lotions, body butters & oils) with durable profile persistence, Groq Vision/Text AI, barcode scanner, weather/AQI, store/price finder, and pro treatments"
+  "description": "Blank-slate installable iPhone PWA for Hair, Face & Body care with iOS Safari live camera barcode scanning (BarcodeDetector + html5-qrcode + file/photo decode), Groq Vision label reading, weather/AQI, store/price finder, and pro treatments"
 }

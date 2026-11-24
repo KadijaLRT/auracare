@@ -11,7 +11,7 @@
   <link rel="apple-touch-icon" href="/icon.svg" />
   <title>AuraCare — Blank Profile &amp; Care Studio</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <style>
     :root {
       --bg: #FAF8F5;
@@ -25,7 +25,7 @@
       color: var(--ink);
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
       padding-top: env(safe-area-inset-top);
-      padding-bottom: calc(84px + env(safe-area-inset-bottom));
+      padding-bottom: calc(88px + env(safe-area-inset-bottom));
       -webkit-tap-highlight-color: transparent;
     }
     .tab-active { color: var(--gold); font-weight: 700; }
@@ -39,20 +39,20 @@
 </head>
 <body>
   <!-- Sticky Header -->
-  <header class="sticky top-0 z-30 bg-[#FAF8F5]/95 backdrop-blur-md border-b border-[#EAE3D9] px-4 py-3 flex items-center justify-between">
-    <div>
+  <header class="sticky top-0 z-30 bg-[#FAF8F5]/95 backdrop-blur-md border-b border-[#EAE3D9] px-4 py-3 flex items-center justify-between gap-2">
+    <div class="min-w-0">
       <div class="flex items-center gap-2">
-        <span class="text-lg font-bold tracking-tight">AuraCare</span>
-        <span id="profileStatusPill" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900">Blank Profile</span>
+        <span class="text-lg font-bold tracking-tight truncate">AuraCare</span>
+        <span id="profileStatusPill" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 shrink-0">Blank Profile</span>
       </div>
-      <p id="climateSummaryBar" class="text-xs text-[#726862] mt-0.5">Set location in Profile Builder for weather &amp; AQI</p>
+      <p id="climateSummaryBar" class="text-xs text-[#726862] mt-0.5 truncate">Set location in Profile Builder for weather &amp; AQI</p>
     </div>
-    <div class="flex items-center gap-1.5">
-      <button id="energyToggleBtn" onclick="toggleEnergyMode()" class="px-2.5 py-1.5 rounded-full text-xs font-semibold border bg-white border-[#DDD4C8]">
+    <div class="flex items-center gap-1.5 shrink-0">
+      <button id="energyToggleBtn" type="button" onclick="toggleEnergyMode()" class="px-2.5 py-1.5 rounded-full text-xs font-semibold border bg-white border-[#DDD4C8] flex items-center gap-1">
         <span id="energyIcon">🔋</span>
         <span id="energyLabel">Full</span>
       </button>
-      <button onclick="wipeAllToBlank()" title="Wipe everything back to blank" class="px-2.5 py-1.5 rounded-full text-xs font-semibold border border-red-200 bg-red-50 text-red-700">
+      <button type="button" onclick="wipeAllToBlank()" title="Wipe everything back to blank" class="px-2.5 py-1.5 rounded-full text-xs font-semibold border border-red-200 bg-red-50 text-red-700">
         Reset Blank
       </button>
     </div>
@@ -60,7 +60,7 @@
 
   <main class="max-w-lg mx-auto px-4 pt-4 space-y-4">
 
-    <!-- TAB 1: GUIDED PROFILE BUILDER (TAP-TO-SELECT OPTIONS + OPTIONAL OPEN DETAILS) -->
+    <!-- TAB 1: GUIDED PROFILE BUILDER -->
     <section id="tab-builder" class="space-y-4">
       <div class="card p-4 space-y-2 bg-gradient-to-br from-white to-[#F8F3EA]">
         <div class="flex items-center justify-between">
@@ -82,169 +82,142 @@
         </div>
       </div>
 
-      <!-- STEP 1: DEMOGRAPHICS, LOCATION, SCHEDULE & ENVIRONMENT -->
+      <!-- STEP 1 -->
       <div id="step-1" class="card p-4 space-y-3">
         <h2 class="text-sm font-bold">1. Basics, Location &amp; Daily Environment</h2>
-
         <div>
           <label class="block text-xs font-semibold mb-1.5">Age Range (select one)</label>
           <div id="chips_ageRange" class="flex flex-wrap gap-1.5"></div>
         </div>
-
         <div>
           <label class="block text-xs font-semibold mb-1.5">Skin Tone &amp; Melanin Context (tap all that apply)</label>
           <div id="chips_skinTone" class="flex flex-wrap gap-1.5"></div>
         </div>
-
         <div class="grid grid-cols-2 gap-2">
           <div>
             <label class="block text-xs font-semibold mb-1">City, State (for Weather &amp; AQI)</label>
-            <input id="q_city" type="text" oninput="persistTextFields()" onchange="persistTextFields()" placeholder="e.g., Bloomfield, CT" class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+            <input id="q_city" type="text" oninput="persistTextFields()" onchange="persistTextFields()" onblur="persistTextFields()" placeholder="e.g., Bloomfield, CT" class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
           </div>
           <div>
             <label class="block text-xs font-semibold mb-1">Or detect automatically</label>
             <button type="button" onclick="useGPSForProfile()" class="w-full py-2.5 px-3 rounded-xl border border-[#A9772B] text-[#A9772B] text-xs font-semibold">📍 Use Live GPS</button>
           </div>
         </div>
-
         <div>
           <label class="block text-xs font-semibold mb-1.5">Schedule &amp; Environment Factors (tap all that apply)</label>
           <div id="chips_envFactors" class="flex flex-wrap gap-1.5"></div>
         </div>
-
         <div>
           <label class="block text-xs font-semibold mb-1">Specific Allergies, Sensitivities, or Notes (optional open field)</label>
-          <input id="q_sensitivities" type="text" oninput="persistTextFields()" onchange="persistTextFields()" placeholder="e.g., fragrance allergy, low iron, retinoid prescription..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+          <input id="q_sensitivities" type="text" oninput="persistTextFields()" onchange="persistTextFields()" onblur="persistTextFields()" placeholder="e.g., fragrance allergy, low iron, retinoid prescription..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
         </div>
-
         <div class="flex justify-between items-center pt-1">
           <button type="button" onclick="saveProfileNow(false)" class="px-3 py-2 rounded-xl border border-[#DDD4C8] text-xs font-semibold">Save Progress</button>
           <button type="button" onclick="setBuilderStep(2)" class="px-4 py-2 rounded-xl bg-[#231F1D] text-white text-xs font-semibold">Next: Hair &amp; Style →</button>
         </div>
       </div>
 
-      <!-- STEP 2: HAIR, RELAXED & COLORED OPTIONS, PROTECTIVE STYLES & ROLLERS -->
+      <!-- STEP 2 -->
       <div id="step-2" class="card p-4 space-y-3 hidden">
         <h2 class="text-sm font-bold">2. Hair Type, Chemical/Color History &amp; Styling Tools</h2>
-
         <div>
           <label class="block text-xs font-semibold mb-1.5">Natural Hair Texture &amp; Strand Thickness (tap all that apply)</label>
           <div id="chips_hairTexture" class="flex flex-wrap gap-1.5"></div>
         </div>
-
         <div>
           <label class="block text-xs font-semibold mb-1.5">Chemical, Color &amp; Heat History (tap all that apply)</label>
           <div id="chips_hairChemical" class="flex flex-wrap gap-1.5"></div>
-          <input id="q_hairColorDetail" type="text" oninput="persistTextFields()" onchange="persistTextFields()" placeholder="Optional: exact color/chemical note (e.g., honey blonde dye, relaxer touch-up timing)..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2 bg-[#FAF8F5] mt-2" />
+          <input id="q_hairColorDetail" type="text" oninput="persistTextFields()" onchange="persistTextFields()" onblur="persistTextFields()" placeholder="Optional: exact color/chemical note..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2 bg-[#FAF8F5] mt-2" />
         </div>
-
         <div>
           <label class="block text-xs font-semibold mb-1.5">Scalp &amp; Hair Problem Zones (tap all that apply)</label>
           <div id="chips_hairIssues" class="flex flex-wrap gap-1.5"></div>
         </div>
-
         <div>
           <label class="block text-xs font-semibold mb-1.5">Wash Frequency (select one)</label>
           <div id="chips_washFreq" class="flex flex-wrap gap-1.5"></div>
         </div>
-
         <div>
           <label class="block text-xs font-semibold mb-1.5">Top Hair Goals (tap all that apply)</label>
           <div id="chips_hairGoals" class="flex flex-wrap gap-1.5"></div>
         </div>
-
         <div>
           <label class="block text-xs font-semibold mb-1.5">Protective Styles Worn (tap all that apply)</label>
           <div id="chips_protectiveStyles" class="flex flex-wrap gap-1.5"></div>
         </div>
-
         <div>
           <label class="block text-xs font-semibold mb-1.5">Curling Tools &amp; Rollers Used (tap all that apply)</label>
           <div id="chips_stylingTools" class="flex flex-wrap gap-1.5"></div>
         </div>
-
         <div>
           <label class="block text-xs font-semibold mb-1">Custom Hair Oil Blend / DIY Concoction (optional open field)</label>
-          <input id="q_customOilNotes" type="text" oninput="persistTextFields()" onchange="persistTextFields()" placeholder="If you make your own oil mix, list the oils here..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+          <input id="q_customOilNotes" type="text" oninput="persistTextFields()" onchange="persistTextFields()" onblur="persistTextFields()" placeholder="If you make your own oil mix, list the oils here..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
         </div>
-
         <div class="flex justify-between pt-1">
           <button type="button" onclick="setBuilderStep(1)" class="px-3 py-2 rounded-xl border border-[#DDD4C8] text-xs font-semibold">← Back</button>
           <button type="button" onclick="setBuilderStep(3)" class="px-4 py-2 rounded-xl bg-[#231F1D] text-white text-xs font-semibold">Next: Face Skin →</button>
         </div>
       </div>
 
-      <!-- STEP 3: FACE SKINCARE OPTIONS -->
+      <!-- STEP 3 -->
       <div id="step-3" class="card p-4 space-y-3 hidden">
         <h2 class="text-sm font-bold">3. Face Skin Type, Concerns &amp; Routine Style</h2>
-
         <div>
           <label class="block text-xs font-semibold mb-1.5">Face Skin Type (select one)</label>
           <div id="chips_faceType" class="flex flex-wrap gap-1.5"></div>
         </div>
-
         <div>
           <label class="block text-xs font-semibold mb-1.5">Face Skin Concerns &amp; Goals (tap all that apply)</label>
           <div id="chips_faceConcerns" class="flex flex-wrap gap-1.5"></div>
         </div>
-
         <div>
           <label class="block text-xs font-semibold mb-1.5">Preferred Daily Face Routine Complexity (select one)</label>
           <div id="chips_faceRoutinePref" class="flex flex-wrap gap-1.5"></div>
         </div>
-
         <div class="flex justify-between pt-1">
           <button type="button" onclick="setBuilderStep(2)" class="px-3 py-2 rounded-xl border border-[#DDD4C8] text-xs font-semibold">← Back</button>
           <button type="button" onclick="setBuilderStep(4)" class="px-4 py-2 rounded-xl bg-[#231F1D] text-white text-xs font-semibold">Next: Body Care →</button>
         </div>
       </div>
 
-      <!-- STEP 4: BODY CARE OPTIONS (INCLUDING BODY POWDER) -->
+      <!-- STEP 4 -->
       <div id="step-4" class="card p-4 space-y-3 hidden">
         <h2 class="text-sm font-bold">4. Body Care (Washes, Bar Soaps, Lotions, Butters, Oils &amp; Powders)</h2>
-
         <div>
           <label class="block text-xs font-semibold mb-1.5">Body Skin Concerns &amp; Trouble Areas (tap all that apply)</label>
           <div id="chips_bodyConcerns" class="flex flex-wrap gap-1.5"></div>
         </div>
-
         <div>
           <label class="block text-xs font-semibold mb-1.5">Preferred Body Cleansing Formats (tap all that apply)</label>
           <div id="chips_bodyCleansePref" class="flex flex-wrap gap-1.5"></div>
         </div>
-
         <div>
           <label class="block text-xs font-semibold mb-1.5">Preferred Body Moisture, Powder &amp; Scent Style (tap all that apply)</label>
           <div id="chips_bodyMoisturePref" class="flex flex-wrap gap-1.5"></div>
-          <input id="q_customBodyPowderNotes" type="text" oninput="persistTextFields()" onchange="persistTextFields()" placeholder="Optional: homemade body powder recipe/ingredients (e.g., arrowroot, cornstarch, kaolin clay, essential oils)..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2 bg-[#FAF8F5] mt-2" />
+          <input id="q_customBodyPowderNotes" type="text" oninput="persistTextFields()" onchange="persistTextFields()" onblur="persistTextFields()" placeholder="Optional: homemade body powder recipe/ingredients..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2 bg-[#FAF8F5] mt-2" />
         </div>
-
         <div class="flex justify-between pt-1">
           <button type="button" onclick="setBuilderStep(3)" class="px-3 py-2 rounded-xl border border-[#DDD4C8] text-xs font-semibold">← Back</button>
           <button type="button" onclick="setBuilderStep(5)" class="px-4 py-2 rounded-xl bg-[#231F1D] text-white text-xs font-semibold">Next: Shopping &amp; Pro →</button>
         </div>
       </div>
 
-      <!-- STEP 5: BUDGET, STORES & PRO TREATMENT PREFERENCES -->
+      <!-- STEP 5 -->
       <div id="step-5" class="card p-4 space-y-3 hidden">
         <h2 class="text-sm font-bold">5. Budget, Preferred Stores &amp; Pro Treatments</h2>
-
         <div>
           <label class="block text-xs font-semibold mb-1.5">Max Price Per Product (select one)</label>
           <div id="chips_maxPrice" class="flex flex-wrap gap-1.5"></div>
         </div>
-
         <div>
           <label class="block text-xs font-semibold mb-1.5">Preferred Stores (tap all stores you shop at)</label>
           <div id="chips_stores" class="flex flex-wrap gap-1.5"></div>
-          <input id="q_extraStores" type="text" oninput="persistTextFields()" onchange="persistTextFields()" placeholder="Optional: any other local or online store..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2 bg-[#FAF8F5] mt-2" />
+          <input id="q_extraStores" type="text" oninput="persistTextFields()" onchange="persistTextFields()" onblur="persistTextFields()" placeholder="Optional: any other local or online store..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2 bg-[#FAF8F5] mt-2" />
         </div>
-
         <div>
           <label class="block text-xs font-semibold mb-1.5">Salon, Dermatologist &amp; Esthetician Interests (tap all that apply)</label>
           <div id="chips_proPrefs" class="flex flex-wrap gap-1.5"></div>
         </div>
-
         <div class="flex items-center justify-between pt-2 gap-2">
           <button type="button" onclick="setBuilderStep(4)" class="px-3 py-2.5 rounded-xl border border-[#DDD4C8] text-xs font-semibold">← Back</button>
           <button type="button" onclick="completeProfileSetup()" class="flex-1 py-2.5 px-4 rounded-xl bg-[#A9772B] text-white text-xs font-bold shadow-sm">
@@ -254,7 +227,6 @@
         <p id="profileSavedBanner" class="text-xs text-emerald-700 font-semibold text-center hidden">Profile saved!</p>
       </div>
 
-      <!-- Saved Profile Summary Preview -->
       <div id="profileSummaryCard" class="card p-4 space-y-2 hidden">
         <div class="flex items-center justify-between">
           <h3 class="text-xs font-bold uppercase tracking-wider text-[#726862]">Current Saved Profile</h3>
@@ -266,7 +238,6 @@
 
     <!-- TAB 2: CHECK-IN & AI ROUTINES -->
     <section id="tab-checkin" class="hidden space-y-4">
-      <!-- Weather & AQI Card -->
       <div class="card p-4 bg-gradient-to-br from-white to-[#F8F3EA]">
         <div class="flex items-center justify-between mb-2">
           <div class="flex items-center gap-2">
@@ -298,17 +269,12 @@
         </p>
       </div>
 
-      <!-- Check-In Form -->
       <div class="card p-4 space-y-3">
         <h2 class="text-base font-bold">State Check-In (Selectable + Optional Photo/Note)</h2>
-
-        <!-- Current Hair / Protective Style State Selector -->
         <div class="space-y-1.5">
           <label class="block text-[11px] font-bold uppercase tracking-wider text-[#726862]">1. Current Hair / Protective Style State</label>
           <div id="hairModeChipsBox" class="flex flex-wrap gap-1.5"></div>
         </div>
-
-        <!-- Styling Tool / Roller Selector -->
         <div class="space-y-1.5">
           <label class="block text-[11px] font-bold uppercase tracking-wider text-[#726862]">2. Curling Iron or Roller / Curler Method</label>
           <select id="stylingMethodSelect" onchange="updateStylingMethod(this.value)" class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5] font-medium">
@@ -322,15 +288,11 @@
             <option value="Satin / Heatless Curling Rod or Scarf">Satin / Heatless Curling Rod or Scarf</option>
           </select>
         </div>
-
-        <!-- Root-Cause & Change Factors -->
         <div class="space-y-1">
           <span class="text-[11px] font-bold uppercase tracking-wider text-[#726862]">3. Today's Symptoms &amp; Change Factors (Tap all that apply)</span>
           <div id="triggerChipsBox" class="flex flex-wrap gap-1.5 pt-1"></div>
         </div>
-
         <textarea id="checkinInput" rows="2" placeholder="Optional note or extra details, or attach a photo below..." class="w-full rounded-xl border border-[#DDD4C8] p-3 text-xs bg-[#FAF8F5]"></textarea>
-
         <div class="flex items-center gap-2">
           <label class="flex-1 cursor-pointer flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border border-dashed border-[#A9772B] bg-[#F8F3EA] text-xs font-semibold text-[#8A5E1B]">
             <span>📸 Snap / Upload Photo (Optional)</span>
@@ -341,43 +303,52 @@
         <div id="checkinPhotoPreviewBox" class="hidden">
           <img id="checkinPhotoPreview" class="w-full h-40 object-cover rounded-xl border border-[#EAE3D9]" alt="Check-in preview" />
         </div>
-
         <button id="generateRoutineBtn" type="button" onclick="generateAIRoutine()" class="w-full py-3 rounded-xl bg-[#231F1D] text-white font-semibold text-sm">
           ✨ Generate Tailored Routines, Styling Products &amp; Pro Care
         </button>
-        <p id="aiStatusMsg" class="text-xs text-center text-[#726862] hidden"></p>
+        <p id="aiStatusMsg" class="text-xs text-center text-red-700 font-medium hidden"></p>
       </div>
 
       <div id="aiResultContainer" class="space-y-4"></div>
     </section>
 
-    <!-- TAB 3: BLANK PRODUCT STASH + BARCODE / PHOTO SCANNER -->
+    <!-- TAB 3: BLANK PRODUCT STASH (RELIABLE IOS SAFARI VIDEO + BARCODE/PHOTO SCANNER) -->
     <section id="tab-stash" class="hidden space-y-4">
       <div class="card p-4 space-y-3">
         <div>
           <h2 class="text-base font-bold">My Product Stash (Starts Blank)</h2>
-          <p class="text-xs text-[#726862]">Scan barcodes, snap bottle/bar photos, or add hair, styling, wig/braid, face &amp; body items (including homemade body powder).</p>
+          <p class="text-xs text-[#726862]">Use live rear camera barcode scan, snap a barcode/bottle photo, or enter a barcode/product manually.</p>
         </div>
 
         <div class="grid grid-cols-2 gap-2">
-          <button type="button" onclick="openBarcodeScanner()" class="py-3 px-3 rounded-xl bg-[#231F1D] text-white text-xs font-semibold flex items-center justify-center gap-1.5">
-            <span>🏁</span> Scan Barcode
+          <button id="liveScanBtn" type="button" onclick="openBarcodeScanner()" class="py-3 px-3 rounded-xl bg-[#231F1D] text-white text-xs font-semibold flex items-center justify-center gap-1.5">
+            <span>🏁</span> Live Barcode Scan
           </button>
-          <label class="cursor-pointer py-3 px-3 rounded-xl bg-[#A9772B] text-white text-xs font-semibold flex items-center justify-center gap-1.5">
-            <span>📷</span> Snap Product Photo
+          <label class="cursor-pointer py-3 px-3 rounded-xl bg-[#A9772B] text-white text-xs font-semibold flex items-center justify-center gap-1.5 text-center">
+            <span>📷</span> Snap Label / Barcode
             <input type="file" id="productPhotoInput" accept="image/*" capture="environment" class="hidden" onchange="handleProductPhotoScan(event)" />
           </label>
         </div>
 
-        <div id="scannerBox" class="hidden space-y-2 pt-2">
-          <div class="relative rounded-xl overflow-hidden bg-black aspect-video">
-            <video id="barcodeVideo" class="w-full h-full object-cover" playsinline></video>
-            <div class="absolute inset-x-8 top-1/2 -translate-y-1/2 h-0.5 bg-amber-400"></div>
+        <!-- Live Camera & Barcode Scanner Panel -->
+        <div id="scannerBox" class="hidden space-y-2.5 pt-2">
+          <div class="relative rounded-xl overflow-hidden bg-black aspect-[4/3]">
+            <video id="liveCameraVideo" autoplay playsinline muted class="w-full h-full object-cover"></video>
+            <div class="pointer-events-none absolute inset-x-6 top-1/2 -translate-y-1/2 h-0.5 bg-amber-400 shadow-[0_0_8px_#fbbf24]"></div>
           </div>
+
+          <div class="flex gap-2 items-center">
+            <button type="button" onclick="captureFrameAndScan()" class="flex-1 py-2 px-2.5 rounded-lg bg-[#A9772B] text-white text-xs font-semibold">
+              📸 Capture Frame &amp; Scan
+            </button>
+            <button type="button" onclick="closeBarcodeScanner()" class="px-3 py-2 rounded-lg bg-gray-200 text-gray-800 text-xs font-semibold">
+              Stop Camera
+            </button>
+          </div>
+
           <div class="flex gap-2">
-            <input id="manualBarcodeInput" type="text" placeholder="Enter barcode digits..." class="flex-1 text-xs border border-[#DDD4C8] rounded-lg px-2.5 py-2" />
+            <input id="manualBarcodeInput" type="text" inputmode="numeric" placeholder="Or type barcode digits (e.g., 071249343326)..." class="flex-1 text-xs border border-[#DDD4C8] rounded-lg px-2.5 py-2" />
             <button type="button" onclick="lookupBarcode(document.getElementById('manualBarcodeInput').value)" class="px-3 py-2 rounded-lg bg-[#231F1D] text-white text-xs font-semibold">Lookup</button>
-            <button type="button" onclick="closeBarcodeScanner()" class="px-3 py-2 rounded-lg bg-gray-200 text-gray-800 text-xs font-semibold">Close</button>
           </div>
         </div>
 
@@ -385,7 +356,7 @@
 
         <div class="pt-2 border-t border-[#EAE3D9] space-y-2">
           <div class="text-xs font-semibold">Add Product or Homemade Mix Manually</div>
-          <input id="manName" type="text" placeholder="Product name (e.g., Homemade Body Powder, Olaplex No. 3)..." class="w-full text-xs border border-[#DDD4C8] rounded-lg p-2 bg-[#FAF8F5]" />
+          <input id="manName" type="text" placeholder="Product name..." class="w-full text-xs border border-[#DDD4C8] rounded-lg p-2 bg-[#FAF8F5]" />
           <div class="grid grid-cols-2 gap-2">
             <select id="manDomain" class="text-xs border border-[#DDD4C8] rounded-lg p-2 bg-white">
               <option value="hair">Hair &amp; Styling</option>
@@ -439,11 +410,10 @@
         <div class="flex items-center justify-between">
           <div>
             <h2 class="text-base font-bold">Recommended Additions (Store &amp; Price)</h2>
-            <p class="text-xs text-[#726862]">Tailored to your profile, current hair state, curling/roller tools, preferred stores &amp; budget</p>
+            <p class="text-xs text-[#726862]">Tailored to your profile, hair state, curling/roller tools, preferred stores &amp; budget</p>
           </div>
           <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-[#F8F3EA] text-[#8A5E1B]">Max $<span id="budgetBadge">30</span></span>
         </div>
-
         <div class="space-y-1">
           <div class="flex justify-between text-xs font-semibold">
             <span>Max Price Per Product</span>
@@ -451,12 +421,10 @@
           </div>
           <input id="maxPriceSlider" type="range" min="10" max="100" step="5" value="30" oninput="updateBudgetSetting(this.value)" class="w-full accent-[#A9772B]" />
         </div>
-
         <div class="space-y-1.5">
           <label class="block text-xs font-semibold">Preferred Stores (tap to toggle)</label>
           <div id="storeChipsContainer" class="flex flex-wrap gap-1.5"></div>
         </div>
-
         <div class="grid grid-cols-2 gap-2 pt-1">
           <select id="shopFocusSelect" class="text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]">
             <option value="All missing hair, styling, face & body essentials">All Stash Gaps (Hair + Face + Body)</option>
@@ -470,9 +438,8 @@
             🔍 Find Matches
           </button>
         </div>
-        <p id="shopStatusMsg" class="text-xs text-[#726862] hidden"></p>
+        <p id="shopStatusMsg" class="text-xs text-red-700 font-medium hidden"></p>
       </div>
-
       <div id="shopResultsList" class="space-y-2.5"></div>
     </section>
 
@@ -480,46 +447,40 @@
     <section id="tab-triggers" class="hidden space-y-4">
       <div class="card p-4 space-y-2">
         <h2 class="text-base font-bold">Relaxed Hair, Wigs, Braids, Rollers &amp; Body Powder Rules</h2>
-        <p class="text-xs text-[#726862]">Quick reference for protective styles, styling tools, and body layering—select yours in Check-In for custom picks.</p>
         <div id="stylingReferenceBox" class="space-y-2 pt-1 text-xs"></div>
       </div>
-
       <div class="card p-4 space-y-2">
         <h2 class="text-base font-bold">Salon, Dermatologist &amp; Esthetician Options</h2>
-        <p class="text-xs text-[#726862]">Fill out your Profile and run a Check-In to get professional treatments matched to your exact hair, face, body, and budget.</p>
         <div id="proGuidanceBox" class="space-y-2 pt-1 text-xs"></div>
       </div>
-
       <div class="card p-4 space-y-2">
         <h2 class="text-base font-bold">Why Hair, Face &amp; Body Change (Beyond Weather)</h2>
-        <p class="text-xs text-[#726862]">Tap any factor to toggle it into your Check-In AI analysis.</p>
         <div id="rootCauseCardsBox" class="space-y-2 pt-1"></div>
       </div>
     </section>
 
   </main>
 
-  <!-- Bottom Navigation (5 Tabs) -->
   <nav class="fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-md border-t border-[#EAE3D9] px-1 pt-2 pb-[calc(8px+env(safe-area-inset-bottom))]">
-    <div class="max-w-lg mx-auto grid grid-cols-5 text-center text-[10px]">
-      <button type="button" onclick="switchTab('builder')" id="nav-builder" class="tab-active flex flex-col items-center gap-0.5 py-1">
-        <span class="text-base">📝</span>
+    <div class="max-w-lg mx-auto grid grid-cols-5 items-center justify-items-center text-center text-[10px]">
+      <button type="button" onclick="switchTab('builder')" id="nav-builder" class="tab-active flex flex-col items-center justify-center gap-0.5 py-1 w-full">
+        <span class="text-base leading-none">📝</span>
         <span>Profile</span>
       </button>
-      <button type="button" onclick="switchTab('checkin')" id="nav-checkin" class="text-[#726862] flex flex-col items-center gap-0.5 py-1">
-        <span class="text-base">✨</span>
+      <button type="button" onclick="switchTab('checkin')" id="nav-checkin" class="text-[#726862] flex flex-col items-center justify-center gap-0.5 py-1 w-full">
+        <span class="text-base leading-none">✨</span>
         <span>Check-In</span>
       </button>
-      <button type="button" onclick="switchTab('stash')" id="nav-stash" class="text-[#726862] flex flex-col items-center gap-0.5 py-1">
-        <span class="text-base">🧴</span>
+      <button type="button" onclick="switchTab('stash')" id="nav-stash" class="text-[#726862] flex flex-col items-center justify-center gap-0.5 py-1 w-full">
+        <span class="text-base leading-none">🧴</span>
         <span>My Stash</span>
       </button>
-      <button type="button" onclick="switchTab('shop')" id="nav-shop" class="text-[#726862] flex flex-col items-center gap-0.5 py-1">
-        <span class="text-base">🏷️</span>
+      <button type="button" onclick="switchTab('shop')" id="nav-shop" class="text-[#726862] flex flex-col items-center justify-center gap-0.5 py-1 w-full">
+        <span class="text-base leading-none">🏷️</span>
         <span>Shop</span>
       </button>
-      <button type="button" onclick="switchTab('triggers')" id="nav-triggers" class="text-[#726862] flex flex-col items-center gap-0.5 py-1">
-        <span class="text-base">🩺</span>
+      <button type="button" onclick="switchTab('triggers')" id="nav-triggers" class="text-[#726862] flex flex-col items-center justify-center gap-0.5 py-1 w-full">
+        <span class="text-base leading-none">🩺</span>
         <span>Pro &amp; Style</span>
       </button>
     </div>
@@ -530,145 +491,23 @@
 
     const PROFILE_OPTIONS = {
       ageRange: ["Under 20", "20s", "30s", "40s", "50+"],
-      skinTone: [
-        "Deep / Rich Melanin",
-        "Medium-Deep / Brown",
-        "Olive / Tan",
-        "Fair / Light",
-        "Prone to Hyperpigmentation / Dark Marks"
-      ],
-      envFactors: [
-        "Overnight / Shift Work",
-        "Daytime Schedule",
-        "Dry Indoor Heat / AC (HVAC)",
-        "Hard Tap Water",
-        "High Outdoor Pollution / Smoke",
-        "Frequent Sun / UV Exposure"
-      ],
-      hairTexture: [
-        "Fine Strands",
-        "Medium Strands",
-        "Coarse Strands",
-        "Straight (Type 1)",
-        "Wavy (Type 2)",
-        "Curly (Type 3)",
-        "Coily / Kinky (Type 4)"
-      ],
-      hairChemical: [
-        "Relaxed",
-        "Colored / Dyed",
-        "Bleached / Lightened / Highlighted",
-        "Natural / Virgin (No Chemicals)",
-        "Texturized / Permed",
-        "Keratin / Smoothing Treated",
-        "Frequent Heat Styling"
-      ],
-      hairIssues: [
-        "Temple / Edge Breakage",
-        "Dry / Brittle Ends",
-        "Line-of-Demarcation Shedding",
-        "Brassiness / Color Fade",
-        "Dry / Flaky Scalp",
-        "Oily Scalp / Product Buildup",
-        "Thinning / Excess Shedding"
-      ],
-      washFreq: [
-        "2–3x Per Week",
-        "Weekly (Every 7 Days)",
-        "Biweekly (Every 14 Days)",
-        "Every 3–4 Weeks"
-      ],
-      hairGoals: [
-        "Stop Breakage & Rebuild Bonds",
-        "Moisture & Elasticity",
-        "Edge / Temple Regrowth",
-        "Color Protection & Shine",
-        "Frizz Control & Curl Hold",
-        "Scalp Health"
-      ],
-      protectiveStyles: [
-        "None (Hair Out)",
-        "Lace Front / Glueless Wigs",
-        "Braids / Cornrows Under Wig",
-        "Box Braids / Knotless Braids",
-        "Sew-In Weave / Crochet",
-        "Twists / Faux Locs"
-      ],
-      stylingTools: [
-        "None / Air Dry",
-        "Curling Iron / Curling Wand",
-        "Hot Rollers",
-        "Foam / Sponge Rollers",
-        "Flexi Rods",
-        "Velcro Rollers",
-        "Magnetic Wet-Set Rollers",
-        "Satin / Heatless Curling Rod"
-      ],
-      faceType: [
-        "Dry",
-        "Oily",
-        "Combination",
-        "Normal",
-        "Sensitive / Reactive"
-      ],
-      faceConcerns: [
-        "Dark Spots / Hyperpigmentation",
-        "Acne / Hormonal Breakouts",
-        "Dehydration / Tightness",
-        "Dullness / Uneven Texture",
-        "Redness / Barrier Damage",
-        "Fine Lines / Anti-Aging",
-        "Large Pores / Excess Shine"
-      ],
-      faceRoutinePref: [
-        "Minimal (2–3 Steps: Cleanse, Moisturize, SPF)",
-        "Moderate (4–5 Steps + Targeted Serum)",
-        "Full Multi-Step Routine"
-      ],
-      bodyConcerns: [
-        "Dry / Ashy Skin",
-        "Rough Elbows, Knees & Heels",
-        "Chafing / Sweat & Friction Zones",
-        "Body Bumps / Keratosis Pilaris (KP)",
-        "Ingrown Hairs / Razor Bumps",
-        "Body Dark Marks / Uneven Tone",
-        "Back / Chest Breakouts",
-        "Sensitive / Eczema-Prone"
-      ],
-      bodyCleansePref: [
-        "Moisturizing Bar Soap",
-        "Creamy / Hydrating Body Wash",
-        "Exfoliating Body Scrub",
-        "Shower Oil",
-        "Antibacterial / Deodorant Bar"
-      ],
-      bodyMoisturePref: [
-        "Lightweight Body Lotion",
-        "Rich Body Cream",
-        "Whipped Body Butter",
-        "Body Oil (Damp Skin Seal)",
-        "Homemade / DIY Body Powder",
-        "Dusting / Talc-Free Body Powder",
-        "Lotion + Butter/Oil + Body Powder Layering",
-        "Fragrance-Free Only",
-        "Scent Layering / Warm / Gourmand Scents"
-      ],
-      maxPrice: [
-        "Under $15",
-        "Under $20",
-        "Under $30",
-        "Under $45",
-        "Under $60"
-      ],
-      proPrefs: [
-        "Hair Salon (Bond Repair / Gloss / Trim)",
-        "Hair Salon (Tension-Free Braids / Silk Press)",
-        "Dermatologist (Scalp / Hairline Evaluation)",
-        "Dermatologist (Dark Spots / Acne / KP Rx)",
-        "Esthetician (Hydrating / Barrier Facials)",
-        "Esthetician (Mandelic/Lactic Peels or Body Care)",
-        "At-Home Care Only Right Now"
-      ]
+      skinTone: ["Deep / Rich Melanin", "Medium-Deep / Brown", "Olive / Tan", "Fair / Light", "Prone to Hyperpigmentation / Dark Marks"],
+      envFactors: ["Overnight / Shift Work", "Daytime Schedule", "Dry Indoor Heat / AC (HVAC)", "Hard Tap Water", "High Outdoor Pollution / Smoke", "Frequent Sun / UV Exposure"],
+      hairTexture: ["Fine Strands", "Medium Strands", "Coarse Strands", "Straight (Type 1)", "Wavy (Type 2)", "Curly (Type 3)", "Coily / Kinky (Type 4)"],
+      hairChemical: ["Relaxed", "Colored / Dyed", "Bleached / Lightened / Highlighted", "Natural / Virgin (No Chemicals)", "Texturized / Permed", "Keratin / Smoothing Treated", "Frequent Heat Styling"],
+      hairIssues: ["Temple / Edge Breakage", "Dry / Brittle Ends", "Line-of-Demarcation Shedding", "Brassiness / Color Fade", "Dry / Flaky Scalp", "Oily Scalp / Product Buildup", "Thinning / Excess Shedding"],
+      washFreq: ["2–3x Per Week", "Weekly (Every 7 Days)", "Biweekly (Every 14 Days)", "Every 3–4 Weeks"],
+      hairGoals: ["Stop Breakage & Rebuild Bonds", "Moisture & Elasticity", "Edge / Temple Regrowth", "Color Protection & Shine", "Frizz Control & Curl Hold", "Scalp Health"],
+      protectiveStyles: ["None (Hair Out)", "Lace Front / Glueless Wigs", "Braids / Cornrows Under Wig", "Box Braids / Knotless Braids", "Sew-In Weave / Crochet", "Twists / Faux Locs"],
+      stylingTools: ["None / Air Dry", "Curling Iron / Curling Wand", "Hot Rollers", "Foam / Sponge Rollers", "Flexi Rods", "Velcro Rollers", "Magnetic Wet-Set Rollers", "Satin / Heatless Curling Rod"],
+      faceType: ["Dry", "Oily", "Combination", "Normal", "Sensitive / Reactive"],
+      faceConcerns: ["Dark Spots / Hyperpigmentation", "Acne / Hormonal Breakouts", "Dehydration / Tightness", "Dullness / Uneven Texture", "Redness / Barrier Damage", "Fine Lines / Anti-Aging", "Large Pores / Excess Shine"],
+      faceRoutinePref: ["Minimal (2–3 Steps: Cleanse, Moisturize, SPF)", "Moderate (4–5 Steps + Targeted Serum)", "Full Multi-Step Routine"],
+      bodyConcerns: ["Dry / Ashy Skin", "Rough Elbows, Knees & Heels", "Chafing / Sweat & Friction Zones", "Body Bumps / Keratosis Pilaris (KP)", "Ingrown Hairs / Razor Bumps", "Body Dark Marks / Uneven Tone", "Back / Chest Breakouts", "Sensitive / Eczema-Prone"],
+      bodyCleansePref: ["Moisturizing Bar Soap", "Creamy / Hydrating Body Wash", "Exfoliating Body Scrub", "Shower Oil", "Antibacterial / Deodorant Bar"],
+      bodyMoisturePref: ["Lightweight Body Lotion", "Rich Body Cream", "Whipped Body Butter", "Body Oil (Damp Skin Seal)", "Homemade / DIY Body Powder", "Dusting / Talc-Free Body Powder", "Lotion + Butter/Oil + Body Powder Layering", "Fragrance-Free Only", "Scent Layering / Warm / Gourmand Scents"],
+      maxPrice: ["Under $15", "Under $20", "Under $30", "Under $45", "Under $60"],
+      proPrefs: ["Hair Salon (Bond Repair / Gloss / Trim)", "Hair Salon (Tension-Free Braids / Silk Press)", "Dermatologist (Scalp / Hairline Evaluation)", "Dermatologist (Dark Spots / Acne / KP Rx)", "Esthetician (Hydrating / Barrier Facials)", "Esthetician (Mandelic/Lactic Peels or Body Care)", "At-Home Care Only Right Now"]
     };
 
     const HAIR_PROTECTIVE_MODES = [
@@ -681,34 +520,13 @@
     ];
 
     const STYLING_REFERENCE_GUIDE = [
-      {
-        title: "Relaxed Hair (Out / Styled)",
-        note: "Focus on bond repair + protein-moisture balance, protect the line of demarcation where new growth meets relaxed strands, moisturize with water-based leave-in before sealing ends/temples with light oil, and keep direct heat low."
-      },
-      {
-        title: "Wearing a Wig (Unit On & Hair Underneath)",
-        note: "Cleanse scalp between cornrows with diluted micellar/witch hazel or no-rinse scalp foam, lightly mist braids underneath, seal edges without heavy glue/gel buildup, and wear a satin wig grip or melt band instead of tight elastic."
-      },
-      {
-        title: "Braid Extensions (Box Braids, Knotless, Cornrows)",
-        note: "Use a nozzle-tip diluted shampoo or no-rinse scalp cleanser to prevent buildup at the base, hydrate roots with lightweight leave-in spray + light oil, and avoid heavy creams that cause white buildup."
-      },
-      {
-        title: "Curling Iron / Wand & Hot Rollers (Direct Heat)",
-        note: "Always apply a silicone or polymer thermal heat protectant before heat, keep temperature moderate for relaxed/colored/fine hair, and let curls cool completely before finger-combing."
-      },
-      {
-        title: "Foam / Sponge Rollers, Flexi Rods & Magnetic Wet Sets",
-        note: "Use a lightweight setting mousse/foam or setting lotion on damp or misted hair, wrap ends with end papers (especially on foam/sponge rollers to prevent snagging), and ensure 100% dry before unrolling."
-      },
-      {
-        title: "Velcro Rollers & Satin Heatless Rods",
-        note: "Velcro rollers work best on dry or 90% blown-dry hair with heat protectant and root-lift spray (roll away from fragile temples). Satin heatless rods work best on slightly misted hair with a drop of lightweight smoothing serum."
-      },
-      {
-        title: "Body Layering with Homemade Body Powder",
-        note: "1) Cleanse with gentle bar soap/body wash -> 2) Apply lotion on damp skin -> 3) Seal dry spots with body butter or body oil -> 4) Dust homemade body powder with a puff on friction/sweat zones (underarms, inner thighs, under-bust, feet) or over sticky lotion/oil for a silky finish."
-      }
+      { title: "Relaxed Hair (Out / Styled)", note: "Focus on bond repair + protein-moisture balance, protect the line of demarcation where new growth meets relaxed strands, moisturize with water-based leave-in before sealing ends/temples with light oil, and keep direct heat low." },
+      { title: "Wearing a Wig (Unit On & Hair Underneath)", note: "Cleanse scalp between cornrows with diluted micellar/witch hazel or no-rinse scalp foam, lightly mist braids underneath, seal edges without heavy glue/gel buildup, and wear a satin wig grip or melt band instead of tight elastic." },
+      { title: "Braid Extensions (Box Braids, Knotless, Cornrows)", note: "Use a nozzle-tip diluted shampoo or no-rinse scalp cleanser to prevent buildup at the base, hydrate roots with lightweight leave-in spray + light oil, and avoid heavy creams that cause white buildup." },
+      { title: "Curling Iron / Wand & Hot Rollers (Direct Heat)", note: "Always apply a silicone or polymer thermal heat protectant before heat, keep temperature moderate for relaxed/colored/fine hair, and let curls cool completely before finger-combing." },
+      { title: "Foam / Sponge Rollers, Flexi Rods & Magnetic Wet Sets", note: "Use a lightweight setting mousse/foam or setting lotion on damp or misted hair, wrap ends with end papers (especially on foam/sponge rollers to prevent snagging), and ensure 100% dry before unrolling." },
+      { title: "Velcro Rollers & Satin Heatless Rods", note: "Velcro rollers work best on dry or 90% blown-dry hair with heat protectant and root-lift spray (roll away from fragile temples). Satin heatless rods work best on slightly misted hair with a drop of lightweight smoothing serum." },
+      { title: "Body Layering with Homemade Body Powder", note: "1) Cleanse with gentle bar soap/body wash -> 2) Apply lotion on damp skin -> 3) Seal dry spots with body butter or body oil -> 4) Dust homemade body powder with a puff on friction/sweat zones or over sticky lotion/oil for a silky finish." }
     ];
 
     const TRIGGER_FACTORS = [
@@ -739,44 +557,17 @@
         currentHairState: "Relaxed Hair (Out / Styled)",
         selectedStylingMethod: "None / Air Dry / Protective Set",
         profile: {
-          ageRange: "",
-          skinTone: [],
-          city: "",
-          lat: null,
-          lon: null,
-          envFactors: [],
-          sensitivities: "",
-          hairTexture: [],
-          hairChemical: [],
-          hairColorDetail: "",
-          hairIssues: [],
-          washFreq: "",
-          hairGoals: [],
-          protectiveStyles: [],
-          stylingTools: [],
-          customOilNotes: "",
-          faceType: "",
-          faceConcerns: [],
-          faceRoutinePref: "",
-          bodyConcerns: [],
-          bodyCleansePref: [],
-          bodyMoisturePref: [],
-          customBodyPowderNotes: "",
+          ageRange: "", skinTone: [], city: "", lat: null, lon: null, envFactors: [], sensitivities: "",
+          hairTexture: [], hairChemical: [], hairColorDetail: "", hairIssues: [], washFreq: "",
+          hairGoals: [], protectiveStyles: [], stylingTools: [], customOilNotes: "",
+          faceType: "", faceConcerns: [], faceRoutinePref: "",
+          bodyConcerns: [], bodyCleansePref: [], bodyMoisturePref: [], customBodyPowderNotes: "",
           proPrefs: []
         },
-        shoppingPrefs: {
-          maxPrice: 30,
-          stores: [],
-          extraStores: ""
-        },
+        shoppingPrefs: { maxPrice: 30, stores: [], extraStores: "" },
         activeTriggers: [],
         inventory: [],
-        weather: {
-          tempF: null,
-          humidity: null,
-          uv: null,
-          aqi: null
-        },
+        weather: { tempF: null, humidity: null, uv: null, aqi: null },
         lastAIRoutine: null,
         shopRecommendations: []
       };
@@ -792,10 +583,8 @@
       const mergedShop = { ...base.shoppingPrefs, ...(raw.shoppingPrefs && typeof raw.shoppingPrefs === "object" ? raw.shoppingPrefs : {}) };
       if (!Array.isArray(mergedShop.stores)) mergedShop.stores = [];
       mergedShop.maxPrice = Number(mergedShop.maxPrice) || 30;
-
       return {
-        ...base,
-        ...raw,
+        ...base, ...raw,
         currentStep: Number(raw.currentStep) || 1,
         currentHairState: raw.currentHairState || base.currentHairState,
         selectedStylingMethod: raw.selectedStylingMethod || base.selectedStylingMethod,
@@ -808,18 +597,21 @@
       };
     }
 
-    let state = normalizeState(JSON.parse(localStorage.getItem("auracare_blank_state_v24") || "null"));
+    let state = normalizeState(JSON.parse(localStorage.getItem("auracare_blank_state_v28") || "null"));
     let pendingCheckinImage = null;
-    let codeReader = null;
+    let cameraStream = null;
+    let scanLoopTimer = null;
+    let nativeBarcodeDetector = null;
+    let frameCanvas = null;
 
     function saveState() {
       state = normalizeState(state);
-      localStorage.setItem("auracare_blank_state_v24", JSON.stringify(state));
+      localStorage.setItem("auracare_blank_state_v28", JSON.stringify(state));
     }
 
     function wipeAllToBlank() {
       if (!confirm("Wipe all profile selections, owned products, and saved results back to completely blank?")) return;
-      localStorage.removeItem("auracare_blank_state_v24");
+      localStorage.removeItem("auracare_blank_state_v28");
       state = createBlankState();
       pendingCheckinImage = null;
       document.getElementById("aiResultContainer").innerHTML = "";
@@ -827,7 +619,6 @@
       init();
     }
 
-    // ---------- NAVIGATION & ENERGY ----------
     function switchTab(tab) {
       persistTextFields();
       ["builder", "checkin", "stash", "shop", "triggers"].forEach(t => {
@@ -858,7 +649,6 @@
       btn.classList.toggle("bg-emerald-50", state.lowEnergyMode);
     }
 
-    // ---------- CHIP SELECTOR HELPERS ----------
     function toggleSingleOption(field, value) {
       persistTextFields();
       state.profile[field] = state.profile[field] === value ? "" : value;
@@ -892,19 +682,8 @@
       const box = document.getElementById(containerId);
       if (!box) return;
       box.innerHTML = options.map(opt => {
-        const active = isMulti
-          ? Array.isArray(currentVal) && currentVal.includes(opt)
-          : currentVal === opt;
-        return `
-          <button type="button" onclick="${onClickFnName}('${fieldName}', '${opt.replace(/'/g, "'")}')"
-            class="text-[11px] px-2.5 py-1.5 rounded-full border font-semibold transition ${
-              active
-                ? "bg-[#231F1D] text-white border-[#231F1D]"
-                : "bg-white text-[#594E47] border-[#DDD4C8]"
-            }">
-            ${active ? "✓ " : "+ "}${opt}
-          </button>
-        `;
+        const active = isMulti ? Array.isArray(currentVal) && currentVal.includes(opt) : currentVal === opt;
+        return `<button type="button" onclick="${onClickFnName}('${fieldName}', '${opt.replace(/'/g, "'")}')" class="text-[11px] px-2.5 py-1.5 rounded-full border font-semibold transition ${active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#594E47] border-[#DDD4C8]"}">${active ? "✓ " : "+ "}${opt}</button>`;
       }).join("");
     }
 
@@ -913,7 +692,6 @@
       renderChipGroup("chips_ageRange", PROFILE_OPTIONS.ageRange, p.ageRange, false, "toggleSingleOption", "ageRange");
       renderChipGroup("chips_skinTone", PROFILE_OPTIONS.skinTone, p.skinTone, true, "toggleMultiOption", "skinTone");
       renderChipGroup("chips_envFactors", PROFILE_OPTIONS.envFactors, p.envFactors, true, "toggleMultiOption", "envFactors");
-
       renderChipGroup("chips_hairTexture", PROFILE_OPTIONS.hairTexture, p.hairTexture, true, "toggleMultiOption", "hairTexture");
       renderChipGroup("chips_hairChemical", PROFILE_OPTIONS.hairChemical, p.hairChemical, true, "toggleMultiOption", "hairChemical");
       renderChipGroup("chips_hairIssues", PROFILE_OPTIONS.hairIssues, p.hairIssues, true, "toggleMultiOption", "hairIssues");
@@ -921,35 +699,23 @@
       renderChipGroup("chips_hairGoals", PROFILE_OPTIONS.hairGoals, p.hairGoals, true, "toggleMultiOption", "hairGoals");
       renderChipGroup("chips_protectiveStyles", PROFILE_OPTIONS.protectiveStyles, p.protectiveStyles, true, "toggleMultiOption", "protectiveStyles");
       renderChipGroup("chips_stylingTools", PROFILE_OPTIONS.stylingTools, p.stylingTools, true, "toggleMultiOption", "stylingTools");
-
       renderChipGroup("chips_faceType", PROFILE_OPTIONS.faceType, p.faceType, false, "toggleSingleOption", "faceType");
       renderChipGroup("chips_faceConcerns", PROFILE_OPTIONS.faceConcerns, p.faceConcerns, true, "toggleMultiOption", "faceConcerns");
       renderChipGroup("chips_faceRoutinePref", PROFILE_OPTIONS.faceRoutinePref, p.faceRoutinePref, false, "toggleSingleOption", "faceRoutinePref");
-
       renderChipGroup("chips_bodyConcerns", PROFILE_OPTIONS.bodyConcerns, p.bodyConcerns, true, "toggleMultiOption", "bodyConcerns");
       renderChipGroup("chips_bodyCleansePref", PROFILE_OPTIONS.bodyCleansePref, p.bodyCleansePref, true, "toggleMultiOption", "bodyCleansePref");
       renderChipGroup("chips_bodyMoisturePref", PROFILE_OPTIONS.bodyMoisturePref, p.bodyMoisturePref, true, "toggleMultiOption", "bodyMoisturePref");
-
-      const currentPriceLabel = `Under $${state.shoppingPrefs.maxPrice}`;
-      renderChipGroup("chips_maxPrice", PROFILE_OPTIONS.maxPrice, currentPriceLabel, false, "selectPriceOption", "maxPrice");
+      renderChipGroup("chips_maxPrice", PROFILE_OPTIONS.maxPrice, `Under $${state.shoppingPrefs.maxPrice}`, false, "selectPriceOption", "maxPrice");
 
       const storeBox = document.getElementById("chips_stores");
       storeBox.innerHTML = ALL_STORES.map(store => {
         const active = (state.shoppingPrefs.stores || []).includes(store);
-        return `
-          <button type="button" onclick="toggleStorePref('${store}')"
-            class="text-[11px] px-2.5 py-1.5 rounded-full border font-semibold transition ${
-              active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#594E47] border-[#DDD4C8]"
-            }">
-            ${active ? "✓ " : "+ "}${store}
-          </button>
-        `;
+        return `<button type="button" onclick="toggleStorePref('${store}')" class="text-[11px] px-2.5 py-1.5 rounded-full border font-semibold transition ${active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#594E47] border-[#DDD4C8]"}">${active ? "✓ " : "+ "}${store}</button>`;
       }).join("");
 
       renderChipGroup("chips_proPrefs", PROFILE_OPTIONS.proPrefs, p.proPrefs, true, "toggleMultiOption", "proPrefs");
     }
 
-    // ---------- PROTECTIVE STYLE & STYLING TOOL CONTROLS ----------
     function setHairState(modeLabel) {
       state.currentHairState = modeLabel;
       saveState();
@@ -960,14 +726,7 @@
       const box = document.getElementById("hairModeChipsBox");
       box.innerHTML = HAIR_PROTECTIVE_MODES.map(m => {
         const active = state.currentHairState === m;
-        return `
-          <button type="button" onclick="setHairState('${m}')"
-            class="text-[11px] px-2.5 py-1 rounded-full border font-semibold ${
-              active ? "bg-[#A9772B] text-white border-[#A9772B]" : "bg-white text-[#594E47] border-[#DDD4C8]"
-            }">
-            ${active ? "✓ " : ""}${m}
-          </button>
-        `;
+        return `<button type="button" onclick="setHairState('${m}')" class="text-[11px] px-2.5 py-1 rounded-full border font-semibold ${active ? "bg-[#A9772B] text-white border-[#A9772B]" : "bg-white text-[#594E47] border-[#DDD4C8]"}">${active ? "✓ " : ""}${m}</button>`;
       }).join("");
     }
 
@@ -976,7 +735,6 @@
       saveState();
     }
 
-    // ---------- PROFILE BUILDER NAVIGATION & INPUT SYNC ----------
     function setBuilderStep(step) {
       persistTextFields();
       state.currentStep = step;
@@ -984,9 +742,7 @@
       for (let i = 1; i <= 5; i++) {
         document.getElementById(`step-${i}`).classList.toggle("hidden", i !== step);
         const pill = document.getElementById(`stp-${i}`);
-        pill.className = i === step
-          ? "py-1.5 rounded-lg bg-[#231F1D] text-white"
-          : "py-1.5 rounded-lg bg-white border border-[#DDD4C8]";
+        pill.className = i === step ? "py-1.5 rounded-lg bg-[#231F1D] text-white" : "py-1.5 rounded-lg bg-white border border-[#DDD4C8]";
       }
       document.getElementById("stepNumLabel").textContent = step;
       document.getElementById("builderProgressBar").style.width = `${step * 20}%`;
@@ -1070,8 +826,7 @@
         pill.textContent = "Profile Saved";
         pill.className = "text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900";
         document.getElementById("profileSummaryCard").classList.remove("hidden");
-        document.getElementById("profileSummaryBody").innerHTML = entries
-          .map(([k, v]) => `<div><strong>${k}:</strong> ${v}</div>`).join("");
+        document.getElementById("profileSummaryBody").innerHTML = entries.map(([k, v]) => `<div><strong>${k}:</strong> ${v}</div>`).join("");
       } else {
         pill.textContent = "Blank Profile";
         pill.className = "text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900";
@@ -1079,7 +834,6 @@
       }
     }
 
-    // ---------- LOCATION, WEATHER & AQI ----------
     async function geocodeCity(cityName) {
       try {
         const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityName)}&count=1&language=en&format=json`);
@@ -1151,7 +905,6 @@
       }
     }
 
-    // ---------- TRIGGERS, STYLING GUIDE & PRO DIRECTORY ----------
     function toggleTrigger(label) {
       const idx = state.activeTriggers.indexOf(label);
       if (idx >= 0) state.activeTriggers.splice(idx, 1);
@@ -1164,47 +917,16 @@
       const box = document.getElementById("triggerChipsBox");
       box.innerHTML = TRIGGER_FACTORS.map(t => {
         const active = state.activeTriggers.includes(t.label);
-        return `
-          <button type="button" onclick="toggleTrigger('${t.label}')"
-            class="text-[11px] px-2.5 py-1 rounded-full border font-semibold ${
-              active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#594E47] border-[#DDD4C8]"
-            }">
-            ${active ? "✓ " : "+ "}${t.label}
-          </button>
-        `;
+        return `<button type="button" onclick="toggleTrigger('${t.label}')" class="text-[11px] px-2.5 py-1 rounded-full border font-semibold ${active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#594E47] border-[#DDD4C8]"}">${active ? "✓ " : "+ "}${t.label}</button>`;
       }).join("");
-
-      document.getElementById("stylingReferenceBox").innerHTML = STYLING_REFERENCE_GUIDE.map(sg => `
-        <div class="p-3 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9]">
-          <div class="font-bold text-[#231F1D]">${sg.title}</div>
-          <div class="text-[#594E47] mt-0.5">${sg.note}</div>
-        </div>
-      `).join("");
-
-      document.getElementById("proGuidanceBox").innerHTML = PRO_CATEGORIES.map(pc => `
-        <div class="p-3 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9]">
-          <div class="font-bold text-[#A9772B]">${pc.provider}</div>
-          <div class="text-[#594E47] mt-0.5">${pc.focus}</div>
-        </div>
-      `).join("");
-
+      document.getElementById("stylingReferenceBox").innerHTML = STYLING_REFERENCE_GUIDE.map(sg => `<div class="p-3 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9]"><div class="font-bold text-[#231F1D]">${sg.title}</div><div class="text-[#594E47] mt-0.5">${sg.note}</div></div>`).join("");
+      document.getElementById("proGuidanceBox").innerHTML = PRO_CATEGORIES.map(pc => `<div class="p-3 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9]"><div class="font-bold text-[#A9772B]">${pc.provider}</div><div class="text-[#594E47] mt-0.5">${pc.focus}</div></div>`).join("");
       document.getElementById("rootCauseCardsBox").innerHTML = TRIGGER_FACTORS.map(t => {
         const active = state.activeTriggers.includes(t.label);
-        return `
-          <div class="p-3 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] flex items-start justify-between gap-2">
-            <div>
-              <div class="text-xs font-bold">${t.label} <span class="text-[10px] uppercase text-[#726862]">(${t.domain})</span></div>
-              <div class="text-xs text-[#594E47] mt-0.5">${t.note}</div>
-            </div>
-            <button type="button" onclick="toggleTrigger('${t.label}')" class="text-[11px] font-semibold px-2 py-1 rounded-lg border shrink-0 ${active ? "bg-[#231F1D] text-white" : "bg-white"}">
-              ${active ? "Active" : "Track"}
-            </button>
-          </div>
-        `;
+        return `<div class="p-3 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] flex items-start justify-between gap-2"><div><div class="text-xs font-bold">${t.label} <span class="text-[10px] uppercase text-[#726862]">(${t.domain})</span></div><div class="text-xs text-[#594E47] mt-0.5">${t.note}</div></div><button type="button" onclick="toggleTrigger('${t.label}')" class="text-[11px] font-semibold px-2 py-1 rounded-lg border shrink-0 ${active ? "bg-[#231F1D] text-white" : "bg-white"}">${active ? "Active" : "Track"}</button></div>`;
       }).join("");
     }
 
-    // ---------- CHECK-IN & AI ROUTINES ----------
     function compressImageToDataURL(file, maxDim = 900) {
       return new Promise((resolve) => {
         const reader = new FileReader();
@@ -1223,7 +945,7 @@
             canvas.width = width;
             canvas.height = height;
             canvas.getContext("2d").drawImage(img, 0, 0, width, height);
-            resolve(canvas.toDataURL("image/jpeg", 0.8));
+            resolve(canvas.toDataURL("image/jpeg", 0.85));
           };
           img.src = e.target.result;
         };
@@ -1279,7 +1001,7 @@
             }
           })
         });
-        const data = await resp.json();
+        const data = await resp.json().catch(() => ({}));
         if (!resp.ok) throw new Error(data.error || "Failed to generate routine");
         state.lastAIRoutine = data.result;
         saveState();
@@ -1306,178 +1028,201 @@
             <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#F8F3EA] text-[#8A5E1B]">${state.currentHairState}</span>
           </div>
           ${r.climateImpact ? `<p class="text-xs text-[#594E47] bg-[#FAF8F5] p-2.5 rounded-xl"><strong>Weather &amp; AQI:</strong> ${r.climateImpact}</p>` : ""}
-
-          ${(r.rootCauseInsights && r.rootCauseInsights.length) ? `
-            <div class="space-y-1.5">
-              <h4 class="text-xs font-bold uppercase text-[#726862]">Root Causes &amp; Fixes</h4>
-              ${r.rootCauseInsights.map(rc => `
-                <div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs">
-                  <div class="font-bold">${rc.cause}</div>
-                  <div class="text-[#594E47] mt-0.5">${rc.fix}</div>
-                </div>
-              `).join("")}
-            </div>
-          ` : ""}
-
+          ${(r.rootCauseInsights && r.rootCauseInsights.length) ? `<div class="space-y-1.5"><h4 class="text-xs font-bold uppercase text-[#726862]">Root Causes &amp; Fixes</h4>${r.rootCauseInsights.map(rc => `<div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs"><div class="font-bold">${rc.cause}</div><div class="text-[#594E47] mt-0.5">${rc.fix}</div></div>`).join("")}</div>` : ""}
           <div class="space-y-2">
             <h4 class="text-xs font-bold uppercase text-[#8A5E1B]">Hair, Scalp &amp; Protective Style Routine</h4>
             ${r.hairAssessment ? `<p class="text-xs text-[#726862]">${r.hairAssessment}</p>` : ""}
-            ${hairSteps.map(s => `
-              <div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs">
-                <div class="font-bold">${s.step}</div>
-                <div class="text-[#594E47] mt-0.5">${s.detail}</div>
-                ${s.productUsed ? `<div class="text-[11px] text-[#8A5E1B] font-semibold mt-1">Product/Step: ${s.productUsed}</div>` : ""}
-              </div>
-            `).join("")}
+            ${hairSteps.map(s => `<div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs"><div class="font-bold">${s.step}</div><div class="text-[#594E47] mt-0.5">${s.detail}</div>${s.productUsed ? `<div class="text-[11px] text-[#8A5E1B] font-semibold mt-1">Product/Step: ${s.productUsed}</div>` : ""}</div>`).join("")}
           </div>
-
-          ${r.stylingGuide ? `
-            <div class="p-3 rounded-xl bg-[#F8F3EA]/70 border border-[#E5D7C1] space-y-2 text-xs">
-              <div class="font-bold text-[#8A5E1B]">🔥 Styling &amp; Roller Guide: ${r.stylingGuide.method || state.selectedStylingMethod}</div>
-              ${r.stylingGuide.prepAndProtection ? `<div><strong>Prep &amp; Protection:</strong> ${r.stylingGuide.prepAndProtection}</div>` : ""}
-              ${(r.stylingGuide.recommendedProducts || []).map(p => `
-                <div class="p-2 rounded-lg bg-white border border-[#EAE3D9]">
-                  <div class="font-bold">${p.productType}: <span class="text-[#8A5E1B]">${p.suggestion}</span></div>
-                  <div class="text-[#594E47] mt-0.5">${p.howToUse}</div>
-                </div>
-              `).join("")}
-              ${r.stylingGuide.techniqueAndTakedown ? `<div><strong>Technique &amp; Takedown:</strong> ${r.stylingGuide.techniqueAndTakedown}</div>` : ""}
-            </div>
-          ` : ""}
-
+          ${r.stylingGuide ? `<div class="p-3 rounded-xl bg-[#F8F3EA]/70 border border-[#E5D7C1] space-y-2 text-xs"><div class="font-bold text-[#8A5E1B]">🔥 Styling &amp; Roller Guide: ${r.stylingGuide.method || state.selectedStylingMethod}</div>${r.stylingGuide.prepAndProtection ? `<div><strong>Prep &amp; Protection:</strong> ${r.stylingGuide.prepAndProtection}</div>` : ""}${(r.stylingGuide.recommendedProducts || []).map(p => `<div class="p-2 rounded-lg bg-white border border-[#EAE3D9]"><div class="font-bold">${p.productType}: <span class="text-[#8A5E1B]">${p.suggestion}</span></div><div class="text-[#594E47] mt-0.5">${p.howToUse}</div></div>`).join("")}${r.stylingGuide.techniqueAndTakedown ? `<div><strong>Technique &amp; Takedown:</strong> ${r.stylingGuide.techniqueAndTakedown}</div>` : ""}</div>` : ""}
           <div class="space-y-2">
             <h4 class="text-xs font-bold uppercase text-[#355243]">Face Skin Routine</h4>
             ${r.skinAssessment ? `<p class="text-xs text-[#726862]">${r.skinAssessment}</p>` : ""}
-            ${skinSteps.map(s => `
-              <div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs">
-                <div class="font-bold">${s.step}</div>
-                <div class="text-[#594E47] mt-0.5">${s.detail}</div>
-                ${s.productUsed ? `<div class="text-[11px] text-[#355243] font-semibold mt-1">Product/Step: ${s.productUsed}</div>` : ""}
-              </div>
-            `).join("")}
+            ${skinSteps.map(s => `<div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs"><div class="font-bold">${s.step}</div><div class="text-[#594E47] mt-0.5">${s.detail}</div>${s.productUsed ? `<div class="text-[11px] text-[#355243] font-semibold mt-1">Product/Step: ${s.productUsed}</div>` : ""}</div>`).join("")}
           </div>
-
           <div class="space-y-2">
             <h4 class="text-xs font-bold uppercase text-[#5B2C6F]">Body Care &amp; Body Powder Layering Routine</h4>
-            ${bodySteps.map(s => `
-              <div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs">
-                <div class="font-bold">${s.step}</div>
-                <div class="text-[#594E47] mt-0.5">${s.detail}</div>
-                ${s.productUsed ? `<div class="text-[11px] text-[#5B2C6F] font-semibold mt-1">Product/Step: ${s.productUsed}</div>` : ""}
-              </div>
-            `).join("")}
+            ${bodySteps.map(s => `<div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs"><div class="font-bold">${s.step}</div><div class="text-[#594E47] mt-0.5">${s.detail}</div>${s.productUsed ? `<div class="text-[11px] text-[#5B2C6F] font-semibold mt-1">Product/Step: ${s.productUsed}</div>` : ""}</div>`).join("")}
           </div>
-
-          ${(r.proTreatments && r.proTreatments.length) ? `
-            <div class="space-y-1.5 pt-2 border-t border-[#EAE3D9]">
-              <h4 class="text-xs font-bold uppercase text-[#231F1D]">Salon, Dermatologist &amp; Esthetician Suggestions</h4>
-              ${r.proTreatments.map(pt => `
-                <div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs">
-                  <div class="flex justify-between font-bold">
-                    <span class="text-[#A9772B]">${pt.provider}: ${pt.treatment}</span>
-                    <span class="text-[10px] text-[#726862]">${pt.cadence || ""}</span>
-                  </div>
-                  <div class="text-[#594E47] mt-0.5">${pt.why}</div>
-                </div>
-              `).join("")}
-            </div>
-          ` : ""}
-
-          ${(r.missingProducts && r.missingProducts.length) ? `
-            <div class="space-y-1.5 pt-2 border-t border-[#EAE3D9]">
-              <h4 class="text-xs font-bold uppercase text-[#9A3412]">Suggested Additions From Check-In</h4>
-              ${r.missingProducts.map(m => `
-                <div class="p-2 rounded-lg bg-amber-50/70 text-xs flex justify-between items-start gap-2">
-                  <div>
-                    <strong>${m.name}</strong> ${m.store ? `(${m.store})` : ""}
-                    <div class="text-[#594E47]">${m.reason}</div>
-                  </div>
-                  <span class="font-bold text-[#8A5E1B] shrink-0">${m.estimatedPrice || ""}</span>
-                </div>
-              `).join("")}
-            </div>
-          ` : ""}
+          ${(r.proTreatments && r.proTreatments.length) ? `<div class="space-y-1.5 pt-2 border-t border-[#EAE3D9]"><h4 class="text-xs font-bold uppercase text-[#231F1D]">Salon, Dermatologist &amp; Esthetician Suggestions</h4>${r.proTreatments.map(pt => `<div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs"><div class="flex justify-between font-bold"><span class="text-[#A9772B]">${pt.provider}: ${pt.treatment}</span><span class="text-[10px] text-[#726862]">${pt.cadence || ""}</span></div><div class="text-[#594E47] mt-0.5">${pt.why}</div></div>`).join("")}</div>` : ""}
+          ${(r.missingProducts && r.missingProducts.length) ? `<div class="space-y-1.5 pt-2 border-t border-[#EAE3D9]"><h4 class="text-xs font-bold uppercase text-[#9A3412]">Suggested Additions From Check-In</h4>${r.missingProducts.map(m => `<div class="p-2 rounded-lg bg-amber-50/70 text-xs flex justify-between items-start gap-2"><div><strong>${m.name}</strong> ${m.store ? `(${m.store})` : ""}<div class="text-[#594E47]">${m.reason}</div></div><span class="font-bold text-[#8A5E1B] shrink-0">${m.estimatedPrice || ""}</span></div>`).join("")}</div>` : ""}
         </div>
       `;
     }
 
-    // ---------- BARCODE & PHOTO STASH SCANNER ----------
+    // ---------- DIRECT iOS SAFARI CAMERA STREAM + BARCODE / AI LABEL SCANNER ----------
     async function openBarcodeScanner() {
       const box = document.getElementById("scannerBox");
       const status = document.getElementById("scanStatusMsg");
+      const video = document.getElementById("liveCameraVideo");
+
       box.classList.remove("hidden");
-      status.textContent = "Point camera at barcode or type code below...";
+      status.textContent = "Requesting rear camera permission...";
       status.classList.remove("hidden");
+
+      await closeBarcodeScanner(false);
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        status.textContent = "Live camera requires HTTPS in Safari. Tap 'Snap Label / Barcode' or type the barcode below.";
+        return;
+      }
+
       try {
-        if (window.ZXing) {
-          codeReader = new ZXing.BrowserMultiFormatReader();
-          await codeReader.decodeFromVideoDevice(null, document.getElementById("barcodeVideo"), (result) => {
-            if (result) {
-              const code = result.getText();
-              closeBarcodeScanner();
-              lookupBarcode(code);
-            }
-          });
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+          audio: false,
+          video: {
+            facingMode: { ideal: "environment" },
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          }
+        });
+        video.srcObject = cameraStream;
+        await video.play().catch(() => {});
+        status.textContent = "Camera live! Point at a barcode or tap 'Capture Frame & Scan' (or 'Snap Label / Barcode' for AI label scan).";
+
+        if ("BarcodeDetector" in window) {
+          try {
+            nativeBarcodeDetector = new window.BarcodeDetector({
+              formats: ["upc_a", "upc_e", "ean_13", "ean_8", "code_128", "code_39", "qr_code"]
+            });
+          } catch (_) {
+            nativeBarcodeDetector = null;
+          }
         }
-      } catch (e) {
-        status.textContent = "Camera unavailable; enter barcode digits below or snap a product photo.";
+
+        scanLoopTimer = setInterval(async () => {
+          if (!cameraStream || video.readyState < 2) return;
+          try {
+            if (nativeBarcodeDetector) {
+              const codes = await nativeBarcodeDetector.detect(video);
+              if (codes && codes.length > 0 && codes[0].rawValue) {
+                const found = codes[0].rawValue;
+                await closeBarcodeScanner(true);
+                await lookupBarcode(found);
+              }
+            }
+          } catch (_) {}
+        }, 450);
+      } catch (err) {
+        status.textContent = `Camera error (${err.name || "unavailable"}). Use 'Snap Label / Barcode' or enter digits below.`;
       }
     }
 
-    function closeBarcodeScanner() {
-      if (codeReader) {
-        try { codeReader.reset(); } catch (e) {}
-        codeReader = null;
+    async function captureFrameAndScan() {
+      const video = document.getElementById("liveCameraVideo");
+      const status = document.getElementById("scanStatusMsg");
+      status.classList.remove("hidden");
+
+      if (!cameraStream || video.readyState < 2) {
+        status.textContent = "Camera frame not ready yet—tap 'Snap Label / Barcode' instead.";
+        return;
       }
-      document.getElementById("scannerBox").classList.add("hidden");
+
+      if (!frameCanvas) frameCanvas = document.createElement("canvas");
+      frameCanvas.width = video.videoWidth || 640;
+      frameCanvas.height = video.videoHeight || 480;
+      const ctx = frameCanvas.getContext("2d");
+      ctx.drawImage(video, 0, 0, frameCanvas.width, frameCanvas.height);
+
+      if (nativeBarcodeDetector) {
+        try {
+          const codes = await nativeBarcodeDetector.detect(frameCanvas);
+          if (codes && codes.length > 0 && codes[0].rawValue) {
+            const found = codes[0].rawValue;
+            await closeBarcodeScanner(true);
+            await lookupBarcode(found);
+            return;
+          }
+        } catch (_) {}
+      }
+
+      const dataUrl = frameCanvas.toDataURL("image/jpeg", 0.85);
+      await closeBarcodeScanner(true);
+      await analyzeBase64ProductImage(dataUrl);
+    }
+
+    async function closeBarcodeScanner(hideBox = true) {
+      if (scanLoopTimer) {
+        clearInterval(scanLoopTimer);
+        scanLoopTimer = null;
+      }
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(track => {
+          try { track.stop(); } catch (_) {}
+        });
+        cameraStream = null;
+      }
+      const video = document.getElementById("liveCameraVideo");
+      if (video) {
+        try { video.srcObject = null; } catch (_) {}
+      }
+      if (hideBox) {
+        document.getElementById("scannerBox").classList.add("hidden");
+      }
     }
 
     async function lookupBarcode(code) {
-      const clean = (code || "").trim();
+      const clean = String(code || "").replace(/[^0-9A-Za-z]/g, "").trim();
       if (!clean) return;
       const status = document.getElementById("scanStatusMsg");
-      status.textContent = `Looking up ${clean}...`;
+      status.textContent = `Looking up barcode ${clean}...`;
       status.classList.remove("hidden");
-      try {
-        const res = await fetch(`https://world.openbeautyfacts.org/api/v0/product/${encodeURIComponent(clean)}.json`);
-        const data = await res.json();
-        if (data.status === 1 && data.product) {
-          const p = data.product;
-          const tags = (p.categories_tags || []).join(" ").toLowerCase();
-          const domain = tags.includes("body") || tags.includes("soap") || tags.includes("powder") ? "body" : tags.includes("face") || tags.includes("skin") ? "skin" : "hair";
-          state.inventory.unshift({
-            id: Date.now().toString(),
-            name: p.product_name || `Product ${clean}`,
-            brand: p.brands || "",
-            domain,
-            category: "Other",
-            notes: `Barcode #${clean}`
-          });
-          saveState();
-          renderStash();
-          status.textContent = `Added ${p.product_name || clean} to stash.`;
-        } else {
-          status.textContent = `Barcode ${clean} not found. Try snapping a photo of the bottle/bar.`;
-        }
-      } catch (e) {
-        status.textContent = "Barcode lookup error.";
+
+      const endpoints = [
+        `https://world.openbeautyfacts.org/api/v2/product/${encodeURIComponent(clean)}.json`,
+        `https://world.openbeautyfacts.org/api/v0/product/${encodeURIComponent(clean)}.json`,
+        `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(clean)}.json`
+      ];
+
+      for (const url of endpoints) {
+        try {
+          const res = await fetch(url);
+          const data = await res.json();
+          if (data && data.status === 1 && data.product) {
+            const p = data.product;
+            const rawName = p.product_name || p.product_name_en || p.generic_name || "";
+            const brand = p.brands || "";
+            if (rawName || brand) {
+              const fullName = brand && !rawName.toLowerCase().includes(brand.toLowerCase())
+                ? `${brand} ${rawName}`.trim()
+                : (rawName || brand);
+              const tags = `${(p.categories_tags || []).join(" ")} ${fullName}`.toLowerCase();
+              const domain = (tags.includes("body") || tags.includes("soap") || tags.includes("powder") || tags.includes("lotion") || tags.includes("butter"))
+                ? "body"
+                : (tags.includes("face") || tags.includes("facial") || tags.includes("cleanser") || tags.includes("sunscreen") || tags.includes("serum"))
+                  ? "skin"
+                  : "hair";
+              state.inventory.unshift({
+                id: Date.now().toString(),
+                name: fullName,
+                brand,
+                domain,
+                category: "Other",
+                notes: `Scanned barcode #${clean}`
+              });
+              saveState();
+              renderStash();
+              status.textContent = `✓ Added "${fullName}" to your stash!`;
+              return;
+            }
+          }
+        } catch (_) {}
       }
+
+      status.textContent = `Barcode #${clean} wasn't in the open database—tap "Snap Label / Barcode" to identify the bottle with AI!`;
     }
 
-    async function handleProductPhotoScan(e) {
-      const file = e.target.files?.[0];
-      if (!file) return;
+    async function analyzeBase64ProductImage(imageBase64) {
       const status = document.getElementById("scanStatusMsg");
-      status.textContent = "Analyzing product photo...";
+      status.textContent = "Reading product label with AI...";
       status.classList.remove("hidden");
       try {
-        const imageBase64 = await compressImageToDataURL(file, 800);
         const res = await fetch("/api/analyze", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ mode: "product_photo", imageBase64, profile: state.profile })
         });
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
         if (!res.ok || !data.result) throw new Error(data.error || "Scan failed");
         const item = data.result;
         state.inventory.unshift({
@@ -1490,7 +1235,21 @@
         });
         saveState();
         renderStash();
-        status.textContent = `Added ${item.name} to stash.`;
+        status.textContent = `✓ Added "${item.name}" to your stash!`;
+      } catch (err) {
+        status.textContent = err.message;
+      }
+    }
+
+    async function handleProductPhotoScan(e) {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const status = document.getElementById("scanStatusMsg");
+      status.textContent = "Preparing photo...";
+      status.classList.remove("hidden");
+      try {
+        const imageBase64 = await compressImageToDataURL(file, 900);
+        await analyzeBase64ProductImage(imageBase64);
       } catch (err) {
         status.textContent = err.message;
       } finally {
@@ -1501,14 +1260,7 @@
     function addManualProduct() {
       const name = document.getElementById("manName").value.trim();
       if (!name) return;
-      state.inventory.unshift({
-        id: Date.now().toString(),
-        name,
-        brand: "",
-        domain: document.getElementById("manDomain").value,
-        category: document.getElementById("manCategory").value,
-        notes: ""
-      });
+      state.inventory.unshift({ id: Date.now().toString(), name, brand: "", domain: document.getElementById("manDomain").value, category: document.getElementById("manCategory").value, notes: "" });
       document.getElementById("manName").value = "";
       saveState();
       renderStash();
@@ -1524,9 +1276,7 @@
     function filterStash(f) {
       currentStashFilter = f;
       ["all", "hair", "skin", "body"].forEach(k => {
-        document.getElementById(`f-${k}`).className = k === f
-          ? "px-2.5 py-1 rounded-full bg-[#231F1D] text-white font-medium"
-          : "px-2.5 py-1 rounded-full bg-white border border-[#DDD4C8]";
+        document.getElementById(`f-${k}`).className = k === f ? "px-2.5 py-1 rounded-full bg-[#231F1D] text-white font-medium" : "px-2.5 py-1 rounded-full bg-white border border-[#DDD4C8]";
       });
       renderStash();
     }
@@ -1539,31 +1289,14 @@
         list.innerHTML = `<div class="card p-4 text-xs text-[#726862]">Your stash is empty. Scan a barcode, snap a product photo, or add an item (including homemade body powder) above.</div>`;
         return;
       }
-      list.innerHTML = items.map(i => `
-        <div class="card p-3 flex items-start justify-between gap-2">
-          <div>
-            <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#F8F3EA] text-[#8A5E1B]">${i.domain} • ${i.category}</span>
-            <div class="text-xs font-bold mt-1">${i.name}</div>
-            ${i.notes ? `<div class="text-[11px] text-[#726862] mt-0.5">${i.notes}</div>` : ""}
-          </div>
-          <button type="button" onclick="removeProduct('${i.id}')" class="text-xs text-[#726862] px-1.5">✕</button>
-        </div>
-      `).join("");
+      list.innerHTML = items.map(i => `<div class="card p-3 flex items-start justify-between gap-2"><div><span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#F8F3EA] text-[#8A5E1B]">${i.domain} • ${i.category}</span><div class="text-xs font-bold mt-1">${i.name}</div>${i.notes ? `<div class="text-[11px] text-[#726862] mt-0.5">${i.notes}</div>` : ""}</div><button type="button" onclick="removeProduct('${i.id}')" class="text-xs text-[#726862] px-1.5">✕</button></div>`).join("");
     }
 
-    // ---------- STORE & PRICE RECOMMENDATIONS ----------
     function renderStoreChips() {
       const box = document.getElementById("storeChipsContainer");
       box.innerHTML = ALL_STORES.map(store => {
         const active = (state.shoppingPrefs.stores || []).includes(store);
-        return `
-          <button type="button" onclick="toggleStorePref('${store}')"
-            class="px-2.5 py-1 rounded-full text-xs font-semibold border ${
-              active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#726862] border-[#DDD4C8]"
-            }">
-            ${active ? "✓ " : "+ "}${store}
-          </button>
-        `;
+        return `<button type="button" onclick="toggleStorePref('${store}')" class="px-2.5 py-1 rounded-full text-xs font-semibold border ${active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#726862] border-[#DDD4C8]"}">${active ? "✓ " : "+ "}${store}</button>`;
       }).join("");
     }
 
@@ -1619,7 +1352,7 @@
             }
           })
         });
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
         if (!res.ok || !data.result?.recommendations) throw new Error(data.error || "Failed to fetch recommendations");
         state.shopRecommendations = data.result.recommendations;
         saveState();
@@ -1655,22 +1388,7 @@
         list.innerHTML = `<div class="card p-4 text-xs text-[#726862]">No recommendations generated yet. Select your profile options or click <strong>Find Matches</strong>.</div>`;
         return;
       }
-      list.innerHTML = recs.map((r, idx) => `
-        <div class="card p-3.5 space-y-1.5">
-          <div class="flex items-start justify-between gap-2">
-            <div>
-              <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#F8F3EA] text-[#8A5E1B]">${r.domain} • ${r.category}</span>
-              <h4 class="text-sm font-bold mt-1">${r.name}</h4>
-              <div class="text-[11px] font-semibold text-[#231F1D]">Store: ${r.bestStore || "Any"} ${r.alsoAt ? `• Also: ${r.alsoAt}` : ""}</div>
-            </div>
-            <div class="text-sm font-extrabold text-[#2E6F40] shrink-0">${r.price || ""}</div>
-          </div>
-          <p class="text-xs text-[#594E47]">${r.whyItFits}</p>
-          <div class="pt-1 flex justify-end">
-            <button type="button" onclick="addRecToStash(${idx})" class="text-xs font-semibold px-3 py-1 rounded-lg bg-[#FAF8F5] border border-[#DDD4C8]">+ Add to Stash</button>
-          </div>
-        </div>
-      `).join("");
+      list.innerHTML = recs.map((r, idx) => `<div class="card p-3.5 space-y-1.5"><div class="flex items-start justify-between gap-2"><div><span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#F8F3EA] text-[#8A5E1B]">${r.domain} • ${r.category}</span><h4 class="text-sm font-bold mt-1">${r.name}</h4><div class="text-[11px] font-semibold text-[#231F1D]">Store: ${r.bestStore || "Any"} ${r.alsoAt ? `• Also: ${r.alsoAt}` : ""}</div></div><div class="text-sm font-extrabold text-[#2E6F40] shrink-0">${r.price || ""}</div></div><p class="text-xs text-[#594E47]">${r.whyItFits}</p><div class="pt-1 flex justify-end"><button type="button" onclick="addRecToStash(${idx})" class="text-xs font-semibold px-3 py-1 rounded-lg bg-[#FAF8F5] border border-[#DDD4C8]">+ Add to Stash</button></div></div>`).join("");
     }
 
     function init() {
