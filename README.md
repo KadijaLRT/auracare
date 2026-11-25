@@ -1,3 +1,3 @@
-# AuraCare — Hair, Face & Body Studio (v2.28)
+# AuraCare — Hair, Face & Body Studio (v2.29)
 
-- Ensures every routine step for **Hair**, **Face**, and **Body** always pairs with either an owned item from **My Stash** or a concrete store recommendation (`resolveStepProduct` & `ensureNonEmptySteps`), never leaving steps empty or showing "None".
+- Fixes step-to-product role matching (`sanitizeRoutineStepAssignments`) so steps like **Prep**, **Cleanse**, **Condition**, **Treat**, **Style**, and **Seal** don't get assigned mismatched products (such as a shampoo for Seal/Prep or a conditioner for Cleanse).

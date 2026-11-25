@@ -1660,20 +1660,75 @@
         .trim();
     }
 
-    function ensureNonEmptySteps(steps, fallbackSteps) {
-      const list = Array.isArray(steps) ? steps.filter(s => s && (s.step || s.detail)) : [];
-      if (!list.length) return fallbackSteps;
-      return list.map((s, i) => {
-        const fb = fallbackSteps[i] || fallbackSteps[0];
-        const rawProd = cleanFalseStashLackNote(s.productUsed);
-        const safeProd = (!rawProd || /^none\b/i.test(rawProd)) ? fb.productUsed : rawProd;
+    function sanitizeRoutineStepAssignments(steps, domain, fallbackSteps) {
+      const inv = Array.isArray(state.inventory) ? state.inventory : [];
+      const maxP = Number(state.shoppingPrefs?.maxPrice) || 30;
+      const stores = getEffectiveStores();
+      const baseList = Array.isArray(steps) && steps.length ? steps : fallbackSteps;
+
+      return baseList.map((s, idx) => {
+        const fb = fallbackSteps[idx] || fallbackSteps[0];
+        const stepTitle = cleanFalseStashLackNote((s && s.step) || fb.step);
+        const stepDetail = cleanFalseStashLackNote((s && s.detail) || fb.detail);
+        const rawProd = cleanFalseStashLackNote((s && s.productUsed) || "");
+        const stepKey = `${stepTitle} ${stepDetail}`.toLowerCase();
+
+        // Detect mismatched product categories for hair steps
+        let needsReassign = !rawProd || /^none\b/i.test(rawProd);
+        let roleRegex = null;
+        let roleCat = fb.productUsed;
+
+        if (domain === "hair") {
+          if (/\bprep\b|dampen|mist/i.test(stepKey)) {
+            roleRegex = /leave-in|mist|water|prep/i;
+            if (/shampoo|gel|edge|wax/i.test(rawProd)) needsReassign = true;
+          } else if (/\bcleanse\b|shampoo|wash/i.test(stepKey)) {
+            roleRegex = /shampoo|cleanser|clarifying/i;
+            if (/conditioner(?!.*shampoo)|curling|custard|gel|edge|oil|butter/i.test(rawProd) && !/shampoo/i.test(rawProd)) needsReassign = true;
+          } else if (/\bcondition|deep condition/i.test(stepKey)) {
+            roleRegex = /conditioner|deep conditioner|mask|masque/i;
+            if (/shampoo|gel|edge|wax/i.test(rawProd)) needsReassign = true;
+          } else if (/\btreat|bond|protein|repair/i.test(stepKey)) {
+            roleRegex = /bond|protein|treatment|repair|restructurizer/i;
+            if (/shampoo(?!.*treatment)|gel|edge/i.test(rawProd)) needsReassign = true;
+          } else if (/\bstyle|styling|curl|define/i.test(stepKey)) {
+            roleRegex = /custard|gel|mousse|foam|lotion|styling/i;
+            if (/shampoo/i.test(rawProd)) needsReassign = true;
+          } else if (/\bseal\b|oil|sheen|edge/i.test(stepKey)) {
+            roleRegex = /oil|sheen|butter|edge|wax|seal/i;
+            if (/shampoo/i.test(rawProd)) needsReassign = true;
+          }
+        }
+
+        if (needsReassign && roleRegex) {
+          const picked = resolveStepProduct({
+            domain,
+            keywordsRegex: roleRegex,
+            fallbackCategory: stepTitle,
+            maxPrice: maxP,
+            stores,
+            inventory: inv,
+            triggers: state.activeTriggers,
+            profile: state.profile
+          });
+          roleCat = picked.label;
+        } else if (needsReassign) {
+          roleCat = fb.productUsed;
+        } else {
+          roleCat = rawProd;
+        }
+
         return {
-          step: cleanFalseStashLackNote(s.step) || fb.step,
-          detail: cleanFalseStashLackNote(s.detail) || fb.detail,
-          productUsed: safeProd,
-          essential: Boolean(s.essential || fb.essential)
+          step: stepTitle || fb.step,
+          detail: stepDetail || fb.detail,
+          productUsed: roleCat,
+          essential: Boolean((s && s.essential) || fb.essential)
         };
       });
+    }
+
+    function ensureNonEmptySteps(steps, fallbackSteps, domain = "hair") {
+      return sanitizeRoutineStepAssignments(steps, domain, fallbackSteps);
     }
 
     function renderAIRoutine(r) {
@@ -1681,9 +1736,9 @@
       const fallbackPlan = buildLocalCheckinFallback();
       const sourceR = r && typeof r === "object" ? r : fallbackPlan;
 
-      const fullHairSteps = ensureNonEmptySteps(sourceR.hairRoutine, fallbackPlan.hairRoutine);
-      const fullSkinSteps = ensureNonEmptySteps(sourceR.skinRoutine, fallbackPlan.skinRoutine);
-      const fullBodySteps = ensureNonEmptySteps(sourceR.bodyRoutine, fallbackPlan.bodyRoutine);
+      const fullHairSteps = ensureNonEmptySteps(sourceR.hairRoutine, fallbackPlan.hairRoutine, "hair");
+      const fullSkinSteps = ensureNonEmptySteps(sourceR.skinRoutine, fallbackPlan.skinRoutine, "skin");
+      const fullBodySteps = ensureNonEmptySteps(sourceR.bodyRoutine, fallbackPlan.bodyRoutine, "body");
 
       const hairSteps = state.lowEnergyMode ? fullHairSteps.filter(s => s.essential) : fullHairSteps;
       const skinSteps = state.lowEnergyMode ? fullSkinSteps.filter(s => s.essential) : fullSkinSteps;
