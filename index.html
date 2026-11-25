@@ -1199,101 +1199,161 @@
  }).slice(0, 4);
  }
 
- const CATALOG_CANDIDATES = [
- {
- name: "Olaplex No. 3 Hair Perfector",
- domain: "hair",
- category: "Bond Repair",
- priceNum: 28,
- stores: ["Ulta Beauty", "Amazon", "Target"],
- tags: ["breakage", "color", "dye", "bleached", "relaxed", "bond", "repair"],
- why: "Rebuilds bonds in chemically treated or color-processed hair."
- },
- {
- name: "Aunt Jackie's Knot On My Watch Instant Detangling Therapy",
- domain: "hair",
- category: "Leave-In / Mist",
- priceNum: 9,
- stores: ["Sally Beauty", "Target", "Walmart", "Ulta Beauty", "Amazon"],
- tags: ["breakage", "tangle", "moisture", "relaxed", "edge", "temple"],
- why: "Slip-rich detangler that helps reduce tugging and breakage on sensitive or relaxed strands."
- },
- {
- name: "Mizani Miracle Milk Leave-In Conditioner",
- domain: "hair",
- category: "Leave-In / Mist",
- priceNum: 22,
- stores: ["Ulta Beauty", "Sally Beauty", "Amazon"],
- tags: ["moisture", "heat", "roller", "curling", "breakage", "color"],
- why: "Lightweight leave-in that adds moisture, slip, and heat protection before styling."
- },
- {
- name: "ORS Olive Oil Sheen Spray",
- domain: "hair",
- category: "Oil Sheen",
- priceNum: 8,
- stores: ["Sally Beauty", "Walmart", "CVS", "Walgreens", "Amazon"],
- tags: ["sheen", "shine", "dull", "dry", "roller", "curling", "wig", "braid"],
- why: "Adds lightweight shine and softness without weighing down styled or relaxed hair."
- },
- {
- name: "Ebin New York 24 Hour Edge Tamer",
- domain: "hair",
- category: "Edge Control / Wax",
- priceNum: 11,
- stores: ["Sally Beauty", "Amazon", "Walmart", "Target"],
- tags: ["edge", "temple", "wig", "braid"],
- why: "Smooths edges and flyaways with firm hold for clean finishing."
- },
- {
- name: "CeraVe Hydrating Facial Cleanser",
- domain: "skin",
- category: "Face Cleanser",
- priceNum: 16,
- stores: ["Target", "Walmart", "CVS", "Walgreens", "Ulta Beauty", "Amazon"],
- tags: ["dry", "sensitive", "barrier", "face", "cleanser"],
- why: "Non-foaming cleanser with ceramides and hyaluronic acid that preserves the skin barrier."
- },
- {
- name: "CeraVe Moisturizing Cream",
- domain: "skin",
- category: "Face Moisturizer",
- priceNum: 19,
- stores: ["Target", "Walmart", "CVS", "Walgreens", "Ulta Beauty", "Amazon"],
- tags: ["dry", "barrier", "hyperpigmentation", "dark spots", "moisturizer"],
- why: "Rich ceramide moisture that supports barrier recovery and reduces dryness."
- },
- {
- name: "AmLactin Daily Moisturizing Body Lotion",
- domain: "body",
- category: "Body Lotion / Cream",
- priceNum: 18,
- stores: ["Target", "Walmart", "CVS", "Walgreens", "Amazon"],
- tags: ["rough", "kp", "bumps", "ingrown", "body", "dry"],
- why: "Lactic acid lotion that smooths rough texture, KP bumps, and dry body skin."
- },
- {
- name: "SheaMoisture Coconut & Hibiscus Body Lotion",
- domain: "body",
- category: "Body Lotion / Cream",
- priceNum: 13,
- stores: ["Target", "Walmart", "Ulta Beauty", "CVS", "Walgreens", "Amazon"],
- tags: ["body", "dry", "moisture", "powder"],
- why: "Moisturizes body skin so it pairs smoothly with body oil or body powder."
- }
- ];
+    const CATALOG_CANDIDATES = [
+      {
+        name: "Olaplex No. 3 Hair Perfector",
+        domain: "hair",
+        category: "Bond Repair",
+        priceNum: 28,
+        stores: ["Ulta Beauty", "Amazon", "Target"],
+        tags: ["bond", "repair", "breakage", "relaxed", "color", "dye", "bleached"],
+        why: "Rebuilds broken hair bonds and strengthens chemically treated or color-processed strands."
+      },
+      {
+        name: "Redken Acidic Bonding Concentrate Intensive Treatment",
+        domain: "hair",
+        category: "Bond Repair",
+        priceNum: 24,
+        stores: ["Ulta Beauty", "Amazon"],
+        tags: ["bond", "repair", "breakage", "color", "dye", "bleached", "heat"],
+        why: "Acidic bond-building treatment that reinforces weakened strands and reduces breakage."
+      },
+      {
+        name: "Aunt Jackie's Knot On My Watch Instant Detangling Therapy",
+        domain: "hair",
+        category: "Leave-In / Mist",
+        priceNum: 9,
+        stores: ["Sally Beauty", "Target", "Walmart", "Ulta Beauty", "Amazon"],
+        tags: ["leave-in", "mist", "moisture", "tangle", "breakage", "relaxed", "prep"],
+        why: "Provides slip and hydration to detangle gently without snapping fragile or relaxed strands."
+      },
+      {
+        name: "Mizani Miracle Milk Leave-In Conditioner",
+        domain: "hair",
+        category: "Leave-In / Mist",
+        priceNum: 22,
+        stores: ["Ulta Beauty", "Sally Beauty", "Amazon"],
+        tags: ["leave-in", "moisture", "heat", "roller", "curling", "breakage", "prep"],
+        why: "Lightweight leave-in conditioning milk that boosts moisture, slip, and styling prep."
+      },
+      {
+        name: "SheaMoisture Raw Shea Butter Deep Treatment Masque",
+        domain: "hair",
+        category: "Deep Conditioner",
+        priceNum: 15,
+        stores: ["Target", "Walmart", "Ulta Beauty", "CVS", "Walgreens", "Amazon"],
+        tags: ["deep conditioner", "conditioner", "moisture", "dry", "brittle", "breakage"],
+        why: "Rich moisture masque that softens dry, brittle strands and improves elasticity."
+      },
+      {
+        name: "ORS Olive Oil Sheen Spray",
+        domain: "hair",
+        category: "Oil Sheen",
+        priceNum: 8,
+        stores: ["Sally Beauty", "Walmart", "CVS", "Walgreens", "Amazon"],
+        tags: ["oil sheen", "sheen", "shine", "dull", "roller", "curling", "wig", "braid", "sealing"],
+        why: "Delivers lightweight shine and softness for roller sets, heat styles, or braids without heavy buildup."
+      },
+      {
+        name: "KeraCare Oil Sheen with Humidity Block",
+        domain: "hair",
+        category: "Oil Sheen",
+        priceNum: 14,
+        stores: ["Sally Beauty", "Ulta Beauty", "Amazon"],
+        tags: ["oil sheen", "sheen", "humidity", "frizz", "roller", "curling", "sealing"],
+        why: "Light finishing mist with humidity block to keep styled hair smooth and glossy."
+      },
+      {
+        name: "Ebin New York 24 Hour Edge Tamer",
+        domain: "hair",
+        category: "Edge Control / Wax",
+        priceNum: 11,
+        stores: ["Sally Beauty", "Amazon", "Walmart", "Target"],
+        tags: ["edge", "temple", "wig", "braid", "sealing"],
+        why: "Smooths edges and flyaways with firm hold without flaking."
+      },
+      {
+        name: "Eco Style Olive Oil Styling Gel",
+        domain: "hair",
+        category: "Hair Gel",
+        priceNum: 7,
+        stores: ["Sally Beauty", "Walmart", "Target", "CVS", "Walgreens", "Amazon"],
+        tags: ["hair gel", "gel", "sleek", "hold", "curl", "styling"],
+        why: "Alcohol-free styling gel that provides clean hold and shine without crunch or flaking."
+      },
+      {
+        name: "CeraVe Hydrating Facial Cleanser",
+        domain: "skin",
+        category: "Face Cleanser",
+        priceNum: 16,
+        stores: ["Target", "Walmart", "CVS", "Walgreens", "Ulta Beauty", "Amazon"],
+        tags: ["face cleanser", "cleanser", "dry", "sensitive", "barrier", "prep"],
+        why: "Gentle non-foaming ceramide cleanser that cleanses face skin without stripping moisture."
+      },
+      {
+        name: "CeraVe Moisturizing Cream",
+        domain: "skin",
+        category: "Face Moisturizer",
+        priceNum: 19,
+        stores: ["Target", "Walmart", "CVS", "Walgreens", "Ulta Beauty", "Amazon"],
+        tags: ["face moisturizer", "moisturizer", "dry", "barrier", "hyperpigmentation", "dark spots"],
+        why: "Ceramide-rich cream that locks in facial hydration and supports barrier recovery."
+      },
+      {
+        name: "Black Girl Sunscreen Broad Spectrum SPF 30",
+        domain: "skin",
+        category: "Sunscreen",
+        priceNum: 16,
+        stores: ["Target", "Ulta Beauty", "Walmart", "Amazon"],
+        tags: ["sunscreen", "spf", "hyperpigmentation", "dark spots", "uv"],
+        why: "Sheer sunscreen for melanin-rich skin that prevents UV darkening of marks and spots."
+      },
+      {
+        name: "Dove Sensitive Skin Beauty Bar (4-Pack)",
+        domain: "body",
+        category: "Body Wash / Bar Soap",
+        priceNum: 8,
+        stores: ["Target", "Walmart", "CVS", "Walgreens", "Amazon"],
+        tags: ["body wash", "bar soap", "soap", "dry", "sensitive", "prep"],
+        why: "Mild cleansing bar with moisturizing cream that cleanses body skin without stripping."
+      },
+      {
+        name: "AmLactin Daily Moisturizing Body Lotion",
+        domain: "body",
+        category: "Body Lotion / Cream",
+        priceNum: 18,
+        stores: ["Target", "Walmart", "CVS", "Walgreens", "Amazon"],
+        tags: ["body lotion", "lotion", "rough", "kp", "bumps", "ingrown", "dry"],
+        why: "Lactic acid lotion that gently exfoliates and smooths rough or bumpy body skin."
+      },
+      {
+        name: "SheaMoisture Coconut & Hibiscus Body Lotion",
+        domain: "body",
+        category: "Body Lotion / Cream",
+        priceNum: 13,
+        stores: ["Target", "Walmart", "Ulta Beauty", "CVS", "Walgreens", "Amazon"],
+        tags: ["body lotion", "lotion", "body butter", "moisture", "powder", "dry"],
+        why: "Hydrating lotion that moisturizes body skin and layers cleanly under oils or powders."
+      },
+      {
+        name: "Gold Bond Ultimate Comfort Body Powder (Talc-Free)",
+        domain: "body",
+        category: "Body Powder / Dusting Powder",
+        priceNum: 9,
+        stores: ["Target", "Walmart", "CVS", "Walgreens", "Amazon"],
+        tags: ["body powder", "powder", "chafing", "sweat", "friction", "body"],
+        why: "Absorbs excess moisture and reduces friction in sweat-prone or chafing areas."
+      }
+    ];
 
     function isCompatibleWithContext(candidate, inventory, profile, triggers) {
       const invText = JSON.stringify(inventory || []).toLowerCase();
       const profText = JSON.stringify({ profile, triggers }).toLowerCase();
       const catLower = String(candidate.category || "").toLowerCase();
 
-      if (profText.includes("fragrance-free only") && (catLower.includes("oil sheen") || catLower.includes("edge control"))) {
+      if (profText.includes("fragrance-free only") && (catLower.includes("oil sheen") || catLower.includes("edge control") || catLower.includes("hair gel"))) {
         return false;
       }
-      const alreadyHasCat = (inventory || []).some(i => String(i.category || "").toLowerCase() === catLower);
-      if (alreadyHasCat) return false;
-
       if (catLower.includes("oil sheen") && invText.includes("sheen")) return false;
       if (catLower.includes("edge control") && invText.includes("edge")) return false;
 
@@ -1306,14 +1366,21 @@
       const contextText = JSON.stringify({ profile, triggers, domain }).toLowerCase();
       const preferredStores = (stores || []).map(s => s.toLowerCase());
 
-      const scored = CATALOG_CANDIDATES
-        .filter(item => {
+      let pool = CATALOG_CANDIDATES.filter(item => {
+        if (domain && domain !== "all" && item.domain !== domain) return false;
+        if (item.priceNum > maxPrice) return false;
+        if (invNames.has(item.name.toLowerCase())) return false;
+        return isCompatibleWithContext(item, inventory, profile, triggers);
+      });
+
+      if (!pool.length) {
+        pool = CATALOG_CANDIDATES.filter(item => {
           if (domain && domain !== "all" && item.domain !== domain) return false;
-          if (item.priceNum > maxPrice) return false;
-          if (invNames.has(item.name.toLowerCase())) return false;
-          if (!isCompatibleWithContext(item, inventory, profile, triggers)) return false;
-          return true;
-        })
+          return !invNames.has(item.name.toLowerCase());
+        });
+      }
+
+      const scored = pool
         .map(item => {
           let score = 0;
           if (!invCats.has(item.category.toLowerCase())) score += 4;
@@ -1340,249 +1407,353 @@
           alsoAt: otherStores,
           store: matchedStore,
           estimatedPrice: `$${item.priceNum.toFixed(2)}`,
-          whyItFits: `${item.why} Compatible with your active routine without clashing.`,
-          reason: `${item.why} Compatible with your active routine without clashing.`
+          whyItFits: `${item.why} Pairs cleanly with your routine without clashing.`,
+          reason: `${item.why} Pairs cleanly with your routine without clashing.`
         };
       });
     }
 
- function getMissingStashRecommendations() {
- const inv = Array.isArray(state.inventory) ? state.inventory : [];
- const maxP = Number(state.shoppingPrefs?.maxPrice) || 30;
- const stores = getEffectiveStores();
- const profText = JSON.stringify({
- profile: state.profile,
- hairState: state.currentHairState,
- styling: state.selectedStylingMethod,
- triggers: state.activeTriggers
- }).toLowerCase();
+    function findStashItemByKeyword(domain, keywordsRegex) {
+      const inv = Array.isArray(state.inventory) ? state.inventory : [];
+      return inv.find(i => {
+        if (!i || !i.name) return false;
+        if (domain && domain !== "all" && i.domain !== domain) return false;
+        return keywordsRegex.test(`${i.category || ""} ${i.name || ""}`);
+      }) || null;
+    }
 
- const hasCat = (regex) => inv.some(i => regex.test(`${i.category || ""} ${i.name || ""}`));
- const recs = [];
+    function resolveStepProduct({ domain, keywordsRegex, fallbackCategory, maxPrice, stores, inventory, triggers, profile, additionsCollector }) {
+      const owned = findStashItemByKeyword(domain, keywordsRegex);
+      if (owned) {
+        return {
+          source: "stash",
+          label: `${owned.name} (From Stash)`
+        };
+      }
+      const domainItems = (inventory || []).filter(i => i.domain === domain && i.name);
+      if (domainItems.length) {
+        const fallbackOwned = domainItems[0];
+        return {
+          source: "stash",
+          label: `${fallbackOwned.name} (From Stash)`
+        };
+      }
+      const candidates = pickRelevantCatalogItems({
+        domain,
+        maxPrice,
+        stores,
+        inventory,
+        triggers: [fallbackCategory, ...(triggers || [])],
+        profile,
+        limit: 1
+      });
+      const rec = candidates[0] || CATALOG_CANDIDATES.find(c => c.domain === domain) || CATALOG_CANDIDATES[0];
+      const st = (stores || []).find(s => rec.stores && rec.stores.map(x => x.toLowerCase()).includes(s.toLowerCase()))
+        || rec.bestStore
+        || (rec.stores && rec.stores[0])
+        || "Target";
+      const priceStr = rec.price || `$${Number(rec.priceNum || 12).toFixed(2)}`;
+      if (additionsCollector && !additionsCollector.some(x => x.name === rec.name)) {
+        additionsCollector.push({
+          name: rec.name,
+          domain: rec.domain || domain,
+          category: rec.category || fallbackCategory,
+          price: priceStr,
+          estimatedPrice: priceStr,
+          bestStore: st,
+          store: st,
+          alsoAt: rec.alsoAt || "",
+          whyItFits: rec.whyItFits || rec.why || `Recommended ${fallbackCategory} for ${domain} routine.`,
+          reason: rec.reason || rec.why || `Recommended ${fallbackCategory} for ${domain} routine.`
+        });
+      }
+      return {
+        source: "store",
+        label: `Store Pick: ${rec.name} (${priceStr} at ${st})`
+      };
+    }
 
- if ((profText.includes("relax") || profText.includes("dye") || profText.includes("color") || profText.includes("breakage") || profText.includes("temple") || profText.includes("edge")) && !hasCat(/bond repair/i)) {
- const match = pickRelevantCatalogItems({ domain: "hair", maxPrice: maxP, stores, inventory: inv, triggers: ["bond repair breakage"], profile: state.profile, limit: 1 })[0];
- if (match) recs.push({ ...match, reason: `Missing Bond Repair in your stash for ${state.currentHairState} / breakage support.` });
- }
- if (!hasCat(/leave-in|conditioner|deep conditioner|mist/i)) {
- const match = pickRelevantCatalogItems({ domain: "hair", maxPrice: maxP, stores, inventory: inv, triggers: ["moisture"], profile: state.profile, limit: 1 })[0];
- if (match) recs.push({ ...match, reason: "Missing conditioning/leave-in moisture in your stash." });
- }
- if ((profText.includes("curling") || profText.includes("roller") || profText.includes("heat") || profText.includes("sheen") || profText.includes("shine")) && !hasCat(/oil sheen/i)) {
- const sheenItem = CATALOG_CANDIDATES.find(c => c.category === "Oil Sheen" && c.priceNum <= maxP && !inv.some(i => i.name.toLowerCase() === c.name.toLowerCase()));
- if (sheenItem) {
- const st = stores.find(s => sheenItem.stores.map(x => x.toLowerCase()).includes(s.toLowerCase())) || sheenItem.stores[0] || "Target";
- recs.push({
- name: sheenItem.name,
- domain: "hair",
- category: "Oil Sheen",
- price: `$${sheenItem.priceNum.toFixed(2)}`,
- estimatedPrice: `$${sheenItem.priceNum.toFixed(2)}`,
- bestStore: st,
- store: st,
- alsoAt: sheenItem.stores.filter(s => s.toLowerCase() !== st.toLowerCase()).slice(0, 2).join(", "),
- whyItFits: sheenItem.why,
- reason: `Missing Oil Sheen in your stash for ${state.selectedStylingMethod}.`
- });
- }
- }
+    function getMissingStashRecommendations() {
+      const inv = Array.isArray(state.inventory) ? state.inventory : [];
+      const maxP = Number(state.shoppingPrefs?.maxPrice) || 30;
+      const stores = getEffectiveStores();
+      const recs = [];
 
- if (!hasCat(/face cleanser|cleanser/i)) {
- const faceClean = CATALOG_CANDIDATES.find(c => c.category === "Face Cleanser" && c.priceNum <= maxP && !inv.some(i => i.name.toLowerCase() === c.name.toLowerCase()));
- if (faceClean) {
- const st = stores.find(s => faceClean.stores.map(x => x.toLowerCase()).includes(s.toLowerCase())) || faceClean.stores[0] || "Target";
- recs.push({
- name: faceClean.name,
- domain: "skin",
- category: "Face Cleanser",
- price: `$${faceClean.priceNum.toFixed(2)}`,
- estimatedPrice: `$${faceClean.priceNum.toFixed(2)}`,
- bestStore: st,
- store: st,
- alsoAt: faceClean.stores.filter(s => s.toLowerCase() !== st.toLowerCase()).slice(0, 2).join(", "),
- whyItFits: faceClean.why,
- reason: "Missing Face Cleanser in your stash."
- });
- }
- }
- if (!hasCat(/face moisturizer|moisturizer/i)) {
- const faceMoist = CATALOG_CANDIDATES.find(c => c.category === "Face Moisturizer" && c.priceNum <= maxP && !inv.some(i => i.name.toLowerCase() === c.name.toLowerCase()));
- if (faceMoist) {
- const st = stores.find(s => faceMoist.stores.map(x => x.toLowerCase()).includes(s.toLowerCase())) || faceMoist.stores[0] || "Target";
- recs.push({
- name: faceMoist.name,
- domain: "skin",
- category: "Face Moisturizer",
- price: `$${faceMoist.priceNum.toFixed(2)}`,
- estimatedPrice: `$${faceMoist.priceNum.toFixed(2)}`,
- bestStore: st,
- store: st,
- alsoAt: faceMoist.stores.filter(s => s.toLowerCase() !== st.toLowerCase()).slice(0, 2).join(", "),
- whyItFits: faceMoist.why,
- reason: "Missing Face Moisturizer in your stash."
- });
- }
- }
+      const hairPicks = pickRelevantCatalogItems({ domain: "hair", maxPrice: maxP, stores, inventory: inv, triggers: state.activeTriggers, profile: state.profile, limit: 2 });
+      const skinPicks = pickRelevantCatalogItems({ domain: "skin", maxPrice: maxP, stores, inventory: inv, triggers: state.activeTriggers, profile: state.profile, limit: 1 });
+      const bodyPicks = pickRelevantCatalogItems({ domain: "body", maxPrice: maxP, stores, inventory: inv, triggers: state.activeTriggers, profile: state.profile, limit: 1 });
 
- if (!hasCat(/body lotion|body butter|body oil|lotion|butter/i)) {
- const bodyItem = pickRelevantCatalogItems({ domain: "body", maxPrice: maxP, stores, inventory: inv, triggers: state.activeTriggers, profile: state.profile, limit: 1 })[0];
- if (bodyItem) recs.push({ ...bodyItem, reason: "Missing body moisture product in your stash." });
- }
-
- if (!recs.length) {
- return pickRelevantCatalogItems({ domain: "all", maxPrice: maxP, stores, inventory: inv, triggers: state.activeTriggers, profile: state.profile, limit: 3 });
- }
- return recs.slice(0, 4);
- }
+      [...hairPicks, ...skinPicks, ...bodyPicks].forEach(item => {
+        if (item && !recs.some(r => r.name === item.name)) {
+          recs.push(item);
+        }
+      });
+      return recs.slice(0, 4);
+    }
 
     function buildLocalCheckinFallback() {
-      const hairStash = pickStashItemsForDomain("hair").map(i => i.name);
-      const skinStash = pickStashItemsForDomain("skin").map(i => i.name);
-      const bodyStash = pickStashItemsForDomain("body").map(i => i.name);
+      const inv = Array.isArray(state.inventory) ? state.inventory : [];
+      const maxP = Number(state.shoppingPrefs?.maxPrice) || 30;
+      const stores = getEffectiveStores();
+      const additions = [];
 
-      const suggestedAdditions = getMissingStashRecommendations();
-      const hairRec = suggestedAdditions.find(x => x.domain === "hair");
-      const skinRec = suggestedAdditions.find(x => x.domain === "skin");
-      const bodyRec = suggestedAdditions.find(x => x.domain === "body");
+      const hairCleanPick = resolveStepProduct({
+        domain: "hair",
+        keywordsRegex: /shampoo|cleanser|clarifying|bond repair/i,
+        fallbackCategory: "Bond Repair",
+        maxPrice: maxP,
+        stores,
+        inventory: inv,
+        triggers: state.activeTriggers,
+        profile: state.profile,
+        additionsCollector: additions
+      });
+      const hairCondPick = resolveStepProduct({
+        domain: "hair",
+        keywordsRegex: /conditioner|deep conditioner|leave-in|mist|moisturizer/i,
+        fallbackCategory: "Leave-In / Mist",
+        maxPrice: maxP,
+        stores,
+        inventory: inv,
+        triggers: state.activeTriggers,
+        profile: state.profile,
+        additionsCollector: additions
+      });
+      const hairStylePick = resolveStepProduct({
+        domain: "hair",
+        keywordsRegex: /oil sheen|sheen|gel|edge|wax|oil|heat/i,
+        fallbackCategory: "Oil Sheen",
+        maxPrice: maxP,
+        stores,
+        inventory: inv,
+        triggers: state.activeTriggers,
+        profile: state.profile,
+        additionsCollector: additions
+      });
+
+      const skinCleanPick = resolveStepProduct({
+        domain: "skin",
+        keywordsRegex: /cleanser|wash/i,
+        fallbackCategory: "Face Cleanser",
+        maxPrice: maxP,
+        stores,
+        inventory: inv,
+        triggers: state.activeTriggers,
+        profile: state.profile,
+        additionsCollector: additions
+      });
+      const skinMoistPick = resolveStepProduct({
+        domain: "skin",
+        keywordsRegex: /moisturizer|cream|lotion|sunscreen|spf|treatment/i,
+        fallbackCategory: "Face Moisturizer",
+        maxPrice: maxP,
+        stores,
+        inventory: inv,
+        triggers: state.activeTriggers,
+        profile: state.profile,
+        additionsCollector: additions
+      });
+
+      const bodyCleanPick = resolveStepProduct({
+        domain: "body",
+        keywordsRegex: /wash|soap|scrub|cleanser/i,
+        fallbackCategory: "Body Wash / Bar Soap",
+        maxPrice: maxP,
+        stores,
+        inventory: inv,
+        triggers: state.activeTriggers,
+        profile: state.profile,
+        additionsCollector: additions
+      });
+      const bodyMoistPick = resolveStepProduct({
+        domain: "body",
+        keywordsRegex: /lotion|butter|oil|powder/i,
+        fallbackCategory: "Body Lotion / Cream",
+        maxPrice: maxP,
+        stores,
+        inventory: inv,
+        triggers: state.activeTriggers,
+        profile: state.profile,
+        additionsCollector: additions
+      });
+
+      const allRecs = additions.length ? additions : getMissingStashRecommendations();
 
       return {
         climateImpact: state.profile.city
-          ? `Using ${state.profile.city} conditions (${state.weather?.tempF ?? "--"}°F, ${state.weather?.humidity ?? "--"}% humidity, AQI ${state.weather?.aqi ?? "--"})—apply water-based hydration before any oil/butter seal so products absorb without pilling or buildup.`
-          : "Add your city in Profile & Pro for live weather and AQI adjustments.",
-        rootCauseInsights: (state.activeTriggers || []).slice(0, 3).map(t => ({
+          ? `Using ${state.profile.city} conditions (${state.weather?.tempF ?? "--"}°F, ${state.weather?.humidity ?? "--"}% humidity, AQI ${state.weather?.aqi ?? "--"})—layer water-based hydration before oils/butters so products absorb without buildup.`
+          : "Set your city in Profile & Pro for live weather and AQI adjustments.",
+        rootCauseInsights: (state.activeTriggers && state.activeTriggers.length ? state.activeTriggers : ["Routine balance"]).slice(0, 3).map(t => ({
           cause: t,
-          fix: "Use compatible products in thin-to-thick order and avoid stacking heavy oils/actives that block absorption or cause flaking."
+          fix: "Follow thin-to-thick order using your stash items or the matched store recommendations below without mixing clashing formulas."
         })),
-        hairAssessment: `Hair mode: ${state.currentHairState}. Pulled ${hairStash.length} hair stash item(s) with non-clashing application order.`,
-        skinAssessment: `Face care based on ${skinStash.length} face stash item(s) in thin-to-thick order.`,
+        hairAssessment: `Hair mode: ${state.currentHairState}. Every step is paired with an owned stash item or store pick.`,
+        skinAssessment: "Face routine uses owned stash items or matched store picks in thin-to-thick order.",
         hairRoutine: [
           {
-            step: "Step 1: Cleanse & Prep (Optimize Usage)",
-            detail: hairStash.length
-              ? `Apply a small amount of ${hairStash[0]} focused where needed for ${state.currentHairState}; rinse thoroughly before adding heavier care.`
-              : (hairRec ? `Missing in stash—add ${hairRec.name} (${hairRec.price}) at ${hairRec.bestStore} and apply a small amount on damp sections.` : "Add hair care items in My Stash or Shop."),
-            productUsed: hairStash[0] || (hairRec ? `Recommend: ${hairRec.name}` : "Recommend in Shop"),
+            step: "Step 1: Prep & Cleanse",
+            detail: `Start with ${hairCleanPick.label} using a measured amount for ${state.currentHairState}, then rinse cleanly.`,
+            productUsed: hairCleanPick.label,
             essential: true
           },
           {
-            step: "Step 2: Hydrate Before Sealing (No Clash)",
-            detail: hairStash[1]
-              ? `Layer ${hairStash[1]} on damp hair first so moisture binds before sealing; keep heavy waxes/oils off roots to prevent weighing down.`
-              : "Apply light moisture first before any oil or styling hold so products don't repel each other.",
-            productUsed: hairStash[1] || hairStash[0] || "Lightweight moisture step",
+            step: "Step 2: Moisture & Conditioning",
+            detail: `Apply ${hairCondPick.label} on damp strands to boost slip and moisture retention before sealing.`,
+            productUsed: hairCondPick.label,
             essential: true
           },
           {
-            step: "Step 3: Style & Finish Cleanly",
-            detail: `Finish with ${state.selectedStylingMethod} using a light hand—avoid layering thick gel over heavy oil/wax to prevent flaking or pilling.`,
-            productUsed: hairStash[2] || (hairRec ? `Recommend: ${hairRec.name}` : "Light oil sheen or edge control"),
+            step: "Step 3: Style & Seal",
+            detail: `Finish with ${hairStylePick.label} suited to ${state.selectedStylingMethod} in light, even layers.`,
+            productUsed: hairStylePick.label,
             essential: false
           }
         ],
         stylingGuide: {
           method: state.selectedStylingMethod,
-          prepAndProtection: hairStash.length
-            ? `Start with ${hairStash[0]} and apply only what is needed so strands stay bouncy without buildup.`
-            : (hairRec ? `Recommend adding ${hairRec.name} (${hairRec.price}) at ${hairRec.bestStore} for prep.` : "Prep clean/conditioned hair with a light hand before setting."),
-          recommendedProducts: suggestedAdditions.filter(s => s.domain === "hair").slice(0, 2).map(s => ({
-            productType: s.category || "Recommended Addition",
-            suggestion: `${s.name} (${s.estimatedPrice}) at ${s.bestStore}`,
-            howToUse: s.reason
+          prepAndProtection: `Prep with ${hairCondPick.label} and apply measured amounts so strands stay soft without weighing down.`,
+          recommendedProducts: allRecs.filter(s => s.domain === "hair").slice(0, 2).map(s => ({
+            productType: s.category || "Store Recommendation",
+            suggestion: `${s.name} (${s.estimatedPrice || s.price}) at ${s.bestStore || s.store}`,
+            howToUse: s.reason || s.whyItFits
           })),
-          techniqueAndTakedown: "Work in clean sections, use measured amounts, and release gently without tugging."
+          techniqueAndTakedown: "Work in clean sections, keep tension gentle, and release styles carefully."
         },
         skinRoutine: [
           {
-            step: "Step 1: Gentle Cleanse",
-            detail: skinStash[0]
-              ? `Massage a nickel-sized amount of ${skinStash[0]} onto damp skin for 30–60 seconds and rinse lukewarm—skip harsh scrubbing to protect your barrier.`
-              : (skinRec && skinRec.category === "Face Cleanser" ? `Missing in stash—add ${skinRec.name} (${skinRec.price}) at ${skinRec.bestStore} for gentle cleansing.` : "Use a gentle cleanser without over-stripping."),
-            productUsed: skinStash[0] || (skinRec && skinRec.category === "Face Cleanser" ? `Recommend: ${skinRec.name}` : "Gentle cleanser"),
+            step: "Step 1: Cleanse Face",
+            detail: `Gently cleanse with ${skinCleanPick.label} on damp skin and pat dry without harsh rubbing.`,
+            productUsed: skinCleanPick.label,
             essential: true
           },
           {
-            step: "Step 2: Moisturize & Seal Barrier",
-            detail: skinStash[1]
-              ? `Apply ${skinStash.slice(1).join(" then ")} while skin is slightly damp; avoid mixing competing strong exfoliants/actives in the same step.`
-              : (skinRec && skinRec.category === "Face Moisturizer" ? `Missing in stash—add ${skinRec.name} (${skinRec.price}) at ${skinRec.bestStore} and apply a pea-to-nickel amount.` : "Apply barrier moisturizer on damp skin."),
-            productUsed: skinStash.slice(1).join(", ") || (skinRec && skinRec.category === "Face Moisturizer" ? `Recommend: ${skinRec.name}` : "Barrier moisturizer"),
+            step: "Step 2: Moisturize & Protect",
+            detail: `Apply ${skinMoistPick.label} while skin is slightly damp to support your moisture barrier.`,
+            productUsed: skinMoistPick.label,
             essential: true
           }
         ],
         bodyRoutine: [
           {
-            step: "Step 1: Cleanse Without Stripping",
-            detail: bodyStash[0]
-              ? `Cleanse with ${bodyStash[0]} and pat skin lightly so it stays slightly damp rather than bone-dry.`
-              : (bodyRec ? `Missing in stash—add ${bodyRec.name} (${bodyRec.price}) at ${bodyRec.bestStore}.` : "Cleanse gently with a hydrating wash/soap."),
-            productUsed: bodyStash[0] || (bodyRec ? `Recommend: ${bodyRec.name}` : "Hydrating wash/soap"),
+            step: "Step 1: Cleanse Body",
+            detail: `Cleanse with ${bodyCleanPick.label} and keep skin slightly damp after rinsing.`,
+            productUsed: bodyCleanPick.label,
             essential: true
           },
           {
-            step: "Step 2: Moisture & Powder Layering",
-            detail: bodyStash.length > 1
-              ? `Apply ${bodyStash.slice(1).join(" -> ")} in thin layers; if using body powder, dust lightly over friction/sweat areas after lotion/oil settles so it doesn't cake.`
-              : "Apply lotion/butter on damp skin first, then dust a light layer of powder only on friction/sweat spots if needed.",
-            productUsed: bodyStash.slice(1).join(", ") || "Lotion/butter + light powder on friction zones",
+            step: "Step 2: Moisturize & Layer",
+            detail: `Apply ${bodyMoistPick.label} in thin layers, dusting powder lightly over friction/sweat areas if needed.`,
+            productUsed: bodyMoistPick.label,
             essential: true
           }
         ],
         proTreatments: [],
-        missingProducts: suggestedAdditions
+        missingProducts: allRecs
       };
     }
 
- function renderAIRoutine(r) {
- const box = document.getElementById("aiResultContainer");
- const hairSteps = state.lowEnergyMode ? (r.hairRoutine || []).filter(s => s.essential) : (r.hairRoutine || []);
- const skinSteps = state.lowEnergyMode ? (r.skinRoutine || []).filter(s => s.essential) : (r.skinRoutine || []);
- const bodySteps = state.lowEnergyMode ? (r.bodyRoutine || []).filter(s => s.essential) : (r.bodyRoutine || []);
+    function cleanFalseStashLackNote(text) {
+      if (!text) return "";
+      return String(text)
+        .replace(/\s*\(?Stash lacks[^)\n]*\)?/gi, "")
+        .replace(/\s*\(?Lacks [^)\n]* in stash\)?/gi, "")
+        .trim();
+    }
 
- const stashHair = pickStashItemsForDomain("hair");
- const stashSkin = pickStashItemsForDomain("skin");
- const stashBody = pickStashItemsForDomain("body");
- const allPulled = [...stashHair, ...stashSkin, ...stashBody].slice(0, 8);
+    function ensureNonEmptySteps(steps, fallbackSteps) {
+      const list = Array.isArray(steps) ? steps.filter(s => s && (s.step || s.detail)) : [];
+      if (!list.length) return fallbackSteps;
+      return list.map((s, i) => {
+        const fb = fallbackSteps[i] || fallbackSteps[0];
+        const rawProd = cleanFalseStashLackNote(s.productUsed);
+        const safeProd = (!rawProd || /^none\b/i.test(rawProd)) ? fb.productUsed : rawProd;
+        return {
+          step: cleanFalseStashLackNote(s.step) || fb.step,
+          detail: cleanFalseStashLackNote(s.detail) || fb.detail,
+          productUsed: safeProd,
+          essential: Boolean(s.essential || fb.essential)
+        };
+      });
+    }
 
- box.innerHTML = `
- <div class="card p-4 space-y-3">
- <div class="flex items-center justify-between gap-2">
- <h3 class="text-sm font-bold">Tailored Care &amp; Styling Plan</h3>
- <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#F8F3EA] text-[#8A5E1B]">${state.currentHairState}</span>
- </div>
+    function renderAIRoutine(r) {
+      const box = document.getElementById("aiResultContainer");
+      const fallbackPlan = buildLocalCheckinFallback();
+      const sourceR = r && typeof r === "object" ? r : fallbackPlan;
 
- <div class="p-3 rounded-xl bg-[#F8F3EA]/60 border border-[#E5D7C1] space-y-1.5">
- <div class="flex items-center justify-between">
- <span class="text-[11px] font-bold uppercase text-[#8A5E1B]">Pulled From Your Stash (${state.inventory.length} owned)</span>
- <button type="button" onclick="switchTab('stash')" class="text-[11px] font-semibold text-[#231F1D] underline">Edit Stash</button>
- </div>
- ${allPulled.length
- ? `<div class="flex flex-wrap gap-1.5 pt-0.5">${allPulled.map(item => `<span class="text-[11px] px-2 py-0.5 rounded-full bg-white border border-[#DDD4C8] font-medium">${escapeAttr(item.name)} <span class="text-[#726862]">(${escapeAttr(item.category)})</span></span>`).join("")}</div>`
- : `<p class="text-xs text-[#594E47]">No stash items added yet—add items in <strong>My Stash</strong> and Check-In will pull them directly into your steps.</p>`
- }
- </div>
+      const fullHairSteps = ensureNonEmptySteps(sourceR.hairRoutine, fallbackPlan.hairRoutine);
+      const fullSkinSteps = ensureNonEmptySteps(sourceR.skinRoutine, fallbackPlan.skinRoutine);
+      const fullBodySteps = ensureNonEmptySteps(sourceR.bodyRoutine, fallbackPlan.bodyRoutine);
 
- ${r.climateImpact ? `<p class="text-xs text-[#594E47] bg-[#FAF8F5] p-2.5 rounded-xl"><strong>Weather &amp; AQI:</strong> ${r.climateImpact}</p>` : ""}
- ${(r.rootCauseInsights && r.rootCauseInsights.length) ? `<div class="space-y-1.5"><h4 class="text-xs font-bold uppercase text-[#726862]">Root Causes &amp; Fixes</h4>${r.rootCauseInsights.map(rc => `<div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs"><div class="font-bold">${rc.cause}</div><div class="text-[#594E47] mt-0.5">${rc.fix}</div></div>`).join("")}</div>` : ""}
- <div class="space-y-2">
- <h4 class="text-xs font-bold uppercase text-[#8A5E1B]">Hair, Scalp &amp; Protective Style Routine</h4>
- ${r.hairAssessment ? `<p class="text-xs text-[#726862]">${r.hairAssessment}</p>` : ""}
- ${hairSteps.map(s => `<div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs"><div class="font-bold">${s.step}</div><div class="text-[#594E47] mt-0.5">${s.detail}</div>${s.productUsed ? `<div class="text-[11px] text-[#8A5E1B] font-semibold mt-1">From Stash / Step: ${s.productUsed}</div>` : ""}</div>`).join("")}
- </div>
- ${r.stylingGuide ? `<div class="p-3 rounded-xl bg-[#F8F3EA]/70 border border-[#E5D7C1] space-y-2 text-xs"><div class="font-bold text-[#8A5E1B]">🔥 Styling &amp; Roller Guide: ${r.stylingGuide.method || state.selectedStylingMethod}</div>${r.stylingGuide.prepAndProtection ? `<div><strong>Prep &amp; Protection:</strong> ${r.stylingGuide.prepAndProtection}</div>` : ""}${(r.stylingGuide.recommendedProducts || []).map(p => `<div class="p-2 rounded-lg bg-white border border-[#EAE3D9]"><div class="font-bold">${p.productType}: <span class="text-[#8A5E1B]">${p.suggestion}</span></div><div class="text-[#594E47] mt-0.5">${p.howToUse}</div></div>`).join("")}${r.stylingGuide.techniqueAndTakedown ? `<div><strong>Technique &amp; Takedown:</strong> ${r.stylingGuide.techniqueAndTakedown}</div>` : ""}</div>` : ""}
- <div class="space-y-2">
- <h4 class="text-xs font-bold uppercase text-[#355243]">Face Skin Routine</h4>
- ${r.skinAssessment ? `<p class="text-xs text-[#726862]">${r.skinAssessment}</p>` : ""}
- ${skinSteps.map(s => `<div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs"><div class="font-bold">${s.step}</div><div class="text-[#594E47] mt-0.5">${s.detail}</div>${s.productUsed ? `<div class="text-[11px] text-[#355243] font-semibold mt-1">From Stash / Step: ${s.productUsed}</div>` : ""}</div>`).join("")}
- </div>
- <div class="space-y-2">
- <h4 class="text-xs font-bold uppercase text-[#5B2C6F]">Body Care &amp; Body Powder Layering Routine</h4>
- ${bodySteps.map(s => `<div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs"><div class="font-bold">${s.step}</div><div class="text-[#594E47] mt-0.5">${s.detail}</div>${s.productUsed ? `<div class="text-[11px] text-[#5B2C6F] font-semibold mt-1">From Stash / Step: ${s.productUsed}</div>` : ""}</div>`).join("")}
- </div>
- ${(r.proTreatments && r.proTreatments.length) ? `<div class="space-y-1.5 pt-2 border-t border-[#EAE3D9]"><h4 class="text-xs font-bold uppercase text-[#231F1D]">Salon, Dermatologist &amp; Esthetician Suggestions</h4>${r.proTreatments.map(pt => `<div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs"><div class="flex justify-between font-bold"><span class="text-[#A9772B]">${pt.provider}: ${pt.treatment}</span><span class="text-[10px] text-[#726862]">${pt.cadence || ""}</span></div><div class="text-[#594E47] mt-0.5">${pt.why}</div></div>`).join("")}</div>` : ""}
- ${(r.missingProducts && r.missingProducts.length) ? `<div class="space-y-1.5 pt-2 border-t border-[#EAE3D9]"><h4 class="text-xs font-bold uppercase text-[#9A3412]">Recommended Additions From Check-In</h4>${r.missingProducts.map(m => `<div class="p-2 rounded-lg bg-amber-50/70 text-xs flex justify-between items-start gap-2"><div><strong>${m.name}</strong> ${m.store ? `(${m.store})` : ""}<div class="text-[#594E47]">${m.reason}</div></div><span class="font-bold text-[#8A5E1B] shrink-0">${m.estimatedPrice || ""}</span></div>`).join("")}</div>` : ""}
- </div>
- `;
- }
+      const hairSteps = state.lowEnergyMode ? fullHairSteps.filter(s => s.essential) : fullHairSteps;
+      const skinSteps = state.lowEnergyMode ? fullSkinSteps.filter(s => s.essential) : fullSkinSteps;
+      const bodySteps = state.lowEnergyMode ? fullBodySteps.filter(s => s.essential) : fullBodySteps;
+
+      const finalHairSteps = hairSteps.length ? hairSteps : fullHairSteps;
+      const finalSkinSteps = skinSteps.length ? skinSteps : fullSkinSteps;
+      const finalBodySteps = bodySteps.length ? bodySteps : fullBodySteps;
+
+      const stashHair = pickStashItemsForDomain("hair");
+      const stashSkin = pickStashItemsForDomain("skin");
+      const stashBody = pickStashItemsForDomain("body");
+      const allPulled = [...stashHair, ...stashSkin, ...stashBody].slice(0, 8);
+
+      const additionsList = (Array.isArray(sourceR.missingProducts) && sourceR.missingProducts.length)
+        ? sourceR.missingProducts
+        : fallbackPlan.missingProducts;
+
+      box.innerHTML = `
+        <div class="card p-4 space-y-3">
+          <div class="flex items-center justify-between gap-2">
+            <h3 class="text-sm font-bold">Tailored Care &amp; Styling Plan</h3>
+            <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#F8F3EA] text-[#8A5E1B]">${escapeAttr(state.currentHairState)}</span>
+          </div>
+
+          <div class="p-3 rounded-xl bg-[#F8F3EA]/60 border border-[#E5D7C1] space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold uppercase text-[#8A5E1B]">Pulled From Your Stash (${state.inventory.length} owned)</span>
+              <button type="button" onclick="switchTab('stash')" class="text-[11px] font-semibold text-[#231F1D] underline">Edit Stash</button>
+            </div>
+            ${allPulled.length
+              ? `<div class="flex flex-wrap gap-1.5 pt-0.5">${allPulled.map(item => `<span class="text-[11px] px-2 py-0.5 rounded-full bg-white border border-[#DDD4C8] font-medium">${escapeAttr(item.name)} <span class="text-[#726862]">(${escapeAttr(item.category)})</span></span>`).join("")}</div>`
+              : `<p class="text-xs text-[#594E47]">No owned items in that section yet—check the store recommendations below to add items.</p>`
+            }
+          </div>
+
+          <p class="text-xs text-[#594E47] bg-[#FAF8F5] p-2.5 rounded-xl"><strong>Weather &amp; AQI:</strong> ${escapeAttr(cleanFalseStashLackNote(sourceR.climateImpact) || fallbackPlan.climateImpact)}</p>
+
+          ${(sourceR.rootCauseInsights && sourceR.rootCauseInsights.length) ? `<div class="space-y-1.5"><h4 class="text-xs font-bold uppercase text-[#726862]">Root Causes &amp; Fixes</h4>${sourceR.rootCauseInsights.map(rc => `<div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs"><div class="font-bold">${escapeAttr(cleanFalseStashLackNote(rc.cause))}</div><div class="text-[#594E47] mt-0.5">${escapeAttr(cleanFalseStashLackNote(rc.fix))}</div></div>`).join("")}</div>` : ""}
+
+          <div class="space-y-2">
+            <h4 class="text-xs font-bold uppercase text-[#8A5E1B]">Hair, Scalp &amp; Protective Style Routine</h4>
+            <p class="text-xs text-[#726862]">${escapeAttr(cleanFalseStashLackNote(sourceR.hairAssessment) || fallbackPlan.hairAssessment)}</p>
+            ${finalHairSteps.map(s => `<div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs"><div class="font-bold">${escapeAttr(s.step)}</div><div class="text-[#594E47] mt-0.5">${escapeAttr(s.detail)}</div><div class="text-[11px] text-[#8A5E1B] font-semibold mt-1">Stash / Store Pick: ${escapeAttr(s.productUsed)}</div></div>`).join("")}
+          </div>
+
+          <div class="p-3 rounded-xl bg-[#F8F3EA]/70 border border-[#E5D7C1] space-y-2 text-xs">
+            <div class="font-bold text-[#8A5E1B]">🔥 Styling &amp; Roller Guide: ${escapeAttr((sourceR.stylingGuide && sourceR.stylingGuide.method) || state.selectedStylingMethod)}</div>
+            <div><strong>Prep &amp; Protection:</strong> ${escapeAttr(cleanFalseStashLackNote(sourceR.stylingGuide && sourceR.stylingGuide.prepAndProtection) || fallbackPlan.stylingGuide.prepAndProtection)}</div>
+            ${((sourceR.stylingGuide && sourceR.stylingGuide.recommendedProducts && sourceR.stylingGuide.recommendedProducts.length) ? sourceR.stylingGuide.recommendedProducts : fallbackPlan.stylingGuide.recommendedProducts).map(p => `<div class="p-2 rounded-lg bg-white border border-[#EAE3D9]"><div class="font-bold">${escapeAttr(p.productType)}: <span class="text-[#8A5E1B]">${escapeAttr(p.suggestion)}</span></div><div class="text-[#594E47] mt-0.5">${escapeAttr(cleanFalseStashLackNote(p.howToUse))}</div></div>`).join("")}
+            <div><strong>Technique &amp; Takedown:</strong> ${escapeAttr(cleanFalseStashLackNote(sourceR.stylingGuide && sourceR.stylingGuide.techniqueAndTakedown) || fallbackPlan.stylingGuide.techniqueAndTakedown)}</div>
+          </div>
+
+          <div class="space-y-2">
+            <h4 class="text-xs font-bold uppercase text-[#355243]">Face Skin Routine</h4>
+            <p class="text-xs text-[#726862]">${escapeAttr(cleanFalseStashLackNote(sourceR.skinAssessment) || fallbackPlan.skinAssessment)}</p>
+            ${finalSkinSteps.map(s => `<div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs"><div class="font-bold">${escapeAttr(s.step)}</div><div class="text-[#594E47] mt-0.5">${escapeAttr(s.detail)}</div><div class="text-[11px] text-[#355243] font-semibold mt-1">Stash / Store Pick: ${escapeAttr(s.productUsed)}</div></div>`).join("")}
+          </div>
+
+          <div class="space-y-2">
+            <h4 class="text-xs font-bold uppercase text-[#5B2C6F]">Body Care &amp; Body Powder Layering Routine</h4>
+            ${finalBodySteps.map(s => `<div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs"><div class="font-bold">${escapeAttr(s.step)}</div><div class="text-[#594E47] mt-0.5">${escapeAttr(s.detail)}</div><div class="text-[11px] text-[#5B2C6F] font-semibold mt-1">Stash / Store Pick: ${escapeAttr(s.productUsed)}</div></div>`).join("")}
+          </div>
+
+          ${(sourceR.proTreatments && sourceR.proTreatments.length) ? `<div class="space-y-1.5 pt-2 border-t border-[#EAE3D9]"><h4 class="text-xs font-bold uppercase text-[#231F1D]">Salon, Dermatologist &amp; Esthetician Suggestions</h4>${sourceR.proTreatments.map(pt => `<div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs"><div class="flex justify-between font-bold"><span class="text-[#A9772B]">${escapeAttr(pt.provider)}: ${escapeAttr(pt.treatment)}</span><span class="text-[10px] text-[#726862]">${escapeAttr(pt.cadence || "")}</span></div><div class="text-[#594E47] mt-0.5">${escapeAttr(cleanFalseStashLackNote(pt.why))}</div></div>`).join("")}</div>` : ""}
+
+          ${additionsList.length ? `<div class="space-y-1.5 pt-2 border-t border-[#EAE3D9]"><h4 class="text-xs font-bold uppercase text-[#9A3412]">Recommended Store Picks</h4>${additionsList.map(m => `<div class="p-2 rounded-lg bg-amber-50/70 text-xs flex justify-between items-start gap-2"><div><strong>${escapeAttr(m.name)}</strong> ${m.store ? `(${escapeAttr(m.store)})` : ""}<div class="text-[#594E47]">${escapeAttr(cleanFalseStashLackNote(m.reason))}</div></div><span class="font-bold text-[#8A5E1B] shrink-0">${escapeAttr(m.estimatedPrice || m.price || "")}</span></div>`).join("")}</div>` : ""}
+        </div>
+      `;
+    }
 
  async function analyzeBase64ProductImage(imageBase64) {
  const status = document.getElementById("scanStatusMsg");
