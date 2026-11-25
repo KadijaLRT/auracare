@@ -1,5 +1,5 @@
-async function callGroqChat(apiKey, model, messages, temperature = 0.2, max_tokens = 900, jsonMode = true) {
-  const safeMaxTokens = Math.min(Number(max_tokens) || 900, 950);
+async function callGroqChat(apiKey, model, messages, temperature = 0.2, max_tokens = 650, jsonMode = true) {
+  const safeMaxTokens = Math.min(Number(max_tokens) || 650, 750);
   const baseBody = {
     model,
     temperature,
@@ -92,50 +92,47 @@ function sanitizeJsonString(rawText) {
         out += '\\t';
         continue;
       }
-      const code = ch.charCodeAt(0);
-      if (code < 0x20) {
+      if (ch.charCodeAt(0) < 0x20) {
         continue;
       }
     }
     out += ch;
   }
 
-  out = out.replace(/,\s*([}\]])/g, '$1');
-  return out.trim();
+  return out.replace(/,\s*([}\]])/g, '$1').trim();
 }
 
 function parseJsonLoose(rawText) {
-  const repaired = sanitizeJsonString(rawText);
-  return JSON.parse(repaired);
+  return JSON.parse(sanitizeJsonString(rawText));
 }
 
 function buildFallbackRoutine({ currentHairState, selectedStylingMethod, weather, activeTriggers }) {
   const wStr = weather && weather.tempF != null
-    ? `${weather.tempF}°F, ${weather.humidity ?? '--'}% humidity, AQI ${weather.aqi ?? '--'}`
-    : 'your current local conditions';
+    ? `${weather.tempF}°F, ${weather.humidity ?? '--'}% hum, AQI ${weather.aqi ?? '--'}`
+    : 'current weather';
   return {
-    climateImpact: `Current conditions (${wStr}) can affect moisture retention and styling hold—keep hydration steady and avoid heavy buildup.`,
-    rootCauseInsights: (activeTriggers || []).slice(0, 3).map((t) => ({
+    climateImpact: `Conditions (${wStr}): keep moisture steady and avoid heavy buildup.`,
+    rootCauseInsights: (activeTriggers || []).slice(0, 2).map((t) => ({
       cause: t,
-      fix: 'Address this trigger gently with balanced moisture, low tension, and clean scalp/skin care.'
+      fix: 'Use gentle moisture and low tension.'
     })),
-    hairAssessment: `Current mode: ${currentHairState}. Keep routines gentle and targeted.`,
-    skinAssessment: 'Keep face and body barrier moisture balanced with gentle cleansing.',
+    hairAssessment: `${currentHairState} — keep care focused and gentle.`,
+    skinAssessment: 'Keep face and body barrier moisture balanced.',
     hairRoutine: [
-      { step: 'Cleanse & Hydrate', detail: 'Cleanse scalp and hair gently without stripping, then apply a water-based leave-in.', productUsed: 'Stash or gentle cleanser/leave-in', essential: true },
-      { step: 'Seal & Protect', detail: 'Seal ends or protective style with a light oil or mist suited to your current hair state.', productUsed: 'Lightweight oil or mist', essential: true }
+      { step: 'Cleanse & Hydrate', detail: 'Use stash cleanser/conditioner + leave-in.', productUsed: 'Stash hair items', essential: true },
+      { step: 'Seal & Protect', detail: `Style for ${selectedStylingMethod} with light oil/mist.`, productUsed: 'Stash oil/mist', essential: true }
     ],
     stylingGuide: {
       method: selectedStylingMethod,
-      prepAndProtection: 'Prep clean/conditioned strands and protect from excess heat or tension.',
+      prepAndProtection: 'Prep clean/conditioned hair and protect edges/heat.',
       recommendedProducts: [],
-      techniqueAndTakedown: 'Work in clean sections and release curls or styles gently without tugging.'
+      techniqueAndTakedown: 'Work in sections and release gently.'
     },
     skinRoutine: [
-      { step: 'Gentle Cleanse & Moisturize', detail: 'Cleanse face mildly and apply a barrier moisturizer suited to your skin type.', productUsed: 'Face cleanser & moisturizer', essential: true }
+      { step: 'Cleanse & Moisturize', detail: 'Gentle cleanse + barrier moisturizer.', productUsed: 'Stash face items', essential: true }
     ],
     bodyRoutine: [
-      { step: 'Cleanse, Moisturize & Layer', detail: 'Cleanse body, apply lotion/butter on damp skin, and use powder only where needed for dry comfort.', productUsed: 'Body care stash', essential: true }
+      { step: 'Wash, Moisturize & Powder', detail: 'Layer body care on damp skin; powder friction zones.', productUsed: 'Stash body items', essential: true }
     ],
     proTreatments: [],
     missingProducts: []
@@ -150,14 +147,14 @@ function buildFallbackShopRecs({ shoppingPrefs }) {
   return {
     recommendations: [
       {
-        name: 'SheaMoisture Raw Shea Butter Restorative Conditioner',
+        name: 'SheaMoisture Raw Shea Butter Conditioner',
         domain: 'hair',
-        category: 'Deep Conditioner',
+        category: 'Conditioner',
         price: `$${Math.min(13.99, maxPrice).toFixed(2)}`,
         numericPrice: Math.min(13.99, maxPrice),
         bestStore: store,
         alsoAt: 'Walmart, Ulta Beauty',
-        whyItFits: 'Helps restore moisture and softness for dry or styled hair within your budget.'
+        whyItFits: 'Hydrates dry or styled hair within budget.'
       },
       {
         name: 'CeraVe Daily Moisturizing Lotion',
@@ -166,8 +163,8 @@ function buildFallbackShopRecs({ shoppingPrefs }) {
         price: `$${Math.min(16.99, maxPrice).toFixed(2)}`,
         numericPrice: Math.min(16.99, maxPrice),
         bestStore: store,
-        alsoAt: 'CVS, Walgreens, Amazon',
-        whyItFits: 'Supports skin barrier hydration with ceramides and hyaluronic acid.'
+        alsoAt: 'CVS, Walgreens',
+        whyItFits: 'Supports skin barrier hydration.'
       }
     ]
   };
@@ -180,9 +177,7 @@ export default async function handler(req, res) {
 
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
-    return res.status(500).json({
-      error: 'GROQ_API_KEY is not set in Vercel Environment Variables.'
-    });
+    return res.status(500).json({ error: 'GROQ_API_KEY is not set in Vercel Environment Variables.' });
   }
 
   try {
@@ -201,12 +196,10 @@ export default async function handler(req, res) {
     } = req.body || {};
 
     if (mode === 'product_photo') {
-      if (!imageBase64) {
-        return res.status(400).json({ error: 'No product photo provided.' });
-      }
+      if (!imageBase64) return res.status(400).json({ error: 'No product photo provided.' });
 
-      const visionPrompt = `Read this product label/barcode photo and return ONLY valid JSON with no newlines inside strings:
-{"name":"Brand & Product Name","brand":"Brand","domain":"hair","category":"Bond Repair|Clarifying / Chelating Shampoo|Conditioner|Deep Conditioner|Edge Control / Wax|Hair Dye|Hair Gel|Hair Oil / Sealant|Hair Relaxer|Heat Protectant|Leave-In / Mist|Moisturizer|Oil Sheen|Protein Treatment|Setting Mousse / Foam / Lotion|Shampoo|Wig / Braid Scalp & Edge Care|Face Cleanser|Face Moisturizer|Face Treatment|Sunscreen|Body Butter|Body Lotion / Cream|Body Oil|Body Powder / Dusting Powder|Body Scrub / Exfoliant|Body Wash / Bar Soap|Other","keyIngredients":["ing1","ing2"],"safetyNote":"1 short note"}`;
+      const visionPrompt = `Read product label and return compact JSON (no newlines in strings):
+{"name":"Brand & Name","brand":"Brand","domain":"hair|skin|body","category":"Bond Repair|Clarifying / Chelating Shampoo|Conditioner|Deep Conditioner|Edge Control / Wax|Hair Dye|Hair Gel|Hair Oil / Sealant|Hair Relaxer|Heat Protectant|Leave-In / Mist|Moisturizer|Oil Sheen|Protein Treatment|Setting Mousse / Foam / Lotion|Shampoo|Wig / Braid Scalp & Edge Care|Face Cleanser|Face Moisturizer|Face Treatment|Sunscreen|Body Butter|Body Lotion / Cream|Body Oil|Body Powder / Dusting Powder|Body Scrub / Exfoliant|Body Wash / Bar Soap|Other","keyIngredients":["ing1","ing2"],"safetyNote":"short note"}`;
 
       const rawText = await callGroqChat(
         apiKey,
@@ -221,7 +214,7 @@ export default async function handler(req, res) {
           }
         ],
         0.2,
-        850,
+        450,
         true
       );
 
@@ -232,24 +225,20 @@ export default async function handler(req, res) {
       const maxPrice = Number(shoppingPrefs.maxPrice) || 30;
       const stores = Array.isArray(shoppingPrefs.stores) && shoppingPrefs.stores.length
         ? shoppingPrefs.stores.join(', ')
-        : 'Any store';
-      const focusArea = shoppingPrefs.focusArea || 'All missing hair, face & body essentials';
+        : 'Any';
+      const focusArea = shoppingPrefs.focusArea || 'Missing essentials';
 
-      const shopPrompt = `Recommend 4 specific products <=$${maxPrice} at [${stores}] for focus "${focusArea}".
-Profile: ${JSON.stringify(profile || {})}
-Hair mode: ${currentHairState} | Styling: ${selectedStylingMethod} | Triggers: ${(activeTriggers || []).join(', ')}
-Weather/AQI: ${JSON.stringify(weather || {})}
-Owned stash: ${JSON.stringify((inventory || []).map(i => i.name))}
-Return ONLY single-line valid JSON (no raw newlines inside string values):
-{"recommendations":[{"name":"Brand Product","domain":"hair","category":"Category","price":"$14.99","numericPrice":14.99,"bestStore":"Store","alsoAt":"Store2","whyItFits":"1 short reason"}]}`;
+      const shopPrompt = `3-4 items <=$${maxPrice} at [${stores}] for "${focusArea}".
+Profile:${JSON.stringify(profile || {})} Mode:${currentHairState} Style:${selectedStylingMethod} Triggers:${(activeTriggers || []).join(',')} Stash:${JSON.stringify((inventory || []).slice(0, 15))}
+JSON only:
+{"recommendations":[{"name":"Item","domain":"hair|skin|body","category":"Cat","price":"$12.99","numericPrice":12.99,"bestStore":"Store","alsoAt":"Store2","whyItFits":"short reason"}]}`;
 
-      let rawText = '';
       try {
-        rawText = await callGroqChat(apiKey, 'openai/gpt-oss-120b', [{ role: 'user', content: shopPrompt }], 0.25, 950, true);
+        const rawText = await callGroqChat(apiKey, 'openai/gpt-oss-120b', [{ role: 'user', content: shopPrompt }], 0.25, 650, true);
         return res.status(200).json({ result: parseJsonLoose(rawText) });
       } catch (_) {
         try {
-          rawText = await callGroqChat(apiKey, 'qwen/qwen3.8-27b', [{ role: 'user', content: shopPrompt }], 0.25, 950, true);
+          const rawText = await callGroqChat(apiKey, 'qwen/qwen3.8-27b', [{ role: 'user', content: shopPrompt }], 0.25, 650, true);
           return res.status(200).json({ result: parseJsonLoose(rawText) });
         } catch (__) {
           return res.status(200).json({ result: buildFallbackShopRecs({ shoppingPrefs }) });
@@ -260,18 +249,12 @@ Return ONLY single-line valid JSON (no raw newlines inside string values):
     const maxPrice = Number(shoppingPrefs.maxPrice) || 30;
     const stores = Array.isArray(shoppingPrefs.stores) && shoppingPrefs.stores.length
       ? shoppingPrefs.stores.join(', ')
-      : 'Any store';
+      : 'Any';
 
-    const systemInstructions = `Build a concise Hair, Face & Body care plan from the user's profile, check-in, stash, triggers, and weather/AQI without assuming unstated traits. Max price per item: $${maxPrice}. Stores: ${stores}. ${lowEnergyMode ? 'Keep routines to 2 short steps each.' : 'Keep each step brief and actionable.'}
-Return ONLY single-line valid JSON (no raw newlines inside string values):
-{"climateImpact":"1-2 sentences","rootCauseInsights":[{"cause":"Cause","fix":"1 short fix"}],"hairAssessment":"1 sentence","skinAssessment":"1 sentence","hairRoutine":[{"step":"Step","detail":"Brief action","productUsed":"Stash item or step","essential":true}],"stylingGuide":{"method":"${selectedStylingMethod}","prepAndProtection":"Brief prep","recommendedProducts":[{"productType":"Type","suggestion":"Product <=$${maxPrice}","howToUse":"Brief tip"}],"techniqueAndTakedown":"Brief tip"},"skinRoutine":[{"step":"Step","detail":"Brief action","productUsed":"Stash item or step","essential":true}],"bodyRoutine":[{"step":"Step","detail":"Brief wash/lotion/butter/oil/powder action","productUsed":"Stash item or step","essential":true}],"proTreatments":[{"provider":"Salon","treatment":"Service","why":"Brief reason","cadence":"Cadence"}],"missingProducts":[{"name":"Product","domain":"hair","store":"Store","reason":"Brief reason","estimatedPrice":"$14.99"}]}`;
+    const systemInstructions = `Concise care plan pulling from stash first, recommending items <=$${maxPrice} at [${stores}]. ${lowEnergyMode ? '2 short steps max per routine.' : 'Short steps.'} Single-line JSON only:
+{"climateImpact":"1 sentence","rootCauseInsights":[{"cause":"C","fix":"F"}],"hairAssessment":"1 sentence","skinAssessment":"1 sentence","hairRoutine":[{"step":"S","detail":"D","productUsed":"Stash item","essential":true}],"stylingGuide":{"method":"${selectedStylingMethod}","prepAndProtection":"Prep","recommendedProducts":[{"productType":"T","suggestion":"Item","howToUse":"Use"}],"techniqueAndTakedown":"Tip"},"skinRoutine":[{"step":"S","detail":"D","productUsed":"Stash item","essential":true}],"bodyRoutine":[{"step":"S","detail":"D","productUsed":"Stash item","essential":true}],"proTreatments":[{"provider":"Salon|Dermatologist|Esthetician","treatment":"T","why":"W","cadence":"C"}],"missingProducts":[{"name":"N","domain":"hair|skin|body","store":"S","reason":"R","estimatedPrice":"$12.99"}]}`;
 
-    const userPrompt = `Check-in: ${description || 'Routine check-in'}
-Hair mode: ${currentHairState} | Styling: ${selectedStylingMethod}
-Triggers: ${(activeTriggers || []).join(', ') || 'None'}
-Profile: ${JSON.stringify(profile || {})}
-Weather/AQI: ${JSON.stringify(weather || {})}
-Stash: ${JSON.stringify((inventory || []).map(i => `${i.name} (${i.category})`))}`;
+    const userPrompt = `Note:${description || 'None'} Mode:${currentHairState} Style:${selectedStylingMethod} Triggers:${(activeTriggers || []).join(',') || 'None'} Profile:${JSON.stringify(profile || {})} Weather:${JSON.stringify(weather || {})} Stash:${JSON.stringify((inventory || []).slice(0, 15))}`;
 
     const messages = imageBase64
       ? [
@@ -292,11 +275,11 @@ Stash: ${JSON.stringify((inventory || []).map(i => `${i.name} (${i.category})`))
     const fallbackModel = imageBase64 ? 'openai/gpt-oss-120b' : 'qwen/qwen3.8-27b';
 
     try {
-      const rawText = await callGroqChat(apiKey, primaryModel, messages, 0.25, 950, true);
+      const rawText = await callGroqChat(apiKey, primaryModel, messages, 0.25, 700, true);
       return res.status(200).json({ result: parseJsonLoose(rawText) });
     } catch (_) {
       try {
-        const rawText = await callGroqChat(apiKey, fallbackModel, messages, 0.25, 950, true);
+        const rawText = await callGroqChat(apiKey, fallbackModel, messages, 0.25, 700, true);
         return res.status(200).json({ result: parseJsonLoose(rawText) });
       } catch (__) {
         return res.status(200).json({
