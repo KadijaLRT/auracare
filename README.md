@@ -1,6 +1,6 @@
-# AuraCare — Hair, Face & Body Studio (v2.31)
+# AuraCare — Black Hair Chemistry, Face & Body Studio (v2.32)
 
-Line-by-line debugging & hardening fixes:
-- Escaped apostrophes and backslashes in inline `onclick` handlers (`renderChipGroup`, `toggleTrigger`, `setHairState`, `toggleStorePref`) so names like `Aunt Jackie's` never break inline JS string literals.
-- Passed `roleHint` for body cleanse/moisture steps in `buildLocalCheckinFallback`.
-- Hardened `sanitizeJsonString` in `api/analyze.js` to escape invalid backslash sequences before `JSON.parse` and increased routine `max_tokens` cap to `850` (`safeMaxTokens` max `950`) to avoid truncated JSON responses.
+- Embeds deep Black hair care, trichology, and cosmetic chemistry knowledge (`BLACK_HAIR_CHEMISTRY_RULES` & upgraded AI chemist prompts):
+  - Relaxer pH neutralization (4.5–5.5), dual-process (relaxed + bleached/honey-blonde dyed) disulfide bond repair vs. hydrolyzed protein vs. moisture balance.
+  - Porosity-aware LCO/LOC layering, dew-point humectant matching, chelating vs. gentle sulfate-free surfactant selection, and under-wig/braid scalp microbiome care.
+  - Expanded brand system sets (Olaplex, Aunt Jackie's, ApHogee, Mizani, KeraCare, Design Essentials, Camille Rose, Mielle, CeraVe) and chemistry-backed catalog picks.

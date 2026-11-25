@@ -447,6 +447,10 @@
  <div id="stylingReferenceBox" class="space-y-2 pt-1 text-xs"></div>
  </div>
  <div class="card p-4 space-y-2">
+ <h2 class="text-base font-bold">Black Hair Chemistry, Porosity &amp; Formulation Science</h2>
+ <div id="hairChemistryBox" class="space-y-2 pt-1 text-xs"></div>
+ </div>
+ <div class="card p-4 space-y-2">
  <h2 class="text-base font-bold">Salon, Dermatologist &amp; Esthetician Options</h2>
  <div id="proGuidanceBox" class="space-y-2 pt-1 text-xs"></div>
  </div>
@@ -1049,6 +1053,7 @@
  const active = state.activeTriggers.includes(t.label);
  return `<button type="button" onclick="toggleTrigger('\$\{String(t.label).replace(/\\/g, \"\\\\\").replace(/'/g, \"\\'\")\}')" class="text-[11px] px-2.5 py-1 rounded-full border font-semibold ${active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#594E47] border-[#DDD4C8]"}">${active ? "✓ " : "+ "}${t.label}</button>`;
  }).join("");
+ const chemBox = document.getElementById("hairChemistryBox"); if (chemBox) chemBox.innerHTML = BLACK_HAIR_CHEMISTRY_RULES.map(c => `<div class="p-3 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9]"><div class="font-bold text-[#8A5E1B]">${c.title}</div><div class="text-[#594E47] mt-0.5">${c.note}</div></div>`).join("");
  document.getElementById("stylingReferenceBox").innerHTML = STYLING_REFERENCE_GUIDE.map(sg => `<div class="p-3 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9]"><div class="font-bold text-[#231F1D]">${sg.title}</div><div class="text-[#594E47] mt-0.5">${sg.note}</div></div>`).join("");
  document.getElementById("proGuidanceBox").innerHTML = PRO_CATEGORIES.map(pc => `<div class="p-3 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9]"><div class="font-bold text-[#A9772B]">${pc.provider}</div><div class="text-[#594E47] mt-0.5">${pc.focus}</div></div>`).join("");
  document.getElementById("rootCauseCardsBox").innerHTML = TRIGGER_FACTORS.map(t => {
@@ -1199,6 +1204,33 @@
  }).slice(0, 4);
  }
 
+    const BLACK_HAIR_CHEMISTRY_RULES = [
+      {
+        title: "Relaxer Chemistry (Lye Sodium Hydroxide vs. No-Lye Calcium/Guanidine Hydroxide)",
+        note: "Relaxers permanently cleave disulfide bonds (lanthionization) and raise hair pH to 12–14. Always follow with an acidic neutralizing shampoo (with pH color indicator) to restore hair's natural 4.5–5.5 pH, then replenish hydrolyzed protein and moisture. Never overlap relaxer onto previously relaxed hair or apply close to bleaching/lightening."
+      },
+      {
+        title: "Relaxed + Bleached / Honey-Blonde Dyed Hair (Dual-Process Care)",
+        note: "Lightening oxidizes melanin and weakens disulfide bonds; combining relaxer + dye/bleach creates high porosity and fragile temple/line-of-demarcation zones. Alternate bond builders (bis-aminopropyl diglycol dimaleate, citric/maleic acid), mild hydrolyzed protein (keratin/silk amino acids), and rich emollient conditioners; avoid high-heat passes without silicone/polymer thermal shields."
+      },
+      {
+        title: "Protein vs. Moisture Balance & Porosity Chemistry",
+        note: "High-porosity or chemically processed strands absorb water fast and lose it fast—layer water-based leave-in (humectant/amino acids) -> creamy moisturizer -> light oil/butter sealant (LCO/LOC) to slow cuticle water loss. Low-porosity coily strands resist water due to tight cuticles—use warm water, steam, and lightweight humectants while avoiding heavy raw butters that sit on top and block hydration."
+      },
+      {
+        title: "Chelating vs. Clarifying Surfactant Chemistry",
+        note: "Hard water calcium/magnesium ions bind to negatively charged damaged cuticles, causing brassiness, dryness, and relaxer/color interference. Use a chelating shampoo (EDTA, phytic acid, sodium gluconate) monthly, and sulfate-free gentle surfactants (cocamidopropyl betaine, sodium cocoyl isethionate, decyl glucoside) for regular washes so sebum isn't stripped from naturally drier elliptical Type 4 shafts."
+      },
+      {
+        title: "Sebum Transport, Scalp Microbiome & Protective Styles (Wigs & Braids)",
+        note: "Tightly coiled hair's elliptical cross-section and twists slow natural scalp sebum from traveling down the hair shaft, making ends dry while product/sweat accumulates at the scalp under wigs or braids. Keep scalp pH balanced (4.5–5.5) with diluted micellar/salicylic or witch-hazel cleansers, avoid heavy petrolatum/mineral oil on scalp pores, and protect fragile vellus temple hairs with satin/velvet wig grips."
+      },
+      {
+        title: "Humectants, Dew Point & Anti-Frizz Polymer Chemistry",
+        note: "In very low dew points (<35°F), high-glycerin leave-ins can pull moisture out of the hair shaft; in very high humidity (>70%), simple humectants draw excess water and swell the cuticle (reversion/frizz). Match dew point with film-forming humectants (flaxseed, aloe, marshmallow root, polyquaterniums) and humidity-blocking silicones/light oils."
+      }
+    ];
+
     const BRAND_SYSTEM_SETS = [
       {
         brandKey: "olaplex",
@@ -1247,6 +1279,50 @@
         ]
       },
       {
+        brandKey: "keracare",
+        brandLabel: "KeraCare Hydrating & Thermal System",
+        domain: "hair",
+        steps: [
+          { role: "cleanse", regex: /keracare.*(hydrating detangling|shampoo|cleanser)/i, name: "KeraCare Hydrating Detangling Shampoo", category: "Shampoo", priceNum: 15, stores: ["Sally Beauty", "Ulta Beauty", "Amazon"], why: "pH-balanced conditioning shampoo formulated for relaxed, color-treated, and coily hair." },
+          { role: "condition", regex: /keracare.*(humecto|conditioner|masque)/i, name: "KeraCare Humecto Creme Conditioner", category: "Conditioner", priceNum: 18, stores: ["Sally Beauty", "Ulta Beauty", "Amazon"], why: "Humectant-rich creme conditioner that restores elasticity after cleansing or chemical services." },
+          { role: "leavein", regex: /keracare.*(leave-in|setting lotion|foam|wrap)/i, name: "KeraCare Leave-In Conditioner", category: "Leave-In / Mist", priceNum: 15, stores: ["Sally Beauty", "Ulta Beauty", "Amazon"], why: "Detangles, balances porosity, and preps hair for roller sets or heat styling." },
+          { role: "seal", regex: /keracare.*(oil sheen|essential oils|silken seal|gloss)/i, name: "KeraCare Oil Sheen with Humidity Block", category: "Oil Sheen", priceNum: 14, stores: ["Sally Beauty", "Ulta Beauty", "Amazon"], why: "Humidity-blocking shine spray that protects smooth or curled styles from reversion." }
+        ]
+      },
+      {
+        brandKey: "design essentials",
+        brandLabel: "Design Essentials Almond & Avocado / Silk System",
+        domain: "hair",
+        steps: [
+          { role: "cleanse", regex: /design essentials.*(shampoo|cleanser|oat protein)/i, name: "Design Essentials Almond & Avocado Moisturizing & Detangling Shampoo", category: "Shampoo", priceNum: 14, stores: ["Sally Beauty", "Ulta Beauty", "Target", "Amazon"], why: "Sulfate-free moisturizing shampoo that softens curls and relaxed strands." },
+          { role: "condition", regex: /design essentials.*(conditioner|masque|express)/i, name: "Design Essentials Almond & Avocado Detangling Conditioner", category: "Conditioner", priceNum: 15, stores: ["Sally Beauty", "Ulta Beauty", "Target", "Amazon"], why: "Fast-penetrating conditioner that smooths cuticles and cuts detangling breakage." },
+          { role: "leavein", regex: /design essentials.*(leave-in|milk|mousse|foam)/i, name: "Design Essentials Almond & Avocado Curl Enhancing Mousse", category: "Setting Mousse / Foam / Lotion", priceNum: 15, stores: ["Sally Beauty", "Ulta Beauty", "Target", "Amazon"], why: "Lightweight setting foam for roller sets, flexi rods, and frizz-free curl definition." },
+          { role: "seal", regex: /design essentials.*(oil|silk|serum|sheen)/i, name: "Design Essentials Silk Essentials Thermal Strengthening Serum", category: "Heat Protectant", priceNum: 18, stores: ["Sally Beauty", "Ulta Beauty", "Amazon"], why: "Silicone-silk thermal shield that protects up to 450°F and seals shine." }
+        ]
+      },
+      {
+        brandKey: "camille rose",
+        brandLabel: "Camille Rose Botanical Moisture System",
+        domain: "hair",
+        steps: [
+          { role: "cleanse", regex: /camille rose.*(sweet ginger|cleansing|shampoo)/i, name: "Camille Rose Sweet Ginger Cleansing Rinse", category: "Shampoo", priceNum: 14, stores: ["Target", "Ulta Beauty", "Walmart", "Sally Beauty", "Amazon"], why: "Gentle botanical cleanser with castor and aniseed oils that cleanses without stripping coils." },
+          { role: "condition", regex: /camille rose.*(algae renew|moroccan pear|conditioner|mask)/i, name: "Camille Rose Algae Renew Deep Conditioning Mask", category: "Deep Conditioner", priceNum: 20, stores: ["Target", "Ulta Beauty", "Walmart", "Sally Beauty", "Amazon"], why: "Blue-green algae and cocoa/mango butter mask that strengthens and softens dry Type 3/4 hair." },
+          { role: "leavein", regex: /camille rose.*(curl love|honey hydrate|leave-in)/i, name: "Camille Rose Curl Love Moisture Milk", category: "Leave-In / Mist", priceNum: 15, stores: ["Target", "Ulta Beauty", "Walmart", "Sally Beauty", "Amazon"], why: "Rice milk and macadamia leave-in base for LCO/LOC moisture layering." },
+          { role: "style", regex: /camille rose.*(curl maker|almond jai|gel|butter)/i, name: "Camille Rose Almond Jai Twisting Butter", category: "Moisturizer", priceNum: 17, stores: ["Target", "Ulta Beauty", "Walmart", "Sally Beauty", "Amazon"], why: "Almond milk and honey elongating butter for twists, braid-outs, and soft hold." }
+        ]
+      },
+      {
+        brandKey: "mielle",
+        brandLabel: "Mielle Organics Rosemary & Babassu System",
+        domain: "hair",
+        steps: [
+          { role: "cleanse", regex: /mielle.*(shampoo|cleanser)/i, name: "Mielle Rosemary Mint Strengthening Shampoo", category: "Shampoo", priceNum: 10, stores: ["Target", "Walmart", "Ulta Beauty", "CVS", "Walgreens", "Sally Beauty", "Amazon"], why: "Biotin-infused gentle cleanser that refreshes scalp and strands." },
+          { role: "condition", regex: /mielle.*(masque|mask|conditioner)/i, name: "Mielle Rosemary Mint Strengthening Hair Masque", category: "Deep Conditioner", priceNum: 10, stores: ["Target", "Walmart", "Ulta Beauty", "CVS", "Walgreens", "Sally Beauty", "Amazon"], why: "Protein-moisture balanced masque for weak or breakage-prone hair." },
+          { role: "leavein", regex: /mielle.*(leave-in|milk|mist)/i, name: "Mielle Pomegranate & Honey Leave-In Conditioner", category: "Leave-In / Mist", priceNum: 13, stores: ["Target", "Walmart", "Ulta Beauty", "CVS", "Walgreens", "Sally Beauty", "Amazon"], why: "Slip-rich botanical leave-in that hydrates Type 3/4 curls before styling." },
+          { role: "seal", regex: /mielle.*(oil|scalp)/i, name: "Mielle Rosemary Mint Scalp & Hair Strengthening Oil", category: "Hair Oil / Sealant", priceNum: 10, stores: ["Target", "Walmart", "Ulta Beauty", "CVS", "Walgreens", "Sally Beauty", "Amazon"], why: "Nutrient-dense oil for temple/edge nourishment and sealing ends." }
+        ]
+      },
+      {
         brandKey: "cerave",
         brandLabel: "CeraVe Ceramide Barrier System",
         domain: "skin",
@@ -1277,6 +1353,69 @@
     }
 
     const CATALOG_CANDIDATES = [
+      {
+        name: "ORS Olive Oil Creamy Aloe Shampoo (Neutralizing & Chelating)",
+        domain: "hair",
+        category: "Clarifying / Chelating Shampoo",
+        priceNum: 8,
+        stores: ["Sally Beauty", "Walmart", "Target", "CVS", "Walgreens", "Amazon"],
+        tags: ["chelating", "clarifying", "hard water", "mineral", "neutralizing", "relaxer", "buildup", "cleanse"],
+        why: "Chelates hard-water calcium/magnesium buildup and restores natural 4.5–5.5 hair pH."
+      },
+      {
+        name: "KeraCare Hydrating Detangling Shampoo",
+        domain: "hair",
+        category: "Shampoo",
+        priceNum: 15,
+        stores: ["Sally Beauty", "Ulta Beauty", "Amazon"],
+        tags: ["shampoo", "cleanse", "relaxed", "color", "dye", "bleached", "detangle", "moisture"],
+        why: "pH-balanced conditioning shampoo that cleanses chemically treated or coily hair without stripping."
+      },
+      {
+        name: "ApHogee Keratin & Green Tea Restructurizer",
+        domain: "hair",
+        category: "Protein Treatment",
+        priceNum: 13,
+        stores: ["Sally Beauty", "Amazon"],
+        tags: ["protein", "keratin", "breakage", "temple", "edge", "bleached", "dye", "relaxed", "treat"],
+        why: "Spray-on hydrolyzed keratin + green tea antioxidants that reinforce weak, high-porosity ends and temples."
+      },
+      {
+        name: "Design Essentials Silk Essentials Thermal Strengthening Serum",
+        domain: "hair",
+        category: "Heat Protectant",
+        priceNum: 18,
+        stores: ["Sally Beauty", "Ulta Beauty", "Amazon"],
+        tags: ["heat", "curling", "roller", "silk press", "thermal", "protectant", "frizz", "humidity"],
+        why: "Silicone-and-silk thermal barrier that protects relaxed or natural strands up to 450°F and blocks humidity."
+      },
+      {
+        name: "The Doux Mousse Def Texture Foam",
+        domain: "hair",
+        category: "Setting Mousse / Foam / Lotion",
+        priceNum: 15,
+        stores: ["Target", "Walmart", "Ulta Beauty", "Sally Beauty", "CVS", "Amazon"],
+        tags: ["mousse", "foam", "roller", "flexi", "rod", "wet set", "curl", "styling"],
+        why: "One-step conditioning setting foam with silk amino acids for crunch-free roller sets, rods, and wash-and-gos."
+      },
+      {
+        name: "Girl+Hair Under Hair Care Clear+ No-Rinse Scalp Cleanser",
+        domain: "hair",
+        category: "Wig / Braid Scalp & Edge Care",
+        priceNum: 14,
+        stores: ["Target", "Walmart", "Ulta Beauty", "Amazon"],
+        tags: ["wig", "braid", "cornrow", "scalp", "buildup", "itch", "cleanse"],
+        why: "Nozzle-tip micellar/tea-tree scalp cleanser made specifically for braids, weaves, and under-wig care."
+      },
+      {
+        name: "Mielle Rosemary Mint Scalp & Hair Strengthening Oil",
+        domain: "hair",
+        category: "Hair Oil / Sealant",
+        priceNum: 10,
+        stores: ["Target", "Walmart", "Ulta Beauty", "CVS", "Walgreens", "Sally Beauty", "Amazon"],
+        tags: ["oil", "seal", "temple", "edge", "scalp", "braid", "wig", "growth"],
+        why: "Lightweight rosemary, mint, and biotin oil for massaging fragile temples/edges and sealing ends."
+      },
       {
         name: "Olaplex No. 3 Hair Perfector",
         domain: "hair",

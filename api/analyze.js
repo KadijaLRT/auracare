@@ -304,7 +304,7 @@ export default async function handler(req, res) {
         : 'Any';
       const focusArea = shoppingPrefs.focusArea || 'Missing essentials';
 
-      const shopPrompt = `3-4 items <=$${maxPrice} at [${stores}] for "${focusArea}".
+      const shopPrompt = `Expert Black hair & skin chemist: recommend 3-4 compatible, non-clashing items <=$${maxPrice} at [${stores}] for "${focusArea}" matching hair porosity, chemical/color history (relaxed/dyed/bleached/natural), protective styles, and brand sets in stash.
 Profile:${JSON.stringify(profile || {})} Mode:${currentHairState} Style:${selectedStylingMethod} Triggers:${(activeTriggers || []).join(',')} Stash:${JSON.stringify((inventory || []).slice(0, 15))}
 JSON only:
 {"recommendations":[{"name":"Item","domain":"hair|skin|body","category":"Cat","price":"$12.99","numericPrice":12.99,"bestStore":"Store","alsoAt":"Store2","whyItFits":"short reason"}]}`;
@@ -327,7 +327,7 @@ JSON only:
       ? shoppingPrefs.stores.join(', ')
       : 'Any';
 
-    const systemInstructions = `Step-by-step care plan optimizing product usage without claiming stash items are missing unless verified in Stash (thin-to-thick order, measured amounts, damp-skin prep) and avoiding clashing/competing products; pull from stash first and pair full brand systems together when a brand step is owned (e.g., Olaplex No.0->3->4->5->6/7, Aunt Jackie's, ApHogee, Mizani, CeraVe), recommending missing companion steps from that brand system <=${maxPrice} at [${stores}]. ${lowEnergyMode ? '2 short steps max per routine.' : 'Short steps.'} Single-line JSON only:
+    const systemInstructions = `Expert Black hair trichologist & cosmetic chemist. Apply Type 3/4 elliptical-shaft sebum science, porosity/LCO-LOC layering, pH balance (4.5-5.5 after relaxer/color), disulfide bond repair (Olaplex/acidic bonding) vs hydrolyzed protein vs humectant/dew-point rules, chelating hard-water ions (EDTA/phytic acid), and wig/braid scalp care. Pull from stash first, never claim stash items are missing unless absent, pair full brand sets when owned (Olaplex No.0->3->4->5->6/7, Aunt Jackie's, ApHogee, Mizani, KeraCare, Design Essentials, Camille Rose, Mielle, CeraVe), avoid clashing products, and recommend compatible items <=${maxPrice} at [${stores}]. ${lowEnergyMode ? '2 short steps max per routine.' : 'Short steps.'} Single-line JSON only:
 {"climateImpact":"1 sentence","rootCauseInsights":[{"cause":"C","fix":"F"}],"hairAssessment":"1 sentence","skinAssessment":"1 sentence","hairRoutine":[{"step":"S","detail":"D","productUsed":"Stash item","essential":true}],"stylingGuide":{"method":"${selectedStylingMethod}","prepAndProtection":"Prep","recommendedProducts":[{"productType":"T","suggestion":"Item","howToUse":"Use"}],"techniqueAndTakedown":"Tip"},"skinRoutine":[{"step":"S","detail":"D","productUsed":"Stash item","essential":true}],"bodyRoutine":[{"step":"S","detail":"D","productUsed":"Stash item","essential":true}],"proTreatments":[{"provider":"Salon|Dermatologist|Esthetician","treatment":"T","why":"W","cadence":"C"}],"missingProducts":[{"name":"N","domain":"hair|skin|body","store":"S","reason":"R","estimatedPrice":"$12.99"}]}`;
 
     const userPrompt = `Note:${description || 'None'} Mode:${currentHairState} Style:${selectedStylingMethod} Triggers:${(activeTriggers || []).join(',') || 'None'} Profile:${JSON.stringify(profile || {})} Weather:${JSON.stringify(weather || {})} Stash:${JSON.stringify((inventory || []).slice(0, 15))}`;
