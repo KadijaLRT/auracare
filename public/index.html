@@ -809,13 +809,14 @@
  const storeBox = document.getElementById("chips_stores");
  storeBox.innerHTML = ALL_STORES.map(store => {
  const active = (state.shoppingPrefs.stores || []).includes(store);
- return `<button type="button" onclick="toggleStorePref('\$\{String(store).replace(/\\/g, \"\\\\\").replace(/'/g, \"\\'\")\}')" class="text-[11px] px-2.5 py-1.5 rounded-full border font-semibold transition ${active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#594E47] border-[#DDD4C8]"}">${active ? "✓ " : "+ "}${store}</button>`;
+ return `<button type="button" onclick="toggleStorePref('${encodeURIComponent(store)}').replace(/\\/g, \"\\\\\").replace(/'/g, \"\\'\")\}')" class="text-[11px] px-2.5 py-1.5 rounded-full border font-semibold transition ${active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#594E47] border-[#DDD4C8]"}">${active ? "✓ " : "+ "}${store}</button>`;
  }).join("");
 
  renderChipGroup("chips_proPrefs", PROFILE_OPTIONS.proPrefs, p.proPrefs, true, "toggleMultiOption", "proPrefs");
  }
 
  function setHairState(modeLabel) {
+ try { modeLabel = decodeURIComponent(modeLabel); } catch (_) {}
  state.currentHairState = modeLabel;
  saveState();
  renderHairModeChips();
@@ -825,7 +826,7 @@
  const box = document.getElementById("hairModeChipsBox");
  box.innerHTML = HAIR_PROTECTIVE_MODES.map(m => {
  const active = state.currentHairState === m;
- return `<button type="button" onclick="setHairState('\$\{String(m).replace(/\\/g, \"\\\\\").replace(/'/g, \"\\'\")\}')" class="text-[11px] px-2.5 py-1 rounded-full border font-semibold ${active ? "bg-[#A9772B] text-white border-[#A9772B]" : "bg-white text-[#594E47] border-[#DDD4C8]"}">${active ? "✓ " : ""}${m}</button>`;
+ return `<button type="button" onclick="setHairState('${encodeURIComponent(m)}').replace(/\\/g, \"\\\\\").replace(/'/g, \"\\'\")\}')" class="text-[11px] px-2.5 py-1 rounded-full border font-semibold ${active ? "bg-[#A9772B] text-white border-[#A9772B]" : "bg-white text-[#594E47] border-[#DDD4C8]"}">${active ? "✓ " : ""}${m}</button>`;
  }).join("");
  }
 
@@ -925,7 +926,7 @@
  pill.textContent = "Profile Saved";
  pill.className = "text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900";
  document.getElementById("profileSummaryCard").classList.remove("hidden");
- document.getElementById("profileSummaryBody").innerHTML = entries.map(([k, v]) => `<div><strong>${k}:</strong> ${v}</div>`).join("");
+ document.getElementById("profileSummaryBody").innerHTML = entries.map(([k, v]) => `<div><strong>${escapeAttr(k)}:</strong> ${escapeAttr(v)}</div>`).join("");
  } else {
  pill.textContent = "Blank Profile";
  pill.className = "text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900";
@@ -966,6 +967,16 @@
 
  async function fetchLocalClimate() {
  const { lat, lon, city } = state.profile;
+ if (city) {
+ document.getElementById("locationHeading").textContent = city;
+ }
+ if (state.weather && state.weather.tempF != null) {
+ document.getElementById("wTemp").textContent = `${state.weather.tempF}°F`;
+ if (state.weather.humidity != null) document.getElementById("wHumidity").textContent = `${state.weather.humidity}%`;
+ if (state.weather.uv != null) document.getElementById("wUV").textContent = state.weather.uv;
+ if (state.weather.aqi != null) document.getElementById("wAQI").textContent = state.weather.aqi;
+ if (city) document.getElementById("climateSummaryBar").textContent = `${city} • ${state.weather.tempF}°F • ${state.weather.humidity ?? "--"}% Hum • AQI ${state.weather.aqi ?? "--"}`;
+ }
  if (!city && (lat === null || lon === null)) {
  document.getElementById("locationHeading").textContent = "No Location Set";
  document.getElementById("climateSummaryBar").textContent = "Set location in Profile Builder for weather & AQI";
@@ -1043,6 +1054,7 @@
     }
 
  function toggleTrigger(label) {
+ try { label = decodeURIComponent(label); } catch (_) {}
  const idx = state.activeTriggers.indexOf(label);
  if (idx >= 0) state.activeTriggers.splice(idx, 1);
  else state.activeTriggers.push(label);
@@ -1054,14 +1066,14 @@
  const box = document.getElementById("triggerChipsBox");
  box.innerHTML = TRIGGER_FACTORS.map(t => {
  const active = state.activeTriggers.includes(t.label);
- return `<button type="button" onclick="toggleTrigger('\$\{String(t.label).replace(/\\/g, \"\\\\\").replace(/'/g, \"\\'\")\}')" class="text-[11px] px-2.5 py-1 rounded-full border font-semibold ${active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#594E47] border-[#DDD4C8]"}">${active ? "✓ " : "+ "}${t.label}</button>`;
+ return `<button type="button" onclick="toggleTrigger('${encodeURIComponent(t.label)}').replace(/\\/g, \"\\\\\").replace(/'/g, \"\\'\")\}')" class="text-[11px] px-2.5 py-1 rounded-full border font-semibold ${active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#594E47] border-[#DDD4C8]"}">${active ? "✓ " : "+ "}${t.label}</button>`;
  }).join("");
  const chemBox = document.getElementById("hairChemistryBox"); if (chemBox) chemBox.innerHTML = BLACK_HAIR_CHEMISTRY_RULES.map(c => `<div class="p-3 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9]"><div class="font-bold text-[#8A5E1B]">${c.title}</div><div class="text-[#594E47] mt-0.5">${c.note}</div></div>`).join("");
  document.getElementById("stylingReferenceBox").innerHTML = STYLING_REFERENCE_GUIDE.map(sg => `<div class="p-3 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9]"><div class="font-bold text-[#231F1D]">${sg.title}</div><div class="text-[#594E47] mt-0.5">${sg.note}</div></div>`).join("");
  document.getElementById("proGuidanceBox").innerHTML = PRO_CATEGORIES.map(pc => `<div class="p-3 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9]"><div class="font-bold text-[#A9772B]">${pc.provider}</div><div class="text-[#594E47] mt-0.5">${pc.focus}</div></div>`).join("");
  document.getElementById("rootCauseCardsBox").innerHTML = TRIGGER_FACTORS.map(t => {
  const active = state.activeTriggers.includes(t.label);
- return `<div class="p-3 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] flex items-start justify-between gap-2"><div><div class="text-xs font-bold">${t.label} <span class="text-[10px] uppercase text-[#726862]">(${t.domain})</span></div><div class="text-xs text-[#594E47] mt-0.5">${t.note}</div></div><button type="button" onclick="toggleTrigger('\$\{String(t.label).replace(/\\/g, \"\\\\\").replace(/'/g, \"\\'\")\}')" class="text-[11px] font-semibold px-2 py-1 rounded-lg border shrink-0 ${active ? "bg-[#231F1D] text-white" : "bg-white"}">${active ? "Active" : "Track"}</button></div>`;
+ return `<div class="p-3 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] flex items-start justify-between gap-2"><div><div class="text-xs font-bold">${t.label} <span class="text-[10px] uppercase text-[#726862]">(${t.domain})</span></div><div class="text-xs text-[#594E47] mt-0.5">${t.note}</div></div><button type="button" onclick="toggleTrigger('${encodeURIComponent(t.label)}').replace(/\\/g, \"\\\\\").replace(/'/g, \"\\'\")\}')" class="text-[11px] font-semibold px-2 py-1 rounded-lg border shrink-0 ${active ? "bg-[#231F1D] text-white" : "bg-white"}">${active ? "Active" : "Track"}</button></div>`;
  }).join("");
  }
 
@@ -2024,7 +2036,7 @@
             roleRegex = /bond|protein|treatment|repair|restructurizer/i;
             if (/shampoo(?!.*treatment)|gel|edge/i.test(rawProd)) needsReassign = true;
           } else if (/\bstyle|styling|curl|define/i.test(stepKey)) {
-            roleRegex = /custard|gel|mousse|foam|lotion|styling/i;
+            roleRegex = /custard|gel|mousse|foam|lotion|moisturizer|oil sheen|sheen|edge/i;
             if (/shampoo/i.test(rawProd)) needsReassign = true;
           } else if (/\bseal\b|oil|sheen|edge/i.test(stepKey)) {
             roleRegex = /oil|sheen|butter|edge|wax|seal/i;
@@ -2115,18 +2127,11 @@
             <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#F8F3EA] text-[#8A5E1B]">${escapeAttr(state.currentHairState)}</span>
           </div>
 
-          <div class="p-3 rounded-xl bg-[#F8F3EA]/60 border border-[#E5D7C1] space-y-1.5">
-            <div class="flex items-center justify-between">
-              <span class="text-[11px] font-bold uppercase text-[#8A5E1B]">Pulled From Your Stash (${state.inventory.length} owned)</span>
-              <button type="button" onclick="switchTab('stash')" class="text-[11px] font-semibold text-[#231F1D] underline">Edit Stash</button>
-            </div>
-            ${allPulled.length
+          ${allPulled.length
               ? `<div class="flex flex-wrap gap-1.5 pt-0.5">${allPulled.map(item => `<span class="text-[11px] px-2 py-0.5 rounded-full bg-white border border-[#DDD4C8] font-medium">${escapeAttr(item.name)} <span class="text-[#726862]">(${escapeAttr(item.category)})</span></span>`).join("")}</div>`
               : `<p class="text-xs text-[#594E47]">No owned items in that section yet—check the store recommendations below to add items.</p>`
             }
           </div>
-
-          <p class="text-xs text-[#594E47] bg-[#FAF8F5] p-2.5 rounded-xl"><strong>Weather &amp; AQI:</strong> ${escapeAttr(cleanFalseStashLackNote(sourceR.climateImpact) || fallbackPlan.climateImpact)}</p>
 
           ${(sourceR.rootCauseInsights && sourceR.rootCauseInsights.length) ? `<div class="space-y-1.5"><h4 class="text-xs font-bold uppercase text-[#726862]">Root Causes &amp; Fixes</h4>${sourceR.rootCauseInsights.map(rc => `<div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs"><div class="font-bold">${escapeAttr(cleanFalseStashLackNote(rc.cause))}</div><div class="text-[#594E47] mt-0.5">${escapeAttr(cleanFalseStashLackNote(rc.fix))}</div></div>`).join("")}</div>` : ""}
 
@@ -2350,7 +2355,11 @@
  const imageBase64 = await compressImageToDataURL(file, 512);
  await analyzeBase64ProductImage(imageBase64);
  } catch (err) {
- status.textContent = err.message;
+ const localRecs = getMissingStashRecommendations();
+ state.shopRecommendations = localRecs;
+ saveState();
+ renderShopResults(localRecs);
+ status.textContent = "Groq limit reached—showing tailored store picks from your stash & profile.";
  } finally {
  e.target.value = "";
  }
@@ -2389,7 +2398,8 @@
  }
 
  function removeProduct(id) {
- state.inventory = state.inventory.filter(i => i.id !== id);
+ if (editingStashId === id) editingStashId = null;
+ state.inventory = (state.inventory || []).filter(i => i.id !== id);
  saveState();
  renderStash();
  }
@@ -2515,11 +2525,12 @@
  const box = document.getElementById("storeChipsContainer");
  box.innerHTML = ALL_STORES.map(store => {
  const active = (state.shoppingPrefs.stores || []).includes(store);
- return `<button type="button" onclick="toggleStorePref('\$\{String(store).replace(/\\/g, \"\\\\\").replace(/'/g, \"\\'\")\}')" class="px-2.5 py-1 rounded-full text-xs font-semibold border ${active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#726862] border-[#DDD4C8]"}">${active ? "✓ " : "+ "}${store}</button>`;
+ return `<button type="button" onclick="toggleStorePref('${encodeURIComponent(store)}').replace(/\\/g, \"\\\\\").replace(/'/g, \"\\'\")\}')" class="px-2.5 py-1 rounded-full text-xs font-semibold border ${active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#726862] border-[#DDD4C8]"}">${active ? "✓ " : "+ "}${store}</button>`;
  }).join("");
  }
 
  function toggleStorePref(store) {
+ try { store = decodeURIComponent(store); } catch (_) {}
  persistTextFields();
  const arr = [...(state.shoppingPrefs.stores || [])];
  const idx = arr.indexOf(store);
@@ -2599,6 +2610,14 @@
  function addRecToStash(idx) {
  const item = (state.shopRecommendations || [])[idx];
  if (!item) return;
+ if (!Array.isArray(state.inventory)) state.inventory = [];
+ const alreadyOwned = state.inventory.some(
+ x => String(x.name || "").trim().toLowerCase() === String(item.name || "").trim().toLowerCase()
+ );
+ if (alreadyOwned) {
+ alert(`"${item.name}" is already in your stash.`);
+ return;
+ }
  state.inventory.unshift({
  id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
  name: item.name,
@@ -2618,7 +2637,7 @@
  list.innerHTML = `<div class="card p-4 text-xs text-[#726862]">No recommendations generated yet. Select your profile options or click <strong>Find Matches</strong>.</div>`;
  return;
  }
- list.innerHTML = recs.map((r, idx) => `<div class="card p-3.5 space-y-1.5"><div class="flex items-start justify-between gap-2"><div><span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#F8F3EA] text-[#8A5E1B]">${r.domain} • ${r.category}</span><h4 class="text-sm font-bold mt-1">${r.name}</h4><div class="text-[11px] font-semibold text-[#231F1D]">Store: ${r.bestStore || "Any"} ${r.alsoAt ? `• Also: ${r.alsoAt}` : ""}</div></div><div class="text-sm font-extrabold text-[#2E6F40] shrink-0">${r.price || ""}</div></div><p class="text-xs text-[#594E47]">${r.whyItFits}</p><div class="pt-1 flex justify-end"><button type="button" onclick="addRecToStash(${idx})" class="text-xs font-semibold px-3 py-1 rounded-lg bg-[#FAF8F5] border border-[#DDD4C8]">+ Add to Stash</button></div></div>`).join("");
+ list.innerHTML = recs.map((r, idx) => `<div class="card p-3.5 space-y-1.5"><div class="flex items-start justify-between gap-2"><div><span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#F8F3EA] text-[#8A5E1B]">${escapeAttr(r.domain)} • ${escapeAttr(r.category)}</span><h4 class="text-sm font-bold mt-1">${escapeAttr(r.name)}</h4><div class="text-[11px] font-semibold text-[#231F1D]">Store: ${escapeAttr(r.bestStore || r.store || "Any")} ${(r.alsoAt) ? `• Also: ${escapeAttr(r.alsoAt)}` : ""}</div></div><div class="text-sm font-extrabold text-[#2E6F40] shrink-0">${escapeAttr(r.price || r.estimatedPrice || "")}</div></div><p class="text-xs text-[#594E47]">${escapeAttr(r.whyItFits || r.reason || "")}</p><div class="pt-1 flex justify-end"><button type="button" onclick="addRecToStash(${idx})" class="text-xs font-semibold px-3 py-1 rounded-lg bg-[#FAF8F5] border border-[#DDD4C8]">+ Add to Stash</button></div></div>`).join("");
  }
 
  function exportBackupJSON() {
@@ -2660,6 +2679,9 @@
  updateBudgetSetting(state.shoppingPrefs.maxPrice || 30);
  renderStoreChips();
  renderShopResults(state.shopRecommendations || []);
+ if (state.lastCheckIn && state.lastCheckIn.note && !document.getElementById("checkinInput").value) {
+ document.getElementById("checkinInput").value = state.lastCheckIn.note;
+ }
  if (state.lastAIRoutine) renderAIRoutine(state.lastAIRoutine);
  fetchLocalClimate();
  if ("serviceWorker" in navigator) {

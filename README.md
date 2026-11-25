@@ -1,5 +1,3 @@
-# AuraCare — Black Hair Chemistry, Face & Body Studio (v2.38)
+# AuraCare — Black Hair Chemistry, Face & Body Studio (v2.42)
 
-- Fixes **Lookup** accuracy (`scoreProductNameMatch` & `enrichStashItemByName`):
-  - Checks top 5 Open Beauty Facts candidates and requires at least 50% token match against your entered product name so unrelated items are never applied.
-  - Preserves your exact entered product name and existing category unless a verified category is returned, and avoids guessing unrelated details in `mode: "product_name"`.
+- Removes the duplicate **Weather & AQI** line inside `renderAIRoutine()` since live weather and AQI are already displayed in the top card.
