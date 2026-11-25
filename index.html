@@ -226,18 +226,13 @@
  <div class="card p-4 space-y-3">
  <div class="flex items-center justify-between">
  <div>
- <h2 class="text-base font-bold">Recommended Additions (Store &amp; Price)</h2>
- <p class="text-xs text-[#726862]">Tailored to your profile, hair state, curling/roller tools, preferred stores &amp; budget</p>
+ <h2 class="text-base font-bold">Product Recommendations for Your Concerns</h2>
+ <p class="text-xs text-[#726862]">Products selected for the issues you choose, your hair and skin profile, and what you already own. Suitability comes before price.</p>
+ <p class="text-[11px] text-[#726862] mt-1">Recommendations are educational, not a diagnosis. Patch-test new products; consult a board-certified dermatologist for persistent irritation, acne, pigmentation changes, or hair loss. Prices and stock can vary by retailer.</p>
  </div>
- <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-[#F8F3EA] text-[#8A5E1B]">Max $<span id="budgetBadge">30</span></span>
+
  </div>
- <div class="space-y-1">
- <div class="flex justify-between text-xs font-semibold">
- <span>Max Price Per Product</span>
- <span class="text-[#8A5E1B]">$<span id="budgetValLabel">30</span></span>
- </div>
- <input id="maxPriceSlider" type="range" min="10" max="100" step="5" value="30" oninput="updateBudgetSetting(this.value)" class="w-full accent-[#A9772B]" />
- </div>
+ <p class="text-[11px] text-[#726862]">Price is shown for reference only; higher-priced products may be recommended when they are a better match for your selected concern.</p>
  <div class="space-y-1.5">
  <label class="block text-xs font-semibold">Preferred Stores (tap to toggle)</label>
  <div id="storeChipsContainer" class="flex flex-wrap gap-1.5"></div>
@@ -402,11 +397,8 @@
  </div>
 
  <div id="step-5" class="card p-4 space-y-3 hidden">
- <h2 class="text-sm font-bold">5. Budget, Preferred Stores &amp; Pro Treatments</h2>
- <div>
- <label class="block text-xs font-semibold mb-1.5">Max Price Per Product (select one)</label>
- <div id="chips_maxPrice" class="flex flex-wrap gap-1.5"></div>
- </div>
+ <h2 class="text-sm font-bold">5. Shopping Preferences &amp; Pro Treatments</h2>
+ <p class="text-xs text-[#726862]">Product suitability and your selected concerns take priority. Prices are informational, not a strict limit.</p>
  <div>
  <label class="block text-xs font-semibold mb-1.5">Preferred Stores (tap all stores you shop at)</label>
  <div id="chips_stores" class="flex flex-wrap gap-1.5"></div>
@@ -803,7 +795,6 @@
  renderChipGroup("chips_bodyConcerns", PROFILE_OPTIONS.bodyConcerns, p.bodyConcerns, true, "toggleMultiOption", "bodyConcerns");
  renderChipGroup("chips_bodyCleansePref", PROFILE_OPTIONS.bodyCleansePref, p.bodyCleansePref, true, "toggleMultiOption", "bodyCleansePref");
  renderChipGroup("chips_bodyMoisturePref", PROFILE_OPTIONS.bodyMoisturePref, p.bodyMoisturePref, true, "toggleMultiOption", "bodyMoisturePref");
- renderChipGroup("chips_maxPrice", PROFILE_OPTIONS.maxPrice, `Under $${state.shoppingPrefs.maxPrice}`, false, "selectPriceOption", "maxPrice");
 
  const storeBox = document.getElementById("chips_stores");
  storeBox.innerHTML = ALL_STORES.map(store => {
@@ -916,7 +907,7 @@
  ["Wigs, Braids & Styling", [...(p.protectiveStyles || []), ...(p.stylingTools || []), p.customOilNotes].filter(Boolean).join(" • ")],
  ["Face", [p.faceType, ...(p.faceConcerns || []), p.faceRoutinePref].filter(Boolean).join(" • ")],
  ["Body & Powder", [...(p.bodyConcerns || []), ...(p.bodyCleansePref || []), ...(p.bodyMoisturePref || []), p.customBodyPowderNotes].filter(Boolean).join(" • ")],
- ["Shopping", `$${state.shoppingPrefs.maxPrice} max${storesList.length ? ` • ${storesList.join(", ")}` : ""}`],
+ ["Shopping", `${storesList.length ? storesList.join(", ") : "Any store"} • price is flexible`],
  ["Pro Care", (p.proPrefs || []).join(" • ")]
  ].filter(([, v]) => v);
 
@@ -1184,7 +1175,6 @@
  inventory: compactInventoryForApi(state.inventory),
  lowEnergyMode: state.lowEnergyMode,
  shoppingPrefs: {
- maxPrice: state.shoppingPrefs.maxPrice,
  stores: getEffectiveStores().slice(0, 5)
  }
  };
@@ -1387,6 +1377,40 @@
         }
       });
       return active;
+    }
+
+    function completeRecommendedBrandSets(recommendations) {
+      const source = Array.isArray(recommendations) ? recommendations : [];
+      const out = source.filter(Boolean).slice();
+      const inv = Array.isArray(state.inventory) ? state.inventory : [];
+      BRAND_SYSTEM_SETS.forEach(sys => {
+        const triggered = out.some(rec => sys.steps.some(step => step.regex.test(String(rec.name || ""))));
+        if (!triggered) return;
+        const matches = sys.steps.map(step => ({ step, owned: inv.find(item => item.domain === sys.domain && step.regex.test(String(item.name || ""))) || null }));
+        const missing = matches.filter(x => !x.owned);
+        const total = missing.reduce((sum, x) => sum + Number(x.step.priceNum || 0), 0);
+        matches.forEach(({ step, owned }) => {
+          const existing = out.find(rec => step.regex.test(String(rec.name || "")));
+          if (existing) {
+            existing.setId = sys.brandKey; existing.setName = sys.brandLabel;
+            existing.setTotal = total; existing.setItemCount = missing.length;
+            existing.owned = Boolean(owned);
+            return;
+          }
+          const stores = step.stores || [];
+          const preferred = getEffectiveStores();
+          const store = preferred.find(x => stores.some(y => y.toLowerCase() === x.toLowerCase())) || stores[0] || "Any";
+          out.push({
+            name: owned ? owned.name : step.name, domain: sys.domain, category: step.category,
+            price: owned ? "In stash" : `$${Number(step.priceNum).toFixed(2)}`,
+            numericPrice: Number(step.priceNum), bestStore: store,
+            alsoAt: stores.filter(x => x.toLowerCase() !== store.toLowerCase()).slice(0, 2).join(", "),
+            whyItFits: step.why, setId: sys.brandKey, setName: sys.brandLabel,
+            setTotal: total, setItemCount: missing.length, owned: Boolean(owned)
+          });
+        });
+      });
+      return out;
     }
 
     const CATALOG_CANDIDATES = [
@@ -1639,7 +1663,6 @@
 
       let pool = CATALOG_CANDIDATES.filter(item => {
         if (domain && domain !== "all" && item.domain !== domain) return false;
-        if (item.priceNum > maxPrice) return false;
         if (invNames.has(item.name.toLowerCase())) return false;
         return isCompatibleWithContext(item, inventory, profile, triggers);
       });
@@ -1661,7 +1684,7 @@
           });
           return { item, score };
         })
-        .sort((a, b) => b.score - a.score || a.item.priceNum - b.item.priceNum);
+        .sort((a, b) => b.score - a.score);
 
       return scored.slice(0, limit).map(({ item }) => {
         const matchedStore = (stores || []).find(s => item.stores.map(x => x.toLowerCase()).includes(s.toLowerCase()))
@@ -1704,7 +1727,7 @@
               label: `${ownedRole.item.name} (${act.system.brandLabel} — From Stash)`
             };
           }
-          const missingRole = act.missing.find(m => m.role === roleHint && m.priceNum <= maxPrice);
+          const missingRole = act.missing.find(m => m.role === roleHint);
           if (missingRole) {
             const st = (stores || []).find(s => missingRole.stores.map(x => x.toLowerCase()).includes(s.toLowerCase())) || missingRole.stores[0] || "Target";
             const priceStr = `$${missingRole.priceNum.toFixed(2)}`;
@@ -1789,7 +1812,12 @@
       // Prioritize completing any brand set already started in My Stash (e.g. Olaplex, Aunt Jackie's, ApHogee, Mizani, CeraVe)
       const activeSystems = detectActiveBrandSystems(inv);
       activeSystems.forEach(act => {
-        act.missing.filter(m => m.priceNum <= maxP).slice(0, 2).forEach(m => {
+        // A started system is an explicit commitment: recommend EVERY missing step,
+        // never truncate a set to fit the generic four-item recommendation limit.
+        const missing = act.missing;
+        if (!missing.length) return;
+        const completeSetTotal = missing.reduce((sum, item) => sum + Number(item.priceNum || 0), 0);
+        missing.forEach(m => {
           if (!recs.some(r => r.name === m.name)) {
             const st = (stores || []).find(s => m.stores.map(x => x.toLowerCase()).includes(s.toLowerCase())) || m.stores[0] || "Target";
             recs.push({
@@ -1802,23 +1830,27 @@
               alsoAt: m.stores.filter(s => s.toLowerCase() !== st.toLowerCase()).slice(0, 2).join(", "),
               store: st,
               estimatedPrice: `$${m.priceNum.toFixed(2)}`,
-              whyItFits: `${m.why} Completes your ${act.system.brandLabel}.`,
+              setId: act.system.brandKey,
+              setName: act.system.brandLabel,
+              setTotal: completeSetTotal,
+              setItemCount: missing.length,
+              whyItFits: `${m.why} Part of the complete ${act.system.brandLabel} recommendation; all missing steps are shown together.`,
               reason: `${m.why} Completes your ${act.system.brandLabel}.`
             });
           }
         });
       });
 
-      const hairPicks = pickRelevantCatalogItems({ domain: "hair", maxPrice: maxP, stores, inventory: inv, triggers: state.activeTriggers, profile: state.profile, limit: 2 });
-      const skinPicks = pickRelevantCatalogItems({ domain: "skin", maxPrice: maxP, stores, inventory: inv, triggers: state.activeTriggers, profile: state.profile, limit: 1 });
-      const bodyPicks = pickRelevantCatalogItems({ domain: "body", maxPrice: maxP, stores, inventory: inv, triggers: state.activeTriggers, profile: state.profile, limit: 1 });
-
-      [...hairPicks, ...skinPicks, ...bodyPicks].forEach(item => {
-        if (item && !recs.some(r => r.name === item.name)) {
-          recs.push(item);
-        }
-      });
-      return recs.slice(0, 4);
+      const nonSetSlots = Math.max(0, 4 - recs.length);
+      if (nonSetSlots > 0) {
+        const hairPicks = pickRelevantCatalogItems({ domain: "hair", maxPrice: maxP, stores, inventory: inv, triggers: state.activeTriggers, profile: state.profile, limit: Math.min(2, nonSetSlots) });
+        const skinPicks = pickRelevantCatalogItems({ domain: "skin", maxPrice: maxP, stores, inventory: inv, triggers: state.activeTriggers, profile: state.profile, limit: 1 });
+        const bodyPicks = pickRelevantCatalogItems({ domain: "body", maxPrice: maxP, stores, inventory: inv, triggers: state.activeTriggers, profile: state.profile, limit: 1 });
+        [...hairPicks, ...skinPicks, ...bodyPicks].forEach(item => {
+          if (item && recs.length < Math.max(4, nonSetSlots + activeSystems.reduce((n, a) => n + a.missing.length, 0)) && !recs.some(r => r.name === item.name)) recs.push(item);
+        });
+      }
+      return recs;
     }
 
     function buildLocalCheckinFallback() {
@@ -2562,9 +2594,9 @@
  function updateBudgetSetting(val) {
  const num = Number(val) || 30;
  state.shoppingPrefs.maxPrice = num;
- document.getElementById("budgetValLabel").textContent = num;
- document.getElementById("budgetBadge").textContent = num;
- document.getElementById("maxPriceSlider").value = num;
+ const label = document.getElementById("budgetValLabel"); if (label) label.textContent = num;
+ const badge = document.getElementById("budgetBadge"); if (badge) badge.textContent = num;
+ const slider = document.getElementById("maxPriceSlider"); if (slider) slider.value = num;
  saveState();
  renderAllProfileChips();
  renderProfileSummary();
@@ -2582,7 +2614,6 @@
  activeTriggers: (state.activeTriggers || []).slice(0, 5),
  inventory: compactInventoryForApi(state.inventory).map(i => i.n),
  shoppingPrefs: {
- maxPrice: state.shoppingPrefs.maxPrice,
  stores: getEffectiveStores().slice(0, 5),
  focusArea: document.getElementById("shopFocusSelect").value
  }
@@ -2610,8 +2641,9 @@
  });
  const data = await res.json().catch(() => ({}));
  if (!res.ok || !data.result?.recommendations) throw new Error(data.error || "Failed to fetch recommendations");
- clientApiCache.set(cacheKey, data.result.recommendations);
- state.shopRecommendations = data.result.recommendations;
+ const completedRecommendations = completeRecommendedBrandSets(data.result.recommendations);
+ clientApiCache.set(cacheKey, completedRecommendations);
+ state.shopRecommendations = completedRecommendations;
  saveState();
  renderShopResults(state.shopRecommendations);
  status.classList.add("hidden");
@@ -2647,13 +2679,33 @@
  alert(`Added "${item.name}" to your stash.`);
  }
 
+ function getSelectedConcernsForDomain(domain) {
+   const p = state.profile || {};
+   const keys = domain === "hair" ? ["hairIssues", "hairGoals"]
+     : domain === "skin" ? ["faceConcerns"]
+     : domain === "body" ? ["bodyConcerns"] : [];
+   return [...new Set(keys.flatMap(key => Array.isArray(p[key]) ? p[key] : []))];
+ }
+
+ function getProductReason(rec) {
+   const explicit = String(rec.whyItFits || rec.reason || "").trim();
+   if (explicit) return explicit;
+   return `This ${rec.category || "product"} was selected as a routine step for your ${rec.domain || "care"} profile. Check the ingredient list and directions before use.`;
+ }
+
  function renderShopResults(recs) {
  const list = document.getElementById("shopResultsList");
  if (!recs || !recs.length) {
  list.innerHTML = `<div class="card p-4 text-xs text-[#726862]">No recommendations generated yet. Select your profile options or click <strong>Find Matches</strong>.</div>`;
  return;
  }
- list.innerHTML = recs.map((r, idx) => `<div class="card p-3.5 space-y-1.5"><div class="flex items-start justify-between gap-2"><div><span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#F8F3EA] text-[#8A5E1B]">${escapeAttr(r.domain)} • ${escapeAttr(r.category)}</span><h4 class="text-sm font-bold mt-1">${escapeAttr(r.name)}</h4><div class="text-[11px] font-semibold text-[#231F1D]">Store: ${escapeAttr(r.bestStore || r.store || "Any")} ${(r.alsoAt) ? `• Also: ${escapeAttr(r.alsoAt)}` : ""}</div></div><div class="text-sm font-extrabold text-[#2E6F40] shrink-0">${escapeAttr(r.price || r.estimatedPrice || "")}</div></div><p class="text-xs text-[#594E47]">${escapeAttr(r.whyItFits || r.reason || "")}</p><div class="pt-1 flex justify-end"><button type="button" onclick="addRecToStash(${idx})" class="text-xs font-semibold px-3 py-1 rounded-lg bg-[#FAF8F5] border border-[#DDD4C8]">+ Add to Stash</button></div></div>`).join("");
+ list.innerHTML = recs.map((r, idx) => {
+   const concerns = getSelectedConcernsForDomain(r.domain);
+   const reason = getProductReason(r);
+   const concernMarkup = concerns.length
+     ? `<div class="rounded-lg bg-[#FAF8F5] p-2.5 mt-2"><div class="text-[10px] font-bold uppercase tracking-wide text-[#8A5E1B]">Your selected ${escapeAttr(r.domain)} concerns</div><div class="text-[11px] text-[#594E47] mt-1">${concerns.map(escapeAttr).join(" · ")}</div><p class="text-[10px] text-[#726862] mt-1">This shows the concerns considered for this category; the product rationale above explains its intended role.</p></div>` : "";
+   return `<div class="card p-3.5 space-y-1.5"><div class="flex items-start justify-between gap-2"><div><span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#F8F3EA] text-[#8A5E1B]">${escapeAttr(r.domain)} • ${escapeAttr(r.category)}</span><h4 class="text-sm font-bold mt-1">${escapeAttr(r.name)}</h4><div class="text-[11px] font-semibold text-[#231F1D]">Store: ${escapeAttr(r.bestStore || r.store || "Any")} ${(r.alsoAt) ? `• Also: ${escapeAttr(r.alsoAt)}` : ""}</div></div><div class="text-sm font-extrabold text-[#2E6F40] shrink-0">${escapeAttr(r.price || r.estimatedPrice || "")}</div></div>${r.setName ? `<div class="text-[11px] font-bold text-[#8A5E1B]">Complete set: ${escapeAttr(r.setName)} · ${Number(r.setItemCount || 0)} missing item(s) · $${Number(r.setTotal || 0).toFixed(2)} set completion estimate</div>` : ""}${r.owned ? `<div class="text-[11px] font-semibold text-emerald-700">Already in your stash · included to show the complete system</div>` : ""}<div class="rounded-lg border border-[#EAE3D9] p-2.5 mt-2"><div class="text-[10px] font-bold uppercase tracking-wide text-[#8A5E1B]">Why this product was selected</div><p class="text-xs text-[#594E47] mt-1">${escapeAttr(reason)}</p></div>${concernMarkup}<div class="pt-1 flex justify-end">${r.owned ? "" : `<button type="button" onclick="addRecToStash(${idx})" class="text-xs font-semibold px-3 py-1 rounded-lg bg-[#FAF8F5] border border-[#DDD4C8]">+ Add to Stash</button>`}</div></div>`;
+ }).join("");
  }
 
  function exportBackupJSON() {

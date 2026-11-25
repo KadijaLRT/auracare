@@ -202,7 +202,6 @@ function buildFallbackRoutine({ currentHairState, selectedStylingMethod, weather
 }
 
 function buildFallbackShopRecs({ shoppingPrefs, profile, activeTriggers, inventory }) {
-  const maxPrice = Number(shoppingPrefs?.maxPrice) || 30;
   const stores = Array.isArray(shoppingPrefs?.stores) ? shoppingPrefs.stores : [];
   const focusLower = String(shoppingPrefs?.focusArea || '').toLowerCase();
   const invNames = new Set((inventory || []).map(x => String(x || '').toLowerCase()));
@@ -215,7 +214,6 @@ function buildFallbackShopRecs({ shoppingPrefs, profile, activeTriggers, invento
 
   const matches = SERVER_CATALOG
     .filter(item => {
-      if (item.priceNum > maxPrice) return false;
       if (invNames.has(item.name.toLowerCase())) return false;
       if (targetDomain !== 'all' && item.domain !== targetDomain) return false;
       return true;
@@ -226,7 +224,7 @@ function buildFallbackShopRecs({ shoppingPrefs, profile, activeTriggers, invento
       item.tags.forEach(t => { if (ctx.includes(t)) score += 2; });
       return { item, score };
     })
-    .sort((a, b) => b.score - a.score || a.item.priceNum - b.item.priceNum)
+    .sort((a, b) => b.score - a.score)
     .slice(0, 4)
     .map(({ item }) => {
       const bestStore = stores.find(s => item.stores.map(x => x.toLowerCase()).includes(s.toLowerCase())) || item.stores[0] || 'Target';
@@ -315,16 +313,23 @@ export default async function handler(req, res) {
     }
 
     if (mode === 'shop_recs') {
-      const maxPrice = Number(shoppingPrefs.maxPrice) || 30;
       const stores = Array.isArray(shoppingPrefs.stores) && shoppingPrefs.stores.length
         ? shoppingPrefs.stores.join(', ')
         : 'Any';
       const focusArea = shoppingPrefs.focusArea || 'Missing essentials';
 
-      const shopPrompt = `Expert Black hair & skin chemist: recommend 3-4 compatible, non-clashing items <=$${maxPrice} at [${stores}] for "${focusArea}" matching hair porosity, chemical/color history (relaxed/dyed/bleached/natural), protective styles, and brand sets in stash.
-Profile:${JSON.stringify(profile || {})} Mode:${currentHairState} Style:${selectedStylingMethod} Triggers:${(activeTriggers || []).join(',')} Stash:${JSON.stringify((inventory || []).slice(0, 15))}
-JSON only:
-{"recommendations":[{"name":"Item","domain":"hair|skin|body","category":"Cat","price":"$12.99","numericPrice":12.99,"bestStore":"Store","alsoAt":"Store2","whyItFits":"short reason"}]}`;
+      const shopPrompt = `Act as a licensed cosmetology-informed textured-hair specialist, esthetician, and dermatologist-informed skincare educator with expertise in Black women's hair and melanin-rich skin. Do not claim to diagnose or replace a clinician. Recommend the most suitable effective products for "${focusArea}" at [${stores}]. Price is secondary: do not exclude a product because it exceeds a saved budget preference. Match the user's actual selected concerns, hair state, porosity, chemical/color history, protective styles, skin type, sensitivities, and stash. Recommend value-conscious options when performance and suitability are comparable, but prioritize fit and results over the lowest price.
+NON-NEGOTIABLE RULES:
+1) Recommend only products that have a clear purpose for this profile; do not default to the cheapest option; choose the best match for the concern and explain why it is worth considering.
+2) Every item in a routine must have a compatible role and layer/order. Do not pair duplicate products doing the same job unnecessarily.
+3) Check active ingredient interactions and irritation burden. Do not stack multiple exfoliating acids, retinoids, benzoyl peroxide, strong vitamin C, or other potentially irritating actives without a cautious schedule. Explain separation/alternation where appropriate. Do not describe ingredients as universally incompatible when they can be used safely with suitable scheduling.
+4) For melanin-rich skin, prioritize daily broad-spectrum SPF 30+, gentle barrier support, and low-irritation approaches to post-inflammatory hyperpigmentation; do not promise to lighten or bleach natural skin tone.
+5) For textured/Black hair, account for shrinkage, dryness, scalp health, traction risk, and chemical services; never recommend tight styles or overlapping relaxer/bleach. Distinguish cosmetic breakage care from medical hair-loss treatment.
+6) CRITICAL SET RULE: if you recommend ANY product that belongs to a named brand system/set, recommend EVERY other product in that same set in the same response, including items already owned (mark owned=true) and items to buy (owned=false). Never output a partial set. Do not omit a suitable product or a complete system because of price. Show all set members and identify which are already owned versus needed.
+7) Never invent prices, availability, ingredient lists, or product efficacy. Mark uncertain prices as estimates.
+Profile:${JSON.stringify(profile || {})} Mode:${currentHairState} Style:${selectedStylingMethod} Triggers:${(activeTriggers || []).join(',')} Stash:${JSON.stringify((inventory || []).slice(0, 30))}
+Return JSON only:
+{"recommendations":[{"name":"Item","domain":"hair|skin|body","category":"Cat","price":"$12.99","numericPrice":12.99,"bestStore":"Store","alsoAt":"Store2","whyItFits":"reason","setId":"brand-set-id or empty","setName":"complete system name or empty","setTotal":0,"owned":false,"compatibilityNotes":"how it fits and what not to layer with","useOrder":"AM/PM or wash-day order"}],"compatibilitySummary":"brief explanation of why recommendations work together and any actives to alternate","budgetNote":"optional price context; suitability takes priority"}`;
 
       try {
         const rawText = await callGroqChat(apiKey, 'openai/gpt-oss-120b', [{ role: 'user', content: shopPrompt }], 0.25, 650, true);
@@ -339,13 +344,12 @@ JSON only:
       }
     }
 
-    const maxPrice = Number(shoppingPrefs.maxPrice) || 30;
     const stores = Array.isArray(shoppingPrefs.stores) && shoppingPrefs.stores.length
       ? shoppingPrefs.stores.join(', ')
       : 'Any';
 
-    const systemInstructions = `Expert Black hair trichologist & cosmetic chemist. Apply Type 3/4 elliptical-shaft sebum science, porosity/LCO-LOC layering, pH balance (4.5-5.5 after relaxer/color), disulfide bond repair (Olaplex/acidic bonding) vs hydrolyzed protein vs humectant/dew-point rules, chelating hard-water ions (EDTA/phytic acid), and wig/braid scalp care. Pull from stash first, never claim stash items are missing unless absent, pair full brand sets when owned (Olaplex No.0->3->4->5->6/7, Aunt Jackie's, ApHogee, Mizani, KeraCare, Design Essentials, Camille Rose, Mielle, CeraVe), avoid clashing products, and recommend compatible items <=${maxPrice} at [${stores}]. ${lowEnergyMode ? '2 short steps max per routine.' : 'Short steps.'} Single-line JSON only:
-{"climateImpact":"1 sentence","rootCauseInsights":[{"cause":"C","fix":"F"}],"hairAssessment":"1 sentence","skinAssessment":"1 sentence","hairRoutine":[{"step":"S","detail":"D","productUsed":"Stash item","essential":true}],"stylingGuide":{"method":"${selectedStylingMethod}","prepAndProtection":"Prep","recommendedProducts":[{"productType":"T","suggestion":"Item","howToUse":"Use"}],"techniqueAndTakedown":"Tip"},"skinRoutine":[{"step":"S","detail":"D","productUsed":"Stash item","essential":true}],"bodyRoutine":[{"step":"S","detail":"D","productUsed":"Stash item","essential":true}],"proTreatments":[{"provider":"Salon|Dermatologist|Esthetician","treatment":"T","why":"W","cadence":"C"}],"missingProducts":[{"name":"N","domain":"hair|skin|body","store":"S","reason":"R","estimatedPrice":"$12.99"}]}`;
+    const systemInstructions = `Act as a cosmetology-informed textured-hair specialist, esthetician, and dermatologist-informed skincare educator with expertise in Black women's hair and melanin-rich skin. Do not claim to diagnose. Apply evidence-aware hair/scalp care: porosity and product buildup, relaxed/color-treated hair fragility, bond repair vs protein vs moisture, heat protection, traction prevention, and protective-style scalp hygiene. For melanin-rich skin prioritize barrier support, gentle hyperpigmentation care, and daily broad-spectrum SPF 30+. Address the user-selected concerns directly and only add steps/products that serve those concerns or are necessary supporting basics. For every selected issue, name the product(s), explain why they fit, and give an actionable AM/PM or wash-day routine. Pull from stash first. Avoid ingredient conflicts and unnecessary duplicate actives; give AM/PM or alternating-day schedules for potentially irritating combinations. Never promise skin bleaching/lightening. Recommend the most suitable products for the user's selected concerns at [${stores}]. Price is secondary and must not act as a hard filter; prioritize suitability, evidence-informed performance, compatibility, and the user's hair/skin profile over the cheapest option. When comparable options exist, mention a good-value choice. CRITICAL: if recommending any member of a named brand set, include every other member of that set in the same plan, including owned products clearly marked as from stash; never return a partial set. ${lowEnergyMode ? '2 short steps max per routine, but do not omit set members.' : 'Concise steps.'} Single-line JSON only:
+{"climateImpact":"1 sentence","rootCauseInsights":[{"cause":"C","fix":"F"}],"hairAssessment":"1 sentence","skinAssessment":"1 sentence","hairRoutine":[{"step":"S","detail":"D","productUsed":"Stash item","essential":true}],"stylingGuide":{"method":"${selectedStylingMethod}","prepAndProtection":"Prep","recommendedProducts":[{"productType":"T","suggestion":"Item","howToUse":"Use"}],"techniqueAndTakedown":"Tip"},"skinRoutine":[{"step":"S","detail":"D","productUsed":"Stash item","essential":true}],"bodyRoutine":[{"step":"S","detail":"D","productUsed":"Stash item","essential":true}],"proTreatments":[{"provider":"Salon|Dermatologist|Esthetician","treatment":"T","why":"W","cadence":"C"}],"missingProducts":[{"name":"N","brand":"B","domain":"hair|skin|body","store":"S","reason":"R","estimatedPrice":"$12.99","priority":"essential|optional","forConcern":"selected concern","compatibilityNotes":"safe layering/use notes"}]}`;
 
     const userPrompt = `Note:${description || 'None'} Mode:${currentHairState} Style:${selectedStylingMethod} Triggers:${(activeTriggers || []).join(',') || 'None'} Profile:${JSON.stringify(profile || {})} Weather:${JSON.stringify(weather || {})} Stash:${JSON.stringify((inventory || []).slice(0, 15))}`;
 

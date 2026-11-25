@@ -1,8 +1,8 @@
 {
   "name": "auracare-blank-onboarding",
-  "version": "2.45.0",
+  "version": "2.48.0",
   "private": true,
-  "description": "Blank-slate installable PWA for Hair, Face & Body care with persistent storage, hardened Groq JSON output/repair/fallbacks, weather/AQI, store/price finder, and pro treatments",
+  "description": "Black hair and melanin-rich skin care PWA with compatible product recommendations, complete brand sets, budget controls, weather/AQI, and personal stash",
   "scripts": {
     "dev": "vercel dev",
     "build": "echo 'Static PWA + Vercel serverless API ready'"
