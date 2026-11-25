@@ -328,7 +328,7 @@
 
         <div class="pt-2 border-t border-[#EAE3D9] space-y-2">
           <div class="text-xs font-semibold">Add Product or Homemade Mix Manually</div>
-          <input id="manName" type="text" placeholder="Product name..." class="w-full text-xs border border-[#DDD4C8] rounded-lg p-2 bg-[#FAF8F5]" />
+          <input id="manName" type="text" onkeydown="if(event.key==='Enter'){event.preventDefault();addManualProduct();}" placeholder="Product name..." class="w-full text-xs border border-[#DDD4C8] rounded-lg p-2 bg-[#FAF8F5]" />
           <div class="grid grid-cols-2 gap-2">
             <select id="manDomain" class="text-xs border border-[#DDD4C8] rounded-lg p-2 bg-white">
               <option value="hair">Hair &amp; Styling</option>
@@ -569,18 +569,37 @@
       };
     }
 
-    let state = normalizeState(JSON.parse(localStorage.getItem("auracare_blank_state_v210") || "null"));
+    function loadInitialState() {
+      try {
+        const rawLocal = localStorage.getItem("auracare_blank_state_v212");
+        if (rawLocal) return normalizeState(JSON.parse(rawLocal));
+      } catch (_) {}
+      try {
+        if (window.name && window.name.startsWith("{")) {
+          return normalizeState(JSON.parse(window.name));
+        }
+      } catch (_) {}
+      return createBlankState();
+    }
+
+    let state = loadInitialState();
     let pendingCheckinImage = null;
 
 
     function saveState() {
       state = normalizeState(state);
-      localStorage.setItem("auracare_blank_state_v210", JSON.stringify(state));
+      try {
+        localStorage.setItem("auracare_blank_state_v212", JSON.stringify(state));
+      } catch (err) {
+        try {
+          window.name = JSON.stringify(state);
+        } catch (_) {}
+      }
     }
 
     function wipeAllToBlank() {
       if (!confirm("Wipe all profile selections, owned products, and saved results back to completely blank?")) return;
-      localStorage.removeItem("auracare_blank_state_v210");
+      localStorage.removeItem("auracare_blank_state_v212");
       state = createBlankState();
       pendingCheckinImage = null;
       document.getElementById("aiResultContainer").innerHTML = "";
@@ -1064,12 +1083,35 @@
     }
 
     function addManualProduct() {
-      const name = document.getElementById("manName").value.trim();
-      if (!name) return;
-      state.inventory.unshift({ id: Date.now().toString(), name, brand: "", domain: document.getElementById("manDomain").value, category: document.getElementById("manCategory").value, notes: "" });
-      document.getElementById("manName").value = "";
+      const nameEl = document.getElementById("manName");
+      const domainEl = document.getElementById("manDomain");
+      const catEl = document.getElementById("manCategory");
+      const name = (nameEl ? nameEl.value : "").trim();
+      if (!name) {
+        const status = document.getElementById("scanStatusMsg");
+        if (status) {
+          status.textContent = "Enter a product name first.";
+          status.classList.remove("hidden");
+        }
+        return;
+      }
+      if (!Array.isArray(state.inventory)) state.inventory = [];
+      state.inventory.unshift({
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        name,
+        brand: "",
+        domain: domainEl ? domainEl.value : "hair",
+        category: catEl ? catEl.value : "Other",
+        notes: ""
+      });
+      nameEl.value = "";
       saveState();
       renderStash();
+      const status = document.getElementById("scanStatusMsg");
+      if (status) {
+        status.textContent = `✓ Saved "${name}" to your stash.`;
+        status.classList.remove("hidden");
+      }
     }
 
     function removeProduct(id) {
@@ -1078,7 +1120,18 @@
       renderStash();
     }
 
+    const STASH_CATEGORIES = [
+      "Bond Repair", "Shampoo", "Clarifying / Chelating Shampoo", "Deep Conditioner",
+      "Protein Treatment", "Leave-In / Mist", "Hair Oil / Sealant", "Heat Protectant",
+      "Setting Mousse / Foam / Lotion", "Wig / Braid Scalp & Edge Care",
+      "Face Cleanser", "Face Treatment", "Face Moisturizer", "Sunscreen",
+      "Body Wash / Bar Soap", "Body Scrub / Exfoliant", "Body Lotion / Cream",
+      "Body Butter", "Body Oil", "Body Powder / Dusting Powder", "Other"
+    ];
+
     let currentStashFilter = "all";
+    let editingStashId = null;
+
     function filterStash(f) {
       currentStashFilter = f;
       ["all", "hair", "skin", "body"].forEach(k => {
@@ -1087,15 +1140,112 @@
       renderStash();
     }
 
+    function startEditProduct(id) {
+      editingStashId = id;
+      renderStash();
+    }
+
+    function cancelEditProduct() {
+      editingStashId = null;
+      renderStash();
+    }
+
+    function escapeAttr(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    function saveEditProduct(id) {
+      const idx = (state.inventory || []).findIndex(item => item.id === id);
+      if (idx === -1) return;
+
+      const nameEl = document.getElementById(`edit-name-${id}`);
+      const domainEl = document.getElementById(`edit-domain-${id}`);
+      const catEl = document.getElementById(`edit-category-${id}`);
+      const notesEl = document.getElementById(`edit-notes-${id}`);
+
+      const updatedName = (nameEl ? nameEl.value : "").trim();
+      if (!updatedName) {
+        const status = document.getElementById("scanStatusMsg");
+        if (status) {
+          status.textContent = "Product name cannot be empty.";
+          status.classList.remove("hidden");
+        }
+        return;
+      }
+
+      state.inventory[idx] = {
+        ...state.inventory[idx],
+        name: updatedName,
+        domain: domainEl ? domainEl.value : state.inventory[idx].domain || "hair",
+        category: catEl ? catEl.value : state.inventory[idx].category || "Other",
+        notes: notesEl ? notesEl.value.trim() : ""
+      };
+      editingStashId = null;
+      saveState();
+      renderStash();
+
+      const status = document.getElementById("scanStatusMsg");
+      if (status) {
+        status.textContent = `✓ Updated "${updatedName}" in your stash.`;
+        status.classList.remove("hidden");
+      }
+    }
+
     function renderStash() {
       const list = document.getElementById("stashList");
       const items = currentStashFilter === "all" ? state.inventory : state.inventory.filter(i => i.domain === currentStashFilter);
       document.getElementById("stashCount").textContent = state.inventory.length;
       if (!items.length) {
-        list.innerHTML = `<div class="card p-4 text-xs text-[#726862]">Your stash is empty. Scan a barcode, snap a product photo, or add an item (including homemade body powder) above.</div>`;
+        list.innerHTML = `<div class="card p-4 text-xs text-[#726862]">Your stash is empty. Snap a product label photo or add an item (including homemade body powder) above.</div>`;
         return;
       }
-      list.innerHTML = items.map(i => `<div class="card p-3 flex items-start justify-between gap-2"><div><span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#F8F3EA] text-[#8A5E1B]">${i.domain} • ${i.category}</span><div class="text-xs font-bold mt-1">${i.name}</div>${i.notes ? `<div class="text-[11px] text-[#726862] mt-0.5">${i.notes}</div>` : ""}</div><button type="button" onclick="removeProduct('${i.id}')" class="text-xs text-[#726862] px-1.5">✕</button></div>`).join("");
+      list.innerHTML = items.map(i => {
+        if (editingStashId === i.id) {
+          const catOptions = STASH_CATEGORIES.map(c =>
+            `<option value="${escapeAttr(c)}" ${i.category === c ? "selected" : ""}>${escapeAttr(c)}</option>`
+          ).join("");
+          return `
+            <div class="card p-3.5 space-y-2 border-[#A9772B]">
+              <div class="text-[11px] font-bold uppercase text-[#8A5E1B]">Editing Stash Item</div>
+              <input id="edit-name-${i.id}" type="text" value="${escapeAttr(i.name)}" onkeydown="if(event.key==='Enter'){event.preventDefault();saveEditProduct('${i.id}');}" class="w-full text-xs border border-[#DDD4C8] rounded-lg p-2 bg-[#FAF8F5]" />
+              <div class="grid grid-cols-2 gap-2">
+                <select id="edit-domain-${i.id}" class="text-xs border border-[#DDD4C8] rounded-lg p-2 bg-white">
+                  <option value="hair" ${i.domain === "hair" ? "selected" : ""}>Hair &amp; Styling</option>
+                  <option value="skin" ${i.domain === "skin" ? "selected" : ""}>Face Skin Care</option>
+                  <option value="body" ${i.domain === "body" ? "selected" : ""}>Body Care</option>
+                </select>
+                <select id="edit-category-${i.id}" class="text-xs border border-[#DDD4C8] rounded-lg p-2 bg-white">
+                  ${catOptions}
+                </select>
+              </div>
+              <input id="edit-notes-${i.id}" type="text" value="${escapeAttr(i.notes || "")}" placeholder="Notes (optional)..." class="w-full text-xs border border-[#DDD4C8] rounded-lg p-2 bg-[#FAF8F5]" />
+              <div class="flex justify-end gap-2 pt-1">
+                <button type="button" onclick="cancelEditProduct()" class="px-3 py-1.5 rounded-lg border border-[#DDD4C8] text-xs font-semibold bg-white">Cancel</button>
+                <button type="button" onclick="saveEditProduct('${i.id}')" class="px-3 py-1.5 rounded-lg bg-[#231F1D] text-white text-xs font-semibold">Save Changes</button>
+              </div>
+            </div>
+          `;
+        }
+
+        return `
+          <div class="card p-3 flex items-start justify-between gap-2">
+            <div class="min-w-0">
+              <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#F8F3EA] text-[#8A5E1B]">${escapeAttr(i.domain)} • ${escapeAttr(i.category)}</span>
+              <div class="text-xs font-bold mt-1 break-words">${escapeAttr(i.name)}</div>
+              ${i.notes ? `<div class="text-[11px] text-[#726862] mt-0.5 break-words">${escapeAttr(i.notes)}</div>` : ""}
+            </div>
+            <div class="flex items-center gap-1 shrink-0">
+              <button type="button" onclick="startEditProduct('${i.id}')" class="text-[11px] font-semibold px-2 py-1 rounded-lg border border-[#DDD4C8] bg-[#FAF8F5] text-[#231F1D]">Edit</button>
+              <button type="button" onclick="removeProduct('${i.id}')" aria-label="Delete item" class="text-[11px] font-semibold px-2 py-1 rounded-lg border border-red-200 bg-red-50 text-red-700">Delete</button>
+            </div>
+          </div>
+        `;
+      }).join("");
     }
 
     function renderStoreChips() {
