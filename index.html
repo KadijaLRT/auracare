@@ -2161,10 +2161,83 @@
       `;
     }
 
- function triggerUpdateStashItemPhoto(id) {
- updatingStashId = id;
- const inputEl = document.getElementById("productPhotoInput");
- if (inputEl) inputEl.click();
+ async function enrichStashItemByName(id) {
+ const idx = (state.inventory || []).findIndex(x => x.id === id);
+ if (idx === -1) return;
+ const currentItem = state.inventory[idx];
+ const queryName = String(currentItem.name || "").trim();
+ if (!queryName) return;
+
+ const status = document.getElementById("scanStatusMsg");
+ if (status) {
+ status.textContent = `Looking up "${queryName}" by name...`;
+ status.classList.remove("hidden");
+ }
+
+ // 1. Try free public Open Beauty Facts API first (no Groq rate limit used)
+ try {
+ const obfUrl = `https://world.openbeautyfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(queryName)}&search_simple=1&action=process&json=1&page_size=1`;
+ const obfRes = await fetch(obfUrl);
+ const obfData = await obfRes.json().catch(() => ({}));
+ const hit = Array.isArray(obfData.products) && obfData.products[0];
+ if (hit && (hit.product_name || hit.brands || hit.ingredients_text)) {
+ const brandVal = String(hit.brands || currentItem.brand || "").split(",")[0].trim();
+ const ingVal = String(hit.ingredients_text || "").replace(/\s+/g, " ").trim().slice(0, 180);
+ const combinedNotes = [currentItem.notes, ingVal ? `Ingredients: ${ingVal}` : ""].filter(Boolean).join(" • ");
+ state.inventory[idx] = {
+ ...currentItem,
+ name: currentItem.name || String(hit.product_name || "").trim(),
+ brand: brandVal,
+ notes: combinedNotes || currentItem.notes || ""
+ };
+ saveState();
+ renderStash();
+ if (status) {
+ status.textContent = `✓ Updated "${state.inventory[idx].name}" from product name lookup (0 Groq tokens used).`;
+ status.classList.remove("hidden");
+ }
+ return;
+ }
+ } catch (_) {}
+
+ // 2. Fallback to text-only Groq lookup by name (no image needed)
+ try {
+ const res = await fetch("/api/analyze", {
+ method: "POST",
+ headers: { "Content-Type": "application/json" },
+ body: JSON.stringify({
+ mode: "product_name",
+ description: queryName,
+ profile: compactProfileForApi(state.profile)
+ })
+ });
+ const data = await res.json().catch(() => ({}));
+ if (res.ok && data.result) {
+ const info = data.result;
+ const nextDomain = ["hair", "skin", "body"].includes(info.domain) ? info.domain : currentItem.domain;
+ const nextCategory = info.category || currentItem.category;
+ const nextNotes = `${info.safetyNote || ""} ${(info.keyIngredients || []).join(", ")}`.trim();
+ state.inventory[idx] = {
+ ...currentItem,
+ brand: info.brand || currentItem.brand || "",
+ domain: nextDomain,
+ category: nextCategory,
+ notes: nextNotes || currentItem.notes || ""
+ };
+ saveState();
+ renderStash();
+ if (status) {
+ status.textContent = `✓ Updated "${currentItem.name}" by product name.`;
+ status.classList.remove("hidden");
+ }
+ return;
+ }
+ } catch (_) {}
+
+ if (status) {
+ status.textContent = `Kept "${currentItem.name}" as entered—ready for routines & stash matching.`;
+ status.classList.remove("hidden");
+ }
  }
 
  async function analyzeBase64ProductImage(imageBase64) {
@@ -2385,7 +2458,7 @@
  ${i.notes ? `<div class="text-[11px] text-[#726862] mt-0.5 break-words">${escapeAttr(i.notes)}</div>` : ""}
  </div>
  <div class="flex items-center gap-1 shrink-0">
- <button type="button" onclick="triggerUpdateStashItemPhoto('${i.id}')" class="text-[11px] font-semibold px-2 py-1 rounded-lg border border-[#A9772B]/50 bg-[#F8F3EA] text-[#8A5E1B]">Scan</button>
+ <button type="button" onclick="enrichStashItemByName('${i.id}')" class="text-[11px] font-semibold px-2 py-1 rounded-lg border border-[#A9772B]/50 bg-[#F8F3EA] text-[#8A5E1B]">Lookup</button>
  <button type="button" onclick="startEditProduct('${i.id}')" class="text-[11px] font-semibold px-2 py-1 rounded-lg border border-[#DDD4C8] bg-[#FAF8F5] text-[#231F1D]">Edit</button>
  <button type="button" onclick="removeProduct('${i.id}')" aria-label="Delete item" class="text-[11px] font-semibold px-2 py-1 rounded-lg border border-red-200 bg-red-50 text-red-700">Delete</button>
  </div>

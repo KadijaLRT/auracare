@@ -297,6 +297,23 @@ export default async function handler(req, res) {
       return res.status(200).json({ result: parseJsonLoose(rawText) });
     }
 
+    if (mode === 'product_name') {
+      const prodQuery = String(description || '').trim();
+      if (!prodQuery) return res.status(400).json({ error: 'No product name provided.' });
+
+      const namePrompt = `Identify hair/face/body product "${prodQuery}" and return compact JSON (no newlines in strings):
+{"name":"${prodQuery.replace(/"/g, '')}","brand":"Brand","domain":"hair|skin|body","category":"Bond Repair|Clarifying / Chelating Shampoo|Conditioner|Deep Conditioner|Edge Control / Wax|Hair Dye|Hair Gel|Hair Oil / Sealant|Hair Relaxer|Heat Protectant|Leave-In / Mist|Moisturizer|Oil Sheen|Protein Treatment|Setting Mousse / Foam / Lotion|Shampoo|Wig / Braid Scalp & Edge Care|Face Cleanser|Face Moisturizer|Face Treatment|Sunscreen|Body Butter|Body Lotion / Cream|Body Oil|Body Powder / Dusting Powder|Body Scrub / Exfoliant|Body Wash / Bar Soap|Deodorant|Perfume / Scents|Other","keyIngredients":["ing1","ing2"],"safetyNote":"short chemistry/usage note"}`;
+
+      try {
+        const rawText = await callGroqChat(apiKey, 'openai/gpt-oss-120b', [{ role: 'user', content: namePrompt }], 0.2, 350, true);
+        return res.status(200).json({ result: parseJsonLoose(rawText) });
+      } catch (_) {
+        return res.status(200).json({
+          result: { name: prodQuery, brand: '', domain: 'hair', category: 'Other', keyIngredients: [], safetyNote: 'Matched by entered product name.' }
+        });
+      }
+    }
+
     if (mode === 'shop_recs') {
       const maxPrice = Number(shoppingPrefs.maxPrice) || 30;
       const stores = Array.isArray(shoppingPrefs.stores) && shoppingPrefs.stores.length
