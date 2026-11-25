@@ -1,6 +1,6 @@
 {
   "name": "auracare-blank-onboarding",
-  "version": "2.16.0",
+  "version": "2.19.0",
   "private": true,
-  "description": "Blank-slate installable PWA for Hair, Face & Body care with persistent storage, Groq Vision/Text AI, weather/AQI, store/price finder, and pro treatments"
+  "description": "Blank-slate installable PWA for Hair, Face & Body care with persistent storage, hardened Groq JSON output/repair/fallbacks, weather/AQI, store/price finder, and pro treatments"
 }

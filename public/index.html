@@ -326,31 +326,34 @@
               <option value="body">Body Care</option>
             </select>
             <select id="manCategory" class="text-xs border border-[#DDD4C8] rounded-lg p-2 bg-white">
-              <option value="Bond Repair">Bond Repair</option>
-              <option value="Shampoo">Shampoo</option>
-              <option value="Conditioner">Conditioner</option>
-              <option value="Clarifying / Chelating Shampoo">Clarifying / Chelating Shampoo</option>
-              <option value="Deep Conditioner">Deep Conditioner</option>
-              <option value="Protein Treatment">Protein Treatment</option>
-              <option value="Hair Relaxer">Hair Relaxer</option>
-              <option value="Moisturizer">Moisturizer</option>
-              <option value="Leave-In / Mist">Leave-In / Mist</option>
-              <option value="Hair Oil / Sealant">Hair Oil / Sealant</option>
-              <option value="Oil Sheen">Oil Sheen</option>
-              <option value="Heat Protectant">Heat Protectant</option>
-              <option value="Setting Mousse / Foam / Lotion">Setting Mousse / Foam / Lotion</option>
-              <option value="Edge Control / Wax">Edge Control / Wax</option>
-              <option value="Wig / Braid Scalp & Edge Care">Wig / Braid Scalp &amp; Edge Care</option>
-              <option value="Face Cleanser">Face Cleanser</option>
-              <option value="Face Treatment">Face Treatment</option>
-              <option value="Face Moisturizer">Face Moisturizer</option>
-              <option value="Sunscreen">Sunscreen</option>
-              <option value="Body Wash / Bar Soap">Body Wash / Bar Soap</option>
-              <option value="Body Scrub / Exfoliant">Body Scrub / Exfoliant</option>
-              <option value="Body Lotion / Cream">Body Lotion / Cream</option>
-              <option value="Body Butter">Body Butter</option>
-              <option value="Body Oil">Body Oil</option>
-              <option value="Body Powder / Dusting Powder">Body Powder / Dusting Powder</option>
+              <option value="Bond Repair">Hair — Bond Repair</option>
+              <option value="Clarifying / Chelating Shampoo">Hair — Clarifying / Chelating Shampoo</option>
+              <option value="Conditioner">Hair — Conditioner</option>
+              <option value="Deep Conditioner">Hair — Deep Conditioner</option>
+              <option value="Edge Control / Wax">Hair — Edge Control / Wax</option>
+              <option value="Hair Dye">Hair — Hair Dye</option>
+              <option value="Hair Gel">Hair — Hair Gel</option>
+              <option value="Hair Oil / Sealant">Hair — Hair Oil / Sealant</option>
+              <option value="Hair Relaxer">Hair — Hair Relaxer</option>
+              <option value="Heat Protectant">Hair — Heat Protectant</option>
+              <option value="Leave-In / Mist">Hair — Leave-In / Mist</option>
+              <option value="Moisturizer">Hair — Moisturizer</option>
+              <option value="Oil Sheen">Hair — Oil Sheen</option>
+              <option value="Protein Treatment">Hair — Protein Treatment</option>
+              <option value="Setting Mousse / Foam / Lotion">Hair — Setting Mousse / Foam / Lotion</option>
+              <option value="Shampoo">Hair — Shampoo</option>
+              <option value="Wig / Braid Scalp & Edge Care">Hair — Wig / Braid Scalp & Edge Care</option>
+              <option value="Face Cleanser">Face — Face Cleanser</option>
+              <option value="Face Moisturizer">Face — Face Moisturizer</option>
+              <option value="Face Treatment">Face — Face Treatment</option>
+              <option value="Sunscreen">Face — Sunscreen</option>
+              <option value="Body Butter">Body — Body Butter</option>
+              <option value="Body Lotion / Cream">Body — Body Lotion / Cream</option>
+              <option value="Body Oil">Body — Body Oil</option>
+              <option value="Body Powder / Dusting Powder">Body — Body Powder / Dusting Powder</option>
+              <option value="Body Scrub / Exfoliant">Body — Body Scrub / Exfoliant</option>
+              <option value="Body Wash / Bar Soap">Body — Body Wash / Bar Soap</option>
+              <option value="Other">Other</option>
             </select>
           </div>
           <button type="button" onclick="addManualProduct()" class="w-full py-2 rounded-lg bg-[#231F1D] text-white text-xs font-semibold">+ Add to Stash</button>
@@ -515,13 +518,13 @@
     ];
 
     const STASH_CATEGORIES = [
-      "Bond Repair", "Shampoo", "Conditioner", "Clarifying / Chelating Shampoo", "Deep Conditioner",
-      "Protein Treatment", "Hair Relaxer", "Moisturizer", "Leave-In / Mist", "Hair Oil / Sealant",
-      "Oil Sheen", "Heat Protectant", "Setting Mousse / Foam / Lotion",
-      "Edge Control / Wax", "Wig / Braid Scalp & Edge Care",
-      "Face Cleanser", "Face Treatment", "Face Moisturizer", "Sunscreen",
-      "Body Wash / Bar Soap", "Body Scrub / Exfoliant", "Body Lotion / Cream",
-      "Body Butter", "Body Oil", "Body Powder / Dusting Powder", "Other"
+      // Hair (A-Z)
+      "Bond Repair", "Clarifying / Chelating Shampoo", "Conditioner", "Deep Conditioner", "Edge Control / Wax", "Hair Dye", "Hair Gel", "Hair Oil / Sealant", "Hair Relaxer", "Heat Protectant", "Leave-In / Mist", "Moisturizer", "Oil Sheen", "Protein Treatment", "Setting Mousse / Foam / Lotion", "Shampoo", "Wig / Braid Scalp & Edge Care",
+      // Face (A-Z)
+      "Face Cleanser", "Face Moisturizer", "Face Treatment", "Sunscreen",
+      // Body (A-Z)
+      "Body Butter", "Body Lotion / Cream", "Body Oil", "Body Powder / Dusting Powder", "Body Scrub / Exfoliant", "Body Wash / Bar Soap",
+      "Other"
     ];
 
     function createBlankState() {

@@ -1,6 +1,3 @@
-# AuraCare — Blank-Slate Hair, Face & Body Studio (v2.16)
+# AuraCare — Blank-Slate Hair, Face & Body Studio (v2.19)
 
-Includes:
-- Persistent storage (`auracare_state_persistent`) across updates with migration from older `v2.x` keys and `window.name` fallback.
-- Inline **Edit** and **Delete** controls on stash items.
-- Stash categories including **Hair Relaxer**, **Conditioner**, **Moisturizer**, **Oil Sheen**, and **Edge Control / Wax**.
+Adds **Hair Gel** and orders stash categories alphabetically within **Hair**, **Face**, and **Body** (`#manCategory`, `STASH_CATEGORIES`, and `api/analyze.js`), while keeping persistent storage (`auracare_state_persistent`), inline edit/delete controls, and JSON repair/fallbacks intact.
