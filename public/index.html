@@ -87,8 +87,14 @@
  <p id="climateAdviceText" class="text-xs text-[#594E47]">Select or enter your city in the <strong>Profile &amp; Pro</strong> tab to pull live weather, humidity, UV, and AQI.</p>
  </div>
 
- <div class="card p-4 space-y-3">
- <h2 class="text-base font-bold">State Check-In (Selectable + Optional Photo/Note)</h2>
+      <div class="card p-2.5 flex gap-1.5 text-xs font-semibold">
+        <button type="button" onclick="setCheckinSubView('log')" id="csub-log" class="flex-1 py-2 rounded-xl bg-[#231F1D] text-white">1. Check-In</button>
+        <button type="button" onclick="setCheckinSubView('routines')" id="csub-routines" class="flex-1 py-2 rounded-xl bg-[#FAF8F5] border border-[#DDD4C8] text-[#594E47]">2. Routines</button>
+      </div>
+
+      <div id="checkin-subview-log" class="space-y-4">
+      <div class="card p-4 space-y-3">
+        <h2 class="text-base font-bold">State Check-In (Selectable + Optional Photo/Note)</h2>
  <div class="space-y-1.5">
  <label class="block text-[11px] font-bold uppercase tracking-wider text-[#726862]">1. Current Hair / Protective Style State</label>
  <div id="hairModeChipsBox" class="flex flex-wrap gap-1.5"></div>
@@ -121,13 +127,30 @@
  <div id="checkinPhotoPreviewBox" class="hidden">
  <img id="checkinPhotoPreview" class="w-full h-40 object-cover rounded-xl border border-[#EAE3D9]" alt="Check-in preview" />
  </div>
- <button id="generateRoutineBtn" type="button" onclick="generateAIRoutine()" class="w-full py-3 rounded-xl bg-[#231F1D] text-white font-semibold text-sm">
- ✨ Generate Tailored Routines, Styling Products &amp; Pro Care
- </button>
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button type="button" onclick="saveCheckInSnapshot()" class="py-3 px-3 rounded-xl border border-[#231F1D] bg-white text-[#231F1D] font-semibold text-xs">
+            📌 Save Check-In State
+          </button>
+          <button id="generateRoutineBtn" type="button" onclick="generateAIRoutine()" class="py-3 px-3 rounded-xl bg-[#231F1D] text-white font-semibold text-xs">
+            ✨ Build Routines →
+          </button>
+        </div>
+        <div id="checkinSavedBanner" class="hidden p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 font-medium flex items-center justify-between">
+          <span id="checkinSavedText">Check-in logged.</span>
+          <button type="button" onclick="setCheckinSubView('routines')" class="underline font-bold">View Routines →</button>
+        </div>
  <p id="aiStatusMsg" class="text-xs text-center text-red-700 font-medium hidden"></p>
  </div>
 
- <div id="aiResultContainer" class="space-y-4"></div>
+      </div>
+
+      <div id="checkin-subview-routines" class="space-y-4 hidden">
+        <div class="card p-3 flex items-center justify-between text-xs bg-[#FAF8F5]">
+          <span class="font-semibold text-[#594E47]">Step-by-step routines from your check-in &amp; stash</span>
+          <button type="button" onclick="setCheckinSubView('log')" class="font-bold text-[#A9772B] underline">← Back to Check-In</button>
+        </div>
+        <div id="aiResultContainer" class="space-y-4"></div>
+      </div>
  </section>
 
 <section id="tab-stash" class="hidden space-y-4">
@@ -974,6 +997,44 @@
  }
  }
 
+    function setCheckinSubView(view) {
+      const logEl = document.getElementById("checkin-subview-log");
+      const rotEl = document.getElementById("checkin-subview-routines");
+      const logBtn = document.getElementById("csub-log");
+      const rotBtn = document.getElementById("csub-routines");
+      if (logEl && rotEl) {
+        logEl.classList.toggle("hidden", view !== "log");
+        rotEl.classList.toggle("hidden", view !== "routines");
+      }
+      if (logBtn && rotBtn) {
+        logBtn.className = view === "log"
+          ? "flex-1 py-2 rounded-xl bg-[#231F1D] text-white"
+          : "flex-1 py-2 rounded-xl bg-[#FAF8F5] border border-[#DDD4C8] text-[#594E47]";
+        rotBtn.className = view === "routines"
+          ? "flex-1 py-2 rounded-xl bg-[#231F1D] text-white"
+          : "flex-1 py-2 rounded-xl bg-[#FAF8F5] border border-[#DDD4C8] text-[#594E47]";
+      }
+    }
+
+    function saveCheckInSnapshot() {
+      persistTextFields();
+      const note = document.getElementById("checkinInput").value.trim();
+      state.lastCheckIn = {
+        savedAt: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        hairState: state.currentHairState,
+        stylingMethod: state.selectedStylingMethod,
+        triggers: [...(state.activeTriggers || [])],
+        note
+      };
+      saveState();
+      const banner = document.getElementById("checkinSavedBanner");
+      const textEl = document.getElementById("checkinSavedText");
+      if (banner && textEl) {
+        textEl.textContent = `Check-in saved at ${state.lastCheckIn.savedAt}.`;
+        banner.classList.remove("hidden");
+      }
+    }
+
  function toggleTrigger(label) {
  const idx = state.activeTriggers.indexOf(label);
  if (idx >= 0) state.activeTriggers.splice(idx, 1);
@@ -1092,6 +1153,7 @@
  state.lastAIRoutine = cachedRes;
  saveState();
  renderAIRoutine(cachedRes);
+ setCheckinSubView("routines");
  status.classList.add("hidden");
  return;
  }
@@ -1113,16 +1175,18 @@
  state.lastAIRoutine = data.result;
  saveState();
  renderAIRoutine(data.result);
+ setCheckinSubView("routines");
  status.classList.add("hidden");
  } catch (err) {
  const fallbackRes = buildLocalCheckinFallback();
  state.lastAIRoutine = fallbackRes;
  saveState();
  renderAIRoutine(fallbackRes);
+ setCheckinSubView("routines");
  status.textContent = "Groq limit reached—generated plan using your saved stash & profile.";
  } finally {
  btn.disabled = false;
- btn.textContent = "✨ Generate Tailored Routines, Styling Products & Pro Care";
+ btn.textContent = "✨ Build Routines →";
  }
  }
 

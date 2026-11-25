@@ -1,3 +1,3 @@
-# AuraCare — Hair, Face & Body Studio (v2.25)
+# AuraCare — Hair, Face & Body Studio (v2.26)
 
-- Adds **step-by-step routines** for **Hair**, **Face**, and **Body** that optimize product usage (application order, measured amounts, damp-skin layering) and avoid recommending products that clash or keep each other from working well (`isCompatibleWithContext`).
+- Separates **Check-In** (logging your current hair/protective style state, styling method, symptoms/triggers, photo/note, and weather/AQI) from **Routines** (the generated step-by-step hair, face, and body routines, styling guide, and product recommendations) with a toggle between **1. Check-In** and **2. Routines**.
