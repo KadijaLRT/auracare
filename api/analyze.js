@@ -328,15 +328,20 @@ export default async function handler(req, res) {
       if (!prodQuery) return res.status(400).json({ error: 'Enter a product name before looking it up.' });
 
       const safeQuery = prodQuery.replace(/["\\]/g, ' ').replace(/[\r\n]/g, ' ').trim();
-      const namePrompt = `You are identifying a real personal-care product from its exact user-entered name. Query: "${safeQuery}". Existing user category: ${existingDomain}/${existingCategory}. This is NOT a request to recommend a product. Never invent or infer a brand, ingredient list, product line, or exact formulation from a vague name. If the name could refer to multiple products, is generic, or you are not confident the exact product exists, set matched=false, confidence=0, brand="", keyIngredients=[], safetyNote="" and preserve the existing domain/category. If you recognize the exact product with high confidence, set matched=true and confidence from 0 to 1. Only include ingredients you reliably know; the user must still verify the current packaging because formulas change. Return compact JSON only:
-{"matched":false,"confidence":0,"name":"${safeQuery}","brand":"","domain":"${existingDomain}","category":"${existingCategory}","keyIngredients":[],"safetyNote":""}`;
+      const namePrompt = `Identify the real personal-care product (hair care, skincare, body care, deodorant, or fragrance/perfume) from its user-entered name.
+Query: "${safeQuery}"
+Existing domain/category: ${existingDomain}/${existingCategory}
+Rules:
+- If you recognize this real commercial product (including well-known Black hair care lines like Aunt Jackie's, Olaplex, ApHogee, Mizani, KeraCare, Design Essentials, Camille Rose, Mielle, ORS, SheaMoisture, Eco Style, Ebin, TGIN, As I Am, Pattern, Carol's Daughter, or well-known skincare/body/perfume products), set "matched": true, set "confidence" between 0.80 and 0.99, fill in the real "brand", best matching "domain" ("hair"|"skin"|"body"), best matching "category" from ["Bond Repair","Clarifying / Chelating Shampoo","Conditioner","Deep Conditioner","Edge Control / Wax","Hair Dye","Hair Gel","Hair Oil / Sealant","Hair Relaxer","Heat Protectant","Leave-In / Mist","Moisturizer","Oil Sheen","Protein Treatment","Setting Mousse / Foam / Lotion","Shampoo","Wig / Braid Scalp & Edge Care","Face Cleanser","Face Moisturizer","Face Treatment","Sunscreen","Body Butter","Body Lotion / Cream","Body Oil","Body Powder / Dusting Powder","Body Scrub / Exfoliant","Body Wash / Bar Soap","Deodorant","Perfume / Scents","Other"], up to 5 verified "keyIngredients" (or fragrance notes if it is a Perfume / Scents product), and a concise "safetyNote" (or scent family/usage note).
+- Only if the query is completely unrecognized, homemade/DIY, or ambiguous across unrelated products, set "matched": false and "confidence": 0.
+Return compact single-line JSON only:
+{"matched":true,"confidence":0.92,"name":"${safeQuery}","brand":"Brand Name","domain":"${existingDomain}","category":"${existingCategory}","keyIngredients":["Ingredient 1","Ingredient 2"],"safetyNote":"Concise chemistry/usage or scent note"}`;
 
-      try {
-        const rawText = await callGroqChat(apiKey, 'openai/gpt-oss-120b', [{ role: 'user', content: namePrompt }], 0.1, 300, true);
+      const formatProductNameResult = (rawText) => {
         const result = parseJsonLoose(rawText);
         const confidence = Math.max(0, Math.min(1, Number(result.confidence) || 0));
-        const matched = result.matched === true && confidence >= 0.78;
-        return res.status(200).json({ result: {
+        const matched = result.matched === true && confidence >= 0.72;
+        return {
           matched,
           confidence: matched ? confidence : 0,
           name: prodQuery,
@@ -345,9 +350,19 @@ export default async function handler(req, res) {
           category: matched ? String(result.category || existingCategory).slice(0, 80) : existingCategory,
           keyIngredients: matched && Array.isArray(result.keyIngredients) ? result.keyIngredients.filter(x => typeof x === 'string').slice(0, 5) : [],
           safetyNote: matched ? String(result.safetyNote || '').slice(0, 240) : ''
-        }});
+        };
+      };
+
+      try {
+        const rawText = await callGroqChat(apiKey, 'openai/gpt-oss-120b', [{ role: 'user', content: namePrompt }], 0.1, 320, true);
+        return res.status(200).json({ result: formatProductNameResult(rawText) });
       } catch (_) {
-        return res.status(200).json({ result: { matched: false, confidence: 0, name: prodQuery, brand: '', domain: existingDomain, category: existingCategory, keyIngredients: [], safetyNote: '' } });
+        try {
+          const rawText = await callGroqChat(apiKey, 'qwen/qwen3.8-27b', [{ role: 'user', content: namePrompt }], 0.1, 320, true);
+          return res.status(200).json({ result: formatProductNameResult(rawText) });
+        } catch (__) {
+          return res.status(200).json({ result: { matched: false, confidence: 0, name: prodQuery, brand: '', domain: existingDomain, category: existingCategory, keyIngredients: [], safetyNote: '' } });
+        }
       }
     }
 

@@ -2488,15 +2488,20 @@
    const c = normalize(candidateName);
    const b = normalize(candidateBrand);
    if (!q || !c) return 0;
-   if (q === c || c.includes(q) || q.includes(c)) return 1;
-   const stopWords = new Set(['the','and','for','with','of','in','no','hair','skin','body','care','cream','oil','shampoo','conditioner','lotion','spray','gel','mist','serum','beauty']);
+   const combinedCand = `${b} ${c}`.trim();
+   if (q === c || q === combinedCand) return 1;
+   if (c.includes(q) && q.length >= 6) return 0.96;
+   if (q.includes(c) && c.length >= Math.max(8, q.length * 0.78)) return 0.92;
+   const stopWords = new Set(['the','and','for','with','of','in','no','hair','skin','body','care','cream','oil','shampoo','conditioner','lotion','spray','gel','mist','serum','beauty','eau','de','parfum','toilette','cologne']);
    const tokens = (value) => value.split(/\s+/).filter(t => t.length >= 2 && !stopWords.has(t));
    const qTokens = tokens(q);
    const cTokens = new Set([...tokens(c), ...tokens(b)]);
    if (!qTokens.length) return 0;
-   const overlap = qTokens.filter(t => cTokens.has(t)).length / qTokens.length;
+   const matchedTokens = qTokens.filter(t => cTokens.has(t));
+   if (!matchedTokens.length) return 0;
+   const overlap = matchedTokens.length / qTokens.length;
    const candidateTokens = tokens(c);
-   const precision = candidateTokens.length ? qTokens.filter(t => cTokens.has(t)).length / candidateTokens.length : 0;
+   const precision = candidateTokens.length ? matchedTokens.length / candidateTokens.length : 0;
    return Math.min(1, overlap * 0.75 + precision * 0.25);
  }
 
@@ -2535,12 +2540,63 @@
      }
    };
 
+   const fullSearchQuery = [currentItem.brand, queryName]
+     .filter(Boolean)
+     .join(' ')
+     .replace(/\s+/g, ' ')
+     .trim();
+
    try {
-     // Open Beauty Facts is the primary source. Search several results and only
-     // apply metadata when the product name match is strong enough.
+     // 1. Check built-in curated catalog & brand systems first for instant, zero-hallucination matches
+     let localCatalogMatch = null;
+     let localCatalogScore = 0;
+     const curatedPool = [
+       ...(typeof CATALOG_CANDIDATES !== 'undefined' ? CATALOG_CANDIDATES : []),
+       ...(typeof BRAND_SYSTEM_SETS !== 'undefined'
+         ? BRAND_SYSTEM_SETS.flatMap(sys => (sys.steps || []).map(st => ({
+             name: st.name,
+             brand: sys.brandLabel.replace(/\s+(Bond|Moisture|Protein|Thermal|Hydrating|Botanical|Rosemary|Ceramide).*$/i, ''),
+             domain: sys.domain,
+             category: st.category,
+             why: st.why
+           })))
+         : [])
+     ];
+     for (const entry of curatedPool) {
+       const eName = String(entry.name || '').trim();
+       const eBrand = String(entry.brand || '').trim();
+       const s = Math.max(
+         scoreProductNameMatch(queryName, eName, eBrand),
+         scoreProductNameMatch(fullSearchQuery, eName, eBrand)
+       );
+       if (s > localCatalogScore) {
+         localCatalogScore = s;
+         localCatalogMatch = entry;
+       }
+     }
+     if (localCatalogMatch && localCatalogScore >= 0.78) {
+       const inferredBrand = String(localCatalogMatch.brand || currentItem.brand || '').trim();
+       const nextDomain = ['hair', 'skin', 'body'].includes(localCatalogMatch.domain) ? localCatalogMatch.domain : currentItem.domain;
+       const nextCategory = STASH_CATEGORIES.includes(localCatalogMatch.category) ? localCatalogMatch.category : currentItem.category;
+       const notes = appendLookupNotes(currentItem.notes, [localCatalogMatch.why || '']);
+       state.inventory[idx] = {
+         ...currentItem,
+         brand: inferredBrand,
+         domain: nextDomain,
+         category: nextCategory,
+         notes,
+         lookupSource: 'Curated catalog'
+       };
+       saveState(); renderStash();
+       void refreshScentProfileFromStash();
+       finish(`✓ Matched “${queryName}” (${nextCategory}).`);
+       return;
+     }
+
+     // 2. Open Beauty Facts search (only accept hits that actually provide brand or ingredient metadata)
      let bestHit = null;
      let bestScore = 0;
-     const obfUrl = `https://world.openbeautyfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(queryName)}&search_simple=1&action=process&json=1&page_size=20&fields=product_name,product_name_en,brands,ingredients_text,ingredients_text_en,categories,code`;
+     const obfUrl = `https://world.openbeautyfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(fullSearchQuery)}&search_simple=1&action=process&json=1&page_size=20&fields=product_name,product_name_en,brands,ingredients_text,ingredients_text_en,categories,code`;
      try {
        const obfRes = await fetch(obfUrl, { headers: { Accept: 'application/json' } });
        if (obfRes.ok) {
@@ -2548,14 +2604,18 @@
          for (const cand of (Array.isArray(obfData.products) ? obfData.products : [])) {
            const cName = String(cand.product_name_en || cand.product_name || '').trim();
            const cBrand = String(cand.brands || '').split(',')[0].trim();
-           if (!cName) continue;
-           const score = scoreProductNameMatch(queryName, cName, cBrand);
+           const cIng = String(cand.ingredients_text_en || cand.ingredients_text || '').trim();
+           if (!cName || (!cBrand && !cIng)) continue;
+           const score = Math.max(
+             scoreProductNameMatch(queryName, cName, cBrand),
+             scoreProductNameMatch(fullSearchQuery, cName, cBrand)
+           );
            if (score > bestScore) { bestScore = score; bestHit = { cand, cName, cBrand }; }
          }
        }
      } catch (_) { /* Continue to the structured product-identification fallback. */ }
 
-     if (bestHit && bestScore >= 0.78) {
+     if (bestHit && bestScore >= 0.72) {
        const cand = bestHit.cand;
        const brandVal = bestHit.cBrand || currentItem.brand || '';
        const ingredients = String(cand.ingredients_text_en || cand.ingredients_text || '').replace(/\s+/g, ' ').trim().slice(0, 220);
@@ -2575,11 +2635,10 @@
        return;
      }
 
-     // Secondary identification can classify a known product, but must return
-     // a confidence score and may not invent a brand or ingredient list.
+     // 3. Secondary AI identification via /api/analyze (mode: 'product_name')
      const res = await fetch('/api/analyze', {
        method: 'POST', headers: { 'Content-Type': 'application/json' },
-       body: JSON.stringify({ mode: 'product_name', description: queryName, currentHairState: state.currentHairState, profile: compactProfileForApi(state.profile), existingDomain: currentItem.domain, existingCategory: currentItem.category })
+       body: JSON.stringify({ mode: 'product_name', description: fullSearchQuery, currentHairState: state.currentHairState, profile: compactProfileForApi(state.profile), existingDomain: currentItem.domain, existingCategory: currentItem.category })
      });
      const data = await res.json().catch(() => ({}));
      if (!res.ok) throw new Error(data.error || `Lookup service returned ${res.status}.`);
