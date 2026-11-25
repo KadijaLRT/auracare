@@ -2161,6 +2161,25 @@
       `;
     }
 
+ function scoreProductNameMatch(queryName, candidateName, candidateBrand) {
+ const stopWords = new Set(["the", "and", "for", "with", "of", "in", "no", "hair", "skin", "body", "care", "cream", "oil", "shampoo", "conditioner", "lotion", "spray", "gel", "mist", "serum"]);
+ const tokenize = (str) => String(str || "")
+ .toLowerCase()
+ .replace(/[^a-z0-9]+/g, " ")
+ .split(/\s+/)
+ .filter(w => w.length >= 2 && !stopWords.has(w));
+
+ const qTokens = tokenize(queryName);
+ const cTokens = new Set([...tokenize(candidateName), ...tokenize(candidateBrand)]);
+ if (!qTokens.length) return 0;
+
+ let matched = 0;
+ qTokens.forEach(t => {
+ if (cTokens.has(t)) matched += 1;
+ });
+ return matched / qTokens.length;
+ }
+
  async function enrichStashItemByName(id) {
  const idx = (state.inventory || []).findIndex(x => x.id === id);
  if (idx === -1) return;
@@ -2170,37 +2189,55 @@
 
  const status = document.getElementById("scanStatusMsg");
  if (status) {
- status.textContent = `Looking up "${queryName}" by name...`;
+ status.textContent = `Verifying exact match for "${queryName}"...`;
  status.classList.remove("hidden");
  }
 
- // 1. Try free public Open Beauty Facts API first (no Groq rate limit used)
+ // 1. Try Open Beauty Facts with top-5 candidates and strict token-overlap verification
  try {
- const obfUrl = `https://world.openbeautyfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(queryName)}&search_simple=1&action=process&json=1&page_size=1`;
+ const obfUrl = `https://world.openbeautyfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(queryName)}&search_simple=1&action=process&json=1&page_size=5`;
  const obfRes = await fetch(obfUrl);
  const obfData = await obfRes.json().catch(() => ({}));
- const hit = Array.isArray(obfData.products) && obfData.products[0];
- if (hit && (hit.product_name || hit.brands || hit.ingredients_text)) {
- const brandVal = String(hit.brands || currentItem.brand || "").split(",")[0].trim();
- const ingVal = String(hit.ingredients_text || "").replace(/\s+/g, " ").trim().slice(0, 180);
- const combinedNotes = [currentItem.notes, ingVal ? `Ingredients: ${ingVal}` : ""].filter(Boolean).join(" • ");
+ const candidates = Array.isArray(obfData.products) ? obfData.products : [];
+
+ let bestHit = null;
+ let bestScore = 0;
+ for (const cand of candidates) {
+ const cName = String(cand.product_name || cand.product_name_en || "").trim();
+ const cBrand = String(cand.brands || "").split(",")[0].trim();
+ if (!cName && !cBrand) continue;
+ const s = scoreProductNameMatch(queryName, cName, cBrand);
+ if (s > bestScore) {
+ bestScore = s;
+ bestHit = { cand, cName, cBrand };
+ }
+ }
+
+ // Require at least 0.5 token overlap so unrelated products are never applied
+ if (bestHit && bestScore >= 0.5) {
+ const brandVal = bestHit.cBrand || currentItem.brand || "";
+ const ingVal = String(bestHit.cand.ingredients_text || "").replace(/\s+/g, " ").trim().slice(0, 160);
+ const detailNote = ingVal ? `Key ingredients: ${ingVal}` : "";
+ const nextNotes = detailNote
+ ? (currentItem.notes && !currentItem.notes.includes(detailNote) ? `${currentItem.notes} • ${detailNote}` : detailNote)
+ : (currentItem.notes || "");
+
  state.inventory[idx] = {
  ...currentItem,
- name: currentItem.name || String(hit.product_name || "").trim(),
  brand: brandVal,
- notes: combinedNotes || currentItem.notes || ""
+ notes: nextNotes
  };
  saveState();
  renderStash();
  if (status) {
- status.textContent = `✓ Updated "${state.inventory[idx].name}" from product name lookup (0 Groq tokens used).`;
+ status.textContent = `✓ Matched "${currentItem.name}" (${brandVal || "verified"}).`;
  status.classList.remove("hidden");
  }
  return;
  }
  } catch (_) {}
 
- // 2. Fallback to text-only Groq lookup by name (no image needed)
+ // 2. Text-only lookup via /api/analyze (mode: "product_name"), passing current domain & category
  try {
  const res = await fetch("/api/analyze", {
  method: "POST",
@@ -2208,26 +2245,33 @@
  body: JSON.stringify({
  mode: "product_name",
  description: queryName,
+ currentHairState: state.currentHairState,
  profile: compactProfileForApi(state.profile)
  })
  });
  const data = await res.json().catch(() => ({}));
  if (res.ok && data.result) {
  const info = data.result;
+ const returnedName = String(info.name || queryName).trim();
+ const sim = scoreProductNameMatch(queryName, returnedName, info.brand || "");
  const nextDomain = ["hair", "skin", "body"].includes(info.domain) ? info.domain : currentItem.domain;
- const nextCategory = info.category || currentItem.category;
- const nextNotes = `${info.safetyNote || ""} ${(info.keyIngredients || []).join(", ")}`.trim();
+ const nextCategory = (info.category && info.category !== "Other") ? info.category : currentItem.category;
+ const ingList = Array.isArray(info.keyIngredients) ? info.keyIngredients.filter(Boolean).slice(0, 4).join(", ") : "";
+ const noteParts = [info.safetyNote, ingList ? `Key ingredients: ${ingList}` : ""].filter(Boolean);
+ const nextNotes = noteParts.length ? noteParts.join(" • ") : (currentItem.notes || "");
+
  state.inventory[idx] = {
  ...currentItem,
+ name: sim >= 0.35 ? currentItem.name : currentItem.name,
  brand: info.brand || currentItem.brand || "",
  domain: nextDomain,
  category: nextCategory,
- notes: nextNotes || currentItem.notes || ""
+ notes: nextNotes
  };
  saveState();
  renderStash();
  if (status) {
- status.textContent = `✓ Updated "${currentItem.name}" by product name.`;
+ status.textContent = `✓ Updated "${currentItem.name}" (${nextCategory}).`;
  status.classList.remove("hidden");
  }
  return;
@@ -2235,7 +2279,7 @@
  } catch (_) {}
 
  if (status) {
- status.textContent = `Kept "${currentItem.name}" as entered—ready for routines & stash matching.`;
+ status.textContent = `No verified match found for "${currentItem.name}"—kept your entry unchanged.`;
  status.classList.remove("hidden");
  }
  }

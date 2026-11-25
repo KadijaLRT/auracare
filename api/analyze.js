@@ -301,8 +301,8 @@ export default async function handler(req, res) {
       const prodQuery = String(description || '').trim();
       if (!prodQuery) return res.status(400).json({ error: 'No product name provided.' });
 
-      const namePrompt = `Identify hair/face/body product "${prodQuery}" and return compact JSON (no newlines in strings):
-{"name":"${prodQuery.replace(/"/g, '')}","brand":"Brand","domain":"hair|skin|body","category":"Bond Repair|Clarifying / Chelating Shampoo|Conditioner|Deep Conditioner|Edge Control / Wax|Hair Dye|Hair Gel|Hair Oil / Sealant|Hair Relaxer|Heat Protectant|Leave-In / Mist|Moisturizer|Oil Sheen|Protein Treatment|Setting Mousse / Foam / Lotion|Shampoo|Wig / Braid Scalp & Edge Care|Face Cleanser|Face Moisturizer|Face Treatment|Sunscreen|Body Butter|Body Lotion / Cream|Body Oil|Body Powder / Dusting Powder|Body Scrub / Exfoliant|Body Wash / Bar Soap|Deodorant|Perfume / Scents|Other","keyIngredients":["ing1","ing2"],"safetyNote":"short chemistry/usage note"}`;
+      const namePrompt = `Identify the exact personal care product "${prodQuery.replace(/"/g, '')}" (hair, face, or body). If unsure of exact brand/ingredients, return empty strings/arrays rather than guessing an unrelated product. Return compact JSON only (no newlines in strings):
+{"name":"${prodQuery.replace(/"/g, '')}","brand":"Exact brand or empty string","domain":"hair|skin|body","category":"Bond Repair|Clarifying / Chelating Shampoo|Conditioner|Deep Conditioner|Edge Control / Wax|Hair Dye|Hair Gel|Hair Oil / Sealant|Hair Relaxer|Heat Protectant|Leave-In / Mist|Moisturizer|Oil Sheen|Protein Treatment|Setting Mousse / Foam / Lotion|Shampoo|Wig / Braid Scalp & Edge Care|Face Cleanser|Face Moisturizer|Face Treatment|Sunscreen|Body Butter|Body Lotion / Cream|Body Oil|Body Powder / Dusting Powder|Body Scrub / Exfoliant|Body Wash / Bar Soap|Deodorant|Perfume / Scents|Other","keyIngredients":[],"safetyNote":"concise usage/chemistry note or empty string"}`;
 
       try {
         const rawText = await callGroqChat(apiKey, 'openai/gpt-oss-120b', [{ role: 'user', content: namePrompt }], 0.2, 350, true);

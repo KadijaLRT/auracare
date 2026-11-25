@@ -1,3 +1,5 @@
-# AuraCare — Black Hair Chemistry, Face & Body Studio (v2.37)
+# AuraCare — Black Hair Chemistry, Face & Body Studio (v2.38)
 
-- Replaces photo rescanning on stash items with **Lookup** (`enrichStashItemByName`), which uses the product name you entered first (via free Open Beauty Facts lookup, with optional text-only `product_name` fallback) so you never have to rescan a label photo.
+- Fixes **Lookup** accuracy (`scoreProductNameMatch` & `enrichStashItemByName`):
+  - Checks top 5 Open Beauty Facts candidates and requires at least 50% token match against your entered product name so unrelated items are never applied.
+  - Preserves your exact entered product name and existing category unless a verified category is returned, and avoids guessing unrelated details in `mode: "product_name"`.
