@@ -775,7 +775,7 @@
  if (!box) return;
  box.innerHTML = options.map(opt => {
  const active = isMulti ? Array.isArray(currentVal) && currentVal.includes(opt) : currentVal === opt;
- return `<button type="button" onclick="${onClickFnName}('${fieldName}', '${opt.replace(/'/g, "'")}')" class="text-[11px] px-2.5 py-1.5 rounded-full border font-semibold transition ${active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#594E47] border-[#DDD4C8]"}">${active ? "✓ " : "+ "}${opt}</button>`;
+ return `<button type="button" onclick="${onClickFnName}('${fieldName}', '${opt.replace(/\\/g, "\\\\").replace(/'/g, "\\'")}')" class="text-[11px] px-2.5 py-1.5 rounded-full border font-semibold transition ${active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#594E47] border-[#DDD4C8]"}">${active ? "✓ " : "+ "}${opt}</button>`;
  }).join("");
  }
 
@@ -802,7 +802,7 @@
  const storeBox = document.getElementById("chips_stores");
  storeBox.innerHTML = ALL_STORES.map(store => {
  const active = (state.shoppingPrefs.stores || []).includes(store);
- return `<button type="button" onclick="toggleStorePref('${store}')" class="text-[11px] px-2.5 py-1.5 rounded-full border font-semibold transition ${active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#594E47] border-[#DDD4C8]"}">${active ? "✓ " : "+ "}${store}</button>`;
+ return `<button type="button" onclick="toggleStorePref('\$\{String(store).replace(/\\/g, \"\\\\\").replace(/'/g, \"\\'\")\}')" class="text-[11px] px-2.5 py-1.5 rounded-full border font-semibold transition ${active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#594E47] border-[#DDD4C8]"}">${active ? "✓ " : "+ "}${store}</button>`;
  }).join("");
 
  renderChipGroup("chips_proPrefs", PROFILE_OPTIONS.proPrefs, p.proPrefs, true, "toggleMultiOption", "proPrefs");
@@ -818,7 +818,7 @@
  const box = document.getElementById("hairModeChipsBox");
  box.innerHTML = HAIR_PROTECTIVE_MODES.map(m => {
  const active = state.currentHairState === m;
- return `<button type="button" onclick="setHairState('${m}')" class="text-[11px] px-2.5 py-1 rounded-full border font-semibold ${active ? "bg-[#A9772B] text-white border-[#A9772B]" : "bg-white text-[#594E47] border-[#DDD4C8]"}">${active ? "✓ " : ""}${m}</button>`;
+ return `<button type="button" onclick="setHairState('\$\{String(m).replace(/\\/g, \"\\\\\").replace(/'/g, \"\\'\")\}')" class="text-[11px] px-2.5 py-1 rounded-full border font-semibold ${active ? "bg-[#A9772B] text-white border-[#A9772B]" : "bg-white text-[#594E47] border-[#DDD4C8]"}">${active ? "✓ " : ""}${m}</button>`;
  }).join("");
  }
 
@@ -1047,13 +1047,13 @@
  const box = document.getElementById("triggerChipsBox");
  box.innerHTML = TRIGGER_FACTORS.map(t => {
  const active = state.activeTriggers.includes(t.label);
- return `<button type="button" onclick="toggleTrigger('${t.label}')" class="text-[11px] px-2.5 py-1 rounded-full border font-semibold ${active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#594E47] border-[#DDD4C8]"}">${active ? "✓ " : "+ "}${t.label}</button>`;
+ return `<button type="button" onclick="toggleTrigger('\$\{String(t.label).replace(/\\/g, \"\\\\\").replace(/'/g, \"\\'\")\}')" class="text-[11px] px-2.5 py-1 rounded-full border font-semibold ${active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#594E47] border-[#DDD4C8]"}">${active ? "✓ " : "+ "}${t.label}</button>`;
  }).join("");
  document.getElementById("stylingReferenceBox").innerHTML = STYLING_REFERENCE_GUIDE.map(sg => `<div class="p-3 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9]"><div class="font-bold text-[#231F1D]">${sg.title}</div><div class="text-[#594E47] mt-0.5">${sg.note}</div></div>`).join("");
  document.getElementById("proGuidanceBox").innerHTML = PRO_CATEGORIES.map(pc => `<div class="p-3 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9]"><div class="font-bold text-[#A9772B]">${pc.provider}</div><div class="text-[#594E47] mt-0.5">${pc.focus}</div></div>`).join("");
  document.getElementById("rootCauseCardsBox").innerHTML = TRIGGER_FACTORS.map(t => {
  const active = state.activeTriggers.includes(t.label);
- return `<div class="p-3 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] flex items-start justify-between gap-2"><div><div class="text-xs font-bold">${t.label} <span class="text-[10px] uppercase text-[#726862]">(${t.domain})</span></div><div class="text-xs text-[#594E47] mt-0.5">${t.note}</div></div><button type="button" onclick="toggleTrigger('${t.label}')" class="text-[11px] font-semibold px-2 py-1 rounded-lg border shrink-0 ${active ? "bg-[#231F1D] text-white" : "bg-white"}">${active ? "Active" : "Track"}</button></div>`;
+ return `<div class="p-3 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] flex items-start justify-between gap-2"><div><div class="text-xs font-bold">${t.label} <span class="text-[10px] uppercase text-[#726862]">(${t.domain})</span></div><div class="text-xs text-[#594E47] mt-0.5">${t.note}</div></div><button type="button" onclick="toggleTrigger('\$\{String(t.label).replace(/\\/g, \"\\\\\").replace(/'/g, \"\\'\")\}')" class="text-[11px] font-semibold px-2 py-1 rounded-lg border shrink-0 ${active ? "bg-[#231F1D] text-white" : "bg-white"}">${active ? "Active" : "Track"}</button></div>`;
  }).join("");
  }
 
@@ -1198,6 +1198,83 @@
  return item.domain === domain;
  }).slice(0, 4);
  }
+
+    const BRAND_SYSTEM_SETS = [
+      {
+        brandKey: "olaplex",
+        brandLabel: "Olaplex Bond System",
+        domain: "hair",
+        steps: [
+          { role: "prep", regex: /olaplex.*no\.?\s*0\b/i, name: "Olaplex No. 0 Intensive Bond Building Hair Treatment", category: "Bond Repair", priceNum: 30, stores: ["Ulta Beauty", "Amazon", "Target"], why: "Primes hair before Olaplex No. 3 and No. 4 for deeper bond repair." },
+          { role: "treat", regex: /olaplex.*no\.?\s*3\b/i, name: "Olaplex No. 3 Hair Perfector", category: "Bond Repair", priceNum: 28, stores: ["Ulta Beauty", "Amazon", "Target"], why: "Pre-shampoo bond treatment that pairs directly with Olaplex No. 4 & No. 5." },
+          { role: "cleanse", regex: /olaplex.*no\.?\s*4[a-z]?\b/i, name: "Olaplex No. 4 Bond Maintenance Shampoo", category: "Shampoo", priceNum: 30, stores: ["Ulta Beauty", "Amazon", "Target"], why: "Bond-building shampoo in the Olaplex system." },
+          { role: "condition", regex: /olaplex.*no\.?\s*(5[a-z]?|8)\b/i, name: "Olaplex No. 5 Bond Maintenance Conditioner", category: "Conditioner", priceNum: 30, stores: ["Ulta Beauty", "Amazon", "Target"], why: "Companion conditioner designed to follow Olaplex No. 4 Shampoo." },
+          { role: "leavein", regex: /olaplex.*no\.?\s*(6|9|5l)\b/i, name: "Olaplex No. 6 Bond Smoother", category: "Leave-In / Mist", priceNum: 30, stores: ["Ulta Beauty", "Amazon", "Target"], why: "Leave-in smoothing cream that completes the Olaplex wash-and-style system." },
+          { role: "seal", regex: /olaplex.*no\.?\s*7\b/i, name: "Olaplex No. 7 Bonding Oil", category: "Hair Oil / Sealant", priceNum: 30, stores: ["Ulta Beauty", "Amazon", "Target"], why: "Lightweight bonding oil for shine, heat protection, and sealing after No. 4 & No. 5." }
+        ]
+      },
+      {
+        brandKey: "aunt jackie",
+        brandLabel: "Aunt Jackie's Moisture & Curl System",
+        domain: "hair",
+        steps: [
+          { role: "cleanse", regex: /aunt jackie.*(coco wash|oh so clean|shampoo|cleanser)/i, name: "Aunt Jackie's Coco Wash Coconut Milk Conditioning Cleanser", category: "Shampoo", priceNum: 10, stores: ["Sally Beauty", "Target", "Walmart", "Ulta Beauty", "Amazon"], why: "Sulfate-free cleanser designed to pair with Aunt Jackie's conditioners and stylers." },
+          { role: "condition", regex: /aunt jackie.*(in control|coco repair|fix my hair|conditioner|masque)/i, name: "Aunt Jackie's In Control Moisturizing & Softening Conditioner", category: "Conditioner", priceNum: 10, stores: ["Sally Beauty", "Target", "Walmart", "Ulta Beauty", "Amazon"], why: "Softening conditioner that detangles and prepares strands for Aunt Jackie's leave-ins." },
+          { role: "leavein", regex: /aunt jackie.*(quench|knot on my watch|transform|leave-in)/i, name: "Aunt Jackie's Quench Moisture Intensive Leave-In Conditioner", category: "Leave-In / Mist", priceNum: 8, stores: ["Sally Beauty", "Target", "Walmart", "Ulta Beauty", "Amazon"], why: "Lightweight leave-in step before applying Aunt Jackie's Curl La La or gels." },
+          { role: "style", regex: /aunt jackie.*(curl la la|don't shrink|curl boss|ice curls|custard|gel)/i, name: "Aunt Jackie's Curl La La Defining Curl Custard", category: "Moisturizer", priceNum: 10, stores: ["Sally Beauty", "Target", "Walmart", "Ulta Beauty", "Amazon"], why: "Defines curls and adds moisture in the Aunt Jackie's styling system." },
+          { role: "seal", regex: /aunt jackie.*(elixir|butter creme|balance|oil|sealant)/i, name: "Aunt Jackie's Coconut Butter Creme Intensive Moisture Sealant", category: "Hair Oil / Sealant", priceNum: 11, stores: ["Sally Beauty", "Target", "Walmart", "Amazon"], why: "Seals in moisture after Aunt Jackie's leave-in and styler." }
+        ]
+      },
+      {
+        brandKey: "aphogee",
+        brandLabel: "ApHogee Protein & Strengthening System",
+        domain: "hair",
+        steps: [
+          { role: "cleanse", regex: /aphogee.*shampoo/i, name: "ApHogee Shampoo for Damaged Hair", category: "Shampoo", priceNum: 11, stores: ["Sally Beauty", "Amazon"], why: "Gently cleanses hair before ApHogee protein and keratin treatments." },
+          { role: "treat", regex: /aphogee.*(keratin|two-step|2-step|protein|restructurizer)/i, name: "ApHogee Keratin & Green Tea Restructurizer", category: "Protein Treatment", priceNum: 13, stores: ["Sally Beauty", "Amazon"], why: "Rebuilds weak spots with keratin protein and green tea." },
+          { role: "condition", regex: /aphogee.*balancing moisturizer/i, name: "ApHogee Balancing Moisturizer", category: "Conditioner", priceNum: 12, stores: ["Sally Beauty", "Amazon"], why: "Essential moisture companion after ApHogee protein treatments to keep hair soft." }
+        ]
+      },
+      {
+        brandKey: "mizani",
+        brandLabel: "Mizani Moisture & Thermal System",
+        domain: "hair",
+        steps: [
+          { role: "cleanse", regex: /mizani.*shampoo/i, name: "Mizani Moisture Fusion Moisture Rich Shampoo", category: "Shampoo", priceNum: 24, stores: ["Ulta Beauty", "Sally Beauty", "Amazon"], why: "Hydrating cleanser in the Mizani Moisture Fusion line." },
+          { role: "condition", regex: /mizani.*(intense moisturizing|conditioner|mask)/i, name: "Mizani Moisture Fusion Intense Moisturizing Mask", category: "Deep Conditioner", priceNum: 28, stores: ["Ulta Beauty", "Sally Beauty", "Amazon"], why: "Companion moisture mask that pairs with Mizani Miracle Milk." },
+          { role: "leavein", regex: /mizani.*miracle milk/i, name: "Mizani Miracle Milk Leave-In Conditioner", category: "Leave-In / Mist", priceNum: 22, stores: ["Ulta Beauty", "Sally Beauty", "Amazon"], why: "25-benefit leave-in conditioning milk and heat prep." },
+          { role: "seal", regex: /mizani.*(nourishing oil|oil|thermactive)/i, name: "Mizani 25 Miracle Nourishing Oil", category: "Hair Oil / Sealant", priceNum: 28, stores: ["Ulta Beauty", "Sally Beauty", "Amazon"], why: "Lightweight oil blend that seals after Mizani Miracle Milk." }
+        ]
+      },
+      {
+        brandKey: "cerave",
+        brandLabel: "CeraVe Ceramide Barrier System",
+        domain: "skin",
+        steps: [
+          { role: "cleanse", regex: /cerave.*cleanser/i, name: "CeraVe Hydrating Facial Cleanser", category: "Face Cleanser", priceNum: 16, stores: ["Target", "Walmart", "CVS", "Walgreens", "Ulta Beauty", "Amazon"], why: "Gentle ceramide cleanser in the CeraVe daily routine." },
+          { role: "moisturize", regex: /cerave.*(moisturizing cream|daily moisturizing lotion|pm facial)/i, name: "CeraVe Moisturizing Cream", category: "Face Moisturizer", priceNum: 19, stores: ["Target", "Walmart", "CVS", "Walgreens", "Ulta Beauty", "Amazon"], why: "Companion ceramide moisturizer to follow CeraVe Cleanser." },
+          { role: "protect", regex: /cerave.*(am facial|sunscreen|spf)/i, name: "CeraVe AM Facial Moisturizing Lotion SPF 30", category: "Sunscreen", priceNum: 18, stores: ["Target", "Walmart", "CVS", "Walgreens", "Ulta Beauty", "Amazon"], why: "Daytime SPF step in the CeraVe system." }
+        ]
+      }
+    ];
+
+    function detectActiveBrandSystems(inventory) {
+      const inv = Array.isArray(inventory) ? inventory : [];
+      const active = [];
+      BRAND_SYSTEM_SETS.forEach(sys => {
+        const ownedInSet = [];
+        const missingInSet = [];
+        sys.steps.forEach(st => {
+          const match = inv.find(i => i.domain === sys.domain && sys.brandKey && String(i.name || "").toLowerCase().includes(sys.brandKey) && st.regex.test(String(i.name || "")));
+          if (match) ownedInSet.push({ role: st.role, item: match });
+          else missingInSet.push(st);
+        });
+        if (ownedInSet.length > 0) {
+          active.push({ system: sys, owned: ownedInSet, missing: missingInSet });
+        }
+      });
+      return active;
+    }
 
     const CATALOG_CANDIDATES = [
       {
@@ -1422,7 +1499,43 @@
       }) || null;
     }
 
-    function resolveStepProduct({ domain, keywordsRegex, fallbackCategory, maxPrice, stores, inventory, triggers, profile, additionsCollector }) {
+    function resolveStepProduct({ domain, roleHint, keywordsRegex, fallbackCategory, maxPrice, stores, inventory, triggers, profile, additionsCollector }) {
+      const activeSystems = detectActiveBrandSystems(inventory).filter(s => s.system.domain === domain);
+      for (const act of activeSystems) {
+        if (roleHint) {
+          const ownedRole = act.owned.find(o => o.role === roleHint);
+          if (ownedRole) {
+            return {
+              source: "stash",
+              label: `${ownedRole.item.name} (${act.system.brandLabel} — From Stash)`
+            };
+          }
+          const missingRole = act.missing.find(m => m.role === roleHint && m.priceNum <= maxPrice);
+          if (missingRole) {
+            const st = (stores || []).find(s => missingRole.stores.map(x => x.toLowerCase()).includes(s.toLowerCase())) || missingRole.stores[0] || "Target";
+            const priceStr = `$${missingRole.priceNum.toFixed(2)}`;
+            if (additionsCollector && !additionsCollector.some(x => x.name === missingRole.name)) {
+              additionsCollector.push({
+                name: missingRole.name,
+                domain,
+                category: missingRole.category,
+                price: priceStr,
+                estimatedPrice: priceStr,
+                bestStore: st,
+                store: st,
+                alsoAt: missingRole.stores.filter(s => s.toLowerCase() !== st.toLowerCase()).slice(0, 2).join(", "),
+                whyItFits: missingRole.why,
+                reason: `${missingRole.why} Completes your ${act.system.brandLabel}.`
+              });
+            }
+            return {
+              source: "store",
+              label: `Complete ${act.system.brandLabel}: ${missingRole.name} (${priceStr} at ${st})`
+            };
+          }
+        }
+      }
+
       const owned = findStashItemByKeyword(domain, keywordsRegex);
       if (owned) {
         return {
@@ -1479,6 +1592,29 @@
       const stores = getEffectiveStores();
       const recs = [];
 
+      // Prioritize completing any brand set already started in My Stash (e.g. Olaplex, Aunt Jackie's, ApHogee, Mizani, CeraVe)
+      const activeSystems = detectActiveBrandSystems(inv);
+      activeSystems.forEach(act => {
+        act.missing.filter(m => m.priceNum <= maxP).slice(0, 2).forEach(m => {
+          if (!recs.some(r => r.name === m.name)) {
+            const st = (stores || []).find(s => m.stores.map(x => x.toLowerCase()).includes(s.toLowerCase())) || m.stores[0] || "Target";
+            recs.push({
+              name: m.name,
+              domain: act.system.domain,
+              category: m.category,
+              price: `$${m.priceNum.toFixed(2)}`,
+              numericPrice: m.priceNum,
+              bestStore: st,
+              alsoAt: m.stores.filter(s => s.toLowerCase() !== st.toLowerCase()).slice(0, 2).join(", "),
+              store: st,
+              estimatedPrice: `$${m.priceNum.toFixed(2)}`,
+              whyItFits: `${m.why} Completes your ${act.system.brandLabel}.`,
+              reason: `${m.why} Completes your ${act.system.brandLabel}.`
+            });
+          }
+        });
+      });
+
       const hairPicks = pickRelevantCatalogItems({ domain: "hair", maxPrice: maxP, stores, inventory: inv, triggers: state.activeTriggers, profile: state.profile, limit: 2 });
       const skinPicks = pickRelevantCatalogItems({ domain: "skin", maxPrice: maxP, stores, inventory: inv, triggers: state.activeTriggers, profile: state.profile, limit: 1 });
       const bodyPicks = pickRelevantCatalogItems({ domain: "body", maxPrice: maxP, stores, inventory: inv, triggers: state.activeTriggers, profile: state.profile, limit: 1 });
@@ -1499,6 +1635,7 @@
 
       const hairCleanPick = resolveStepProduct({
         domain: "hair",
+        roleHint: "cleanse",
         keywordsRegex: /shampoo|cleanser|clarifying|bond repair/i,
         fallbackCategory: "Bond Repair",
         maxPrice: maxP,
@@ -1510,6 +1647,7 @@
       });
       const hairCondPick = resolveStepProduct({
         domain: "hair",
+        roleHint: "condition",
         keywordsRegex: /conditioner|deep conditioner|leave-in|mist|moisturizer/i,
         fallbackCategory: "Leave-In / Mist",
         maxPrice: maxP,
@@ -1521,6 +1659,7 @@
       });
       const hairStylePick = resolveStepProduct({
         domain: "hair",
+        roleHint: "seal",
         keywordsRegex: /oil sheen|sheen|gel|edge|wax|oil|heat/i,
         fallbackCategory: "Oil Sheen",
         maxPrice: maxP,
@@ -1533,6 +1672,7 @@
 
       const skinCleanPick = resolveStepProduct({
         domain: "skin",
+        roleHint: "cleanse",
         keywordsRegex: /cleanser|wash/i,
         fallbackCategory: "Face Cleanser",
         maxPrice: maxP,
@@ -1544,6 +1684,7 @@
       });
       const skinMoistPick = resolveStepProduct({
         domain: "skin",
+        roleHint: "moisturize",
         keywordsRegex: /moisturizer|cream|lotion|sunscreen|spf|treatment/i,
         fallbackCategory: "Face Moisturizer",
         maxPrice: maxP,
@@ -1556,6 +1697,7 @@
 
       const bodyCleanPick = resolveStepProduct({
         domain: "body",
+        roleHint: "cleanse",
         keywordsRegex: /wash|soap|scrub|cleanser/i,
         fallbackCategory: "Body Wash / Bar Soap",
         maxPrice: maxP,
@@ -1567,6 +1709,7 @@
       });
       const bodyMoistPick = resolveStepProduct({
         domain: "body",
+        roleHint: "moisturize",
         keywordsRegex: /lotion|butter|oil|powder/i,
         fallbackCategory: "Body Lotion / Cream",
         maxPrice: maxP,
@@ -1700,9 +1843,24 @@
           }
         }
 
-        if (needsReassign && roleRegex) {
+        let inferredRole = null;
+        if (domain === "hair") {
+          if (/\bprep\b|dampen|mist/i.test(stepKey)) inferredRole = "prep";
+          else if (/\bcleanse\b|shampoo|wash/i.test(stepKey)) inferredRole = "cleanse";
+          else if (/\bcondition|deep condition/i.test(stepKey)) inferredRole = "condition";
+          else if (/\btreat|bond|protein|repair/i.test(stepKey)) inferredRole = "treat";
+          else if (/\bstyle|styling|curl|define/i.test(stepKey)) inferredRole = "style";
+          else if (/\bseal\b|oil|sheen|edge/i.test(stepKey)) inferredRole = "seal";
+        } else if (domain === "skin") {
+          if (/\bcleanse|wash/i.test(stepKey)) inferredRole = "cleanse";
+          else if (/\bmoistur|cream|lotion/i.test(stepKey)) inferredRole = "moisturize";
+          else if (/\bspf|sunscreen|protect/i.test(stepKey)) inferredRole = "protect";
+        }
+
+        if ((needsReassign || inferredRole) && roleRegex) {
           const picked = resolveStepProduct({
             domain,
+            roleHint: inferredRole,
             keywordsRegex: roleRegex,
             fallbackCategory: stepTitle,
             maxPrice: maxP,
@@ -1711,7 +1869,11 @@
             triggers: state.activeTriggers,
             profile: state.profile
           });
-          roleCat = picked.label;
+          if (needsReassign || picked.label.includes("Complete ")) {
+            roleCat = picked.label;
+          } else {
+            roleCat = rawProd;
+          }
         } else if (needsReassign) {
           roleCat = fb.productUsed;
         } else {
@@ -2013,7 +2175,7 @@
  const box = document.getElementById("storeChipsContainer");
  box.innerHTML = ALL_STORES.map(store => {
  const active = (state.shoppingPrefs.stores || []).includes(store);
- return `<button type="button" onclick="toggleStorePref('${store}')" class="px-2.5 py-1 rounded-full text-xs font-semibold border ${active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#726862] border-[#DDD4C8]"}">${active ? "✓ " : "+ "}${store}</button>`;
+ return `<button type="button" onclick="toggleStorePref('\$\{String(store).replace(/\\/g, \"\\\\\").replace(/'/g, \"\\'\")\}')" class="px-2.5 py-1 rounded-full text-xs font-semibold border ${active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#726862] border-[#DDD4C8]"}">${active ? "✓ " : "+ "}${store}</button>`;
  }).join("");
  }
 

@@ -1,5 +1,5 @@
 async function callGroqChat(apiKey, model, messages, temperature = 0.2, max_tokens = 650, jsonMode = true) {
-  const safeMaxTokens = Math.min(Number(max_tokens) || 650, 750);
+  const safeMaxTokens = Math.min(Number(max_tokens) || 650, 950);
   const baseBody = {
     model,
     temperature,
@@ -70,6 +70,11 @@ function sanitizeJsonString(rawText) {
       continue;
     }
     if (ch === '\\' && inString) {
+      const nextCh = cleaned[i + 1] || '';
+      if (!/["\\/bfnrtu]/.test(nextCh)) {
+        out += '\\\\';
+        continue;
+      }
       out += ch;
       escaped = true;
       continue;
@@ -322,7 +327,7 @@ JSON only:
       ? shoppingPrefs.stores.join(', ')
       : 'Any';
 
-    const systemInstructions = `Step-by-step care plan optimizing product usage without claiming stash items are missing unless verified in Stash (thin-to-thick order, measured amounts, damp-skin prep) and avoiding clashing/competing products; pull from stash first, recommend compatible items <=${maxPrice} at [${stores}]. ${lowEnergyMode ? '2 short steps max per routine.' : 'Short steps.'} Single-line JSON only:
+    const systemInstructions = `Step-by-step care plan optimizing product usage without claiming stash items are missing unless verified in Stash (thin-to-thick order, measured amounts, damp-skin prep) and avoiding clashing/competing products; pull from stash first and pair full brand systems together when a brand step is owned (e.g., Olaplex No.0->3->4->5->6/7, Aunt Jackie's, ApHogee, Mizani, CeraVe), recommending missing companion steps from that brand system <=${maxPrice} at [${stores}]. ${lowEnergyMode ? '2 short steps max per routine.' : 'Short steps.'} Single-line JSON only:
 {"climateImpact":"1 sentence","rootCauseInsights":[{"cause":"C","fix":"F"}],"hairAssessment":"1 sentence","skinAssessment":"1 sentence","hairRoutine":[{"step":"S","detail":"D","productUsed":"Stash item","essential":true}],"stylingGuide":{"method":"${selectedStylingMethod}","prepAndProtection":"Prep","recommendedProducts":[{"productType":"T","suggestion":"Item","howToUse":"Use"}],"techniqueAndTakedown":"Tip"},"skinRoutine":[{"step":"S","detail":"D","productUsed":"Stash item","essential":true}],"bodyRoutine":[{"step":"S","detail":"D","productUsed":"Stash item","essential":true}],"proTreatments":[{"provider":"Salon|Dermatologist|Esthetician","treatment":"T","why":"W","cadence":"C"}],"missingProducts":[{"name":"N","domain":"hair|skin|body","store":"S","reason":"R","estimatedPrice":"$12.99"}]}`;
 
     const userPrompt = `Note:${description || 'None'} Mode:${currentHairState} Style:${selectedStylingMethod} Triggers:${(activeTriggers || []).join(',') || 'None'} Profile:${JSON.stringify(profile || {})} Weather:${JSON.stringify(weather || {})} Stash:${JSON.stringify((inventory || []).slice(0, 15))}`;
@@ -346,11 +351,11 @@ JSON only:
     const fallbackModel = imageBase64 ? 'openai/gpt-oss-120b' : 'qwen/qwen3.8-27b';
 
     try {
-      const rawText = await callGroqChat(apiKey, primaryModel, messages, 0.25, 700, true);
+      const rawText = await callGroqChat(apiKey, primaryModel, messages, 0.25, 850, true);
       return res.status(200).json({ result: parseJsonLoose(rawText) });
     } catch (_) {
       try {
-        const rawText = await callGroqChat(apiKey, fallbackModel, messages, 0.25, 700, true);
+        const rawText = await callGroqChat(apiKey, fallbackModel, messages, 0.25, 850, true);
         return res.status(200).json({ result: parseJsonLoose(rawText) });
       } catch (__) {
         return res.status(200).json({
