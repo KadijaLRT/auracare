@@ -341,10 +341,13 @@
               <option value="Clarifying / Chelating Shampoo">Clarifying / Chelating Shampoo</option>
               <option value="Deep Conditioner">Deep Conditioner</option>
               <option value="Protein Treatment">Protein Treatment</option>
+              <option value="Hair Relaxer">Hair Relaxer</option>
               <option value="Leave-In / Mist">Leave-In / Mist</option>
               <option value="Hair Oil / Sealant">Hair Oil / Sealant</option>
+              <option value="Oil Sheen">Oil Sheen</option>
               <option value="Heat Protectant">Heat Protectant</option>
               <option value="Setting Mousse / Foam / Lotion">Setting Mousse / Foam / Lotion</option>
+              <option value="Edge Control / Wax">Edge Control / Wax</option>
               <option value="Wig / Braid Scalp & Edge Care">Wig / Braid Scalp &amp; Edge Care</option>
               <option value="Face Cleanser">Face Cleanser</option>
               <option value="Face Treatment">Face Treatment</option>
@@ -571,7 +574,7 @@
 
     function loadInitialState() {
       try {
-        const rawLocal = localStorage.getItem("auracare_blank_state_v212");
+        const rawLocal = localStorage.getItem("auracare_blank_state_v213");
         if (rawLocal) return normalizeState(JSON.parse(rawLocal));
       } catch (_) {}
       try {
@@ -589,7 +592,7 @@
     function saveState() {
       state = normalizeState(state);
       try {
-        localStorage.setItem("auracare_blank_state_v212", JSON.stringify(state));
+        localStorage.setItem("auracare_blank_state_v213", JSON.stringify(state));
       } catch (err) {
         try {
           window.name = JSON.stringify(state);
@@ -599,7 +602,7 @@
 
     function wipeAllToBlank() {
       if (!confirm("Wipe all profile selections, owned products, and saved results back to completely blank?")) return;
-      localStorage.removeItem("auracare_blank_state_v212");
+      localStorage.removeItem("auracare_blank_state_v213");
       state = createBlankState();
       pendingCheckinImage = null;
       document.getElementById("aiResultContainer").innerHTML = "";
@@ -1122,8 +1125,9 @@
 
     const STASH_CATEGORIES = [
       "Bond Repair", "Shampoo", "Clarifying / Chelating Shampoo", "Deep Conditioner",
-      "Protein Treatment", "Leave-In / Mist", "Hair Oil / Sealant", "Heat Protectant",
-      "Setting Mousse / Foam / Lotion", "Wig / Braid Scalp & Edge Care",
+      "Protein Treatment", "Hair Relaxer", "Leave-In / Mist", "Hair Oil / Sealant",
+      "Oil Sheen", "Heat Protectant", "Setting Mousse / Foam / Lotion",
+      "Edge Control / Wax", "Wig / Braid Scalp & Edge Care",
       "Face Cleanser", "Face Treatment", "Face Moisturizer", "Sunscreen",
       "Body Wash / Bar Soap", "Body Scrub / Exfoliant", "Body Lotion / Cream",
       "Body Butter", "Body Oil", "Body Powder / Dusting Powder", "Other"

@@ -1,5 +1,3 @@
-# AuraCare — Blank-Slate Hair, Face & Body Studio (v2.12)
+# AuraCare — Blank-Slate Hair, Face & Body Studio (v2.13)
 
-Adds inline **Edit** and **Delete** controls to every item in **My Stash** (`index.html` & `public/index.html`):
-- Tap **Edit** on any saved product to update its name, domain (`Hair & Styling`, `Face Skin Care`, `Body Care`), category, or notes, then save or cancel.
-- Tap **Delete** on any saved product to remove it immediately and persist the change.
+Adds **Hair Relaxer**, **Oil Sheen**, and **Edge Control / Wax** to the stash category selection list (`#manCategory` and `STASH_CATEGORIES` for inline editing) as well as `api/analyze.js`.
