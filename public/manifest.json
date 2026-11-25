@@ -1,17 +1,17 @@
 {
-  "name": "AuraCare — Blank-Slate Hair, Face & Body Studio",
-  "short_name": "AuraCare",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#FAF8F5",
-  "theme_color": "#B8863B",
-  "description": "Selectable Profile Builder, Relaxed & Colored Hair Care, Wigs & Braids, Curling Iron & Roller Product Guide, Face & Body Care (with Homemade Body Powder) & Store Finder",
-  "icons": [
-    {
-      "src": "/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    }
-  ]
+ "name": "AuraCare — Blank-Slate Hair, Face & Body Studio",
+ "short_name": "AuraCare",
+ "start_url": "/",
+ "display": "standalone",
+ "background_color": "#FAF8F5",
+ "theme_color": "#B8863B",
+ "description": "Selectable Profile Builder, Relaxed & Colored Hair Care, Wigs & Braids, Curling Iron & Roller Product Guide, Face & Body Care (with Homemade Body Powder) & Store Finder",
+ "icons": [
+ {
+ "src": "/icon.svg",
+ "sizes": "any",
+ "type": "image/svg+xml",
+ "purpose": "any maskable"
+ }
+ ]
 }

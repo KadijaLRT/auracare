@@ -1,7 +1,3 @@
-# AuraCare — Blank-Slate Hair, Face & Body Studio (v2.21)
+# AuraCare — Hair, Face & Body Studio (v2.25)
 
-Minimizes API token consumption across both the client (`index.html` / `public/index.html`) and serverless API (`api/analyze.js`):
-- Strips empty/blank profile fields (`compactProfileForApi`) and caps stash items in prompts to the top 20/15 compact entries.
-- Compresses label scan photos to `512px` (`0.72` JPEG) and check-in photos to `640px` (`0.75` JPEG) to cut vision token usage.
-- Caches identical check-in and store-match requests in memory (`clientApiCache`) so repeated clicks cost 0 tokens.
-- Tightens prompt wording and caps `max_tokens` (`450` for label scans, `650` for shop recs, `700` for routines).
+- Adds **step-by-step routines** for **Hair**, **Face**, and **Body** that optimize product usage (application order, measured amounts, damp-skin layering) and avoid recommending products that clash or keep each other from working well (`isCompatibleWithContext`).

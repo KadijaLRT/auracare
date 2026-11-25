@@ -1,1233 +1,1465 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="AuraCare" />
-  <meta name="theme-color" content="#FAF8F5" />
-  <link rel="manifest" href="/manifest.json" />
-  <link rel="apple-touch-icon" href="/icon.svg" />
-  <title>AuraCare — Blank Profile &amp; Care Studio</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    :root {
-      --bg: #FAF8F5;
-      --card: #FFFFFF;
-      --ink: #231F1D;
-      --muted: #726862;
-      --gold: #A9772B;
-    }
-    body {
-      background-color: var(--bg);
-      color: var(--ink);
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
-      padding-top: env(safe-area-inset-top);
-      padding-bottom: calc(88px + env(safe-area-inset-bottom));
-      -webkit-tap-highlight-color: transparent;
-    }
-    .tab-active { color: var(--gold); font-weight: 700; }
-    .card {
-      background: var(--card);
-      border: 1px solid #EAE3D9;
-      border-radius: 20px;
-      box-shadow: 0 2px 10px rgba(35, 31, 29, 0.03);
-    }
-  </style>
+ <meta charset="UTF-8" />
+ <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+ <meta name="apple-mobile-web-app-capable" content="yes" />
+ <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+ <meta name="apple-mobile-web-app-title" content="AuraCare" />
+ <meta name="theme-color" content="#FAF8F5" />
+ <link rel="manifest" href="/manifest.json" />
+ <link rel="apple-touch-icon" href="/icon.svg" />
+ <title>AuraCare — Blank Profile &amp; Care Studio</title>
+ <script src="https://cdn.tailwindcss.com"></script>
+ <style>
+ :root {
+ --bg: #FAF8F5;
+ --card: #FFFFFF;
+ --ink: #231F1D;
+ --muted: #726862;
+ --gold: #A9772B;
+ }
+ body {
+ background-color: var(--bg);
+ color: var(--ink);
+ font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+ padding-top: env(safe-area-inset-top);
+ padding-bottom: calc(88px + env(safe-area-inset-bottom));
+ -webkit-tap-highlight-color: transparent;
+ }
+ .tab-active { color: var(--gold); font-weight: 700; }
+ .card {
+ background: var(--card);
+ border: 1px solid #EAE3D9;
+ border-radius: 20px;
+ box-shadow: 0 2px 10px rgba(35, 31, 29, 0.03);
+ }
+ </style>
 </head>
 <body>
-  <header class="sticky top-0 z-30 bg-[#FAF8F5]/95 backdrop-blur-md border-b border-[#EAE3D9] px-4 py-3 flex items-center justify-between gap-2">
-    <div class="min-w-0">
-      <div class="flex items-center gap-2">
-        <span class="text-lg font-bold tracking-tight truncate">AuraCare</span>
-        <span id="profileStatusPill" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 shrink-0">Blank Profile</span>
-      </div>
-      <p id="climateSummaryBar" class="text-xs text-[#726862] mt-0.5 truncate">Set location in Profile &amp; Pro for weather &amp; AQI</p>
-    </div>
-    <div class="flex items-center gap-1.5 shrink-0">
-      <button id="energyToggleBtn" type="button" onclick="toggleEnergyMode()" class="px-2.5 py-1.5 rounded-full text-xs font-semibold border bg-white border-[#DDD4C8] flex items-center gap-1">
-        <span id="energyIcon">🔋</span>
-        <span id="energyLabel">Full</span>
-      </button>
-      <button type="button" onclick="wipeAllToBlank()" title="Wipe everything back to blank" class="px-2.5 py-1.5 rounded-full text-xs font-semibold border border-red-200 bg-red-50 text-red-700">
-        Reset Blank
-      </button>
-    </div>
-  </header>
+ <header class="sticky top-0 z-30 bg-[#FAF8F5]/95 backdrop-blur-md border-b border-[#EAE3D9] px-4 py-3 flex items-center justify-between gap-2">
+ <div class="min-w-0">
+ <div class="flex items-center gap-2">
+ <span class="text-lg font-bold tracking-tight truncate">AuraCare</span>
+ <span id="profileStatusPill" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 shrink-0">Blank Profile</span>
+ </div>
+ <p id="climateSummaryBar" class="text-xs text-[#726862] mt-0.5 truncate">Set location in Profile &amp; Pro for weather &amp; AQI</p>
+ </div>
+ <div class="flex items-center gap-1.5 shrink-0">
+ <button id="energyToggleBtn" type="button" onclick="toggleEnergyMode()" class="px-2.5 py-1.5 rounded-full text-xs font-semibold border bg-white border-[#DDD4C8] flex items-center gap-1">
+ <span id="energyIcon">🔋</span>
+ <span id="energyLabel">Full</span>
+ </button>
+ <button type="button" onclick="wipeAllToBlank()" title="Wipe everything back to blank" class="px-2.5 py-1.5 rounded-full text-xs font-semibold border border-red-200 bg-red-50 text-red-700">
+ Reset Blank
+ </button>
+ </div>
+ </header>
 
-  <main class="max-w-lg mx-auto px-4 pt-4 space-y-4">
+ <main class="max-w-lg mx-auto px-4 pt-4 space-y-4">
 <section id="tab-checkin" class="space-y-4">
-      <div class="card p-4 bg-gradient-to-br from-white to-[#F8F3EA]">
-        <div class="flex items-center justify-between mb-2">
-          <div class="flex items-center gap-2">
-            <span>🌤️</span>
-            <h2 class="text-sm font-bold" id="locationHeading">No Location Set</h2>
-          </div>
-          <button type="button" onclick="fetchLocalClimate()" class="text-xs font-semibold text-[#A9772B] underline">Refresh Weather/AQI</button>
-        </div>
-        <div class="grid grid-cols-4 gap-2 text-center my-2">
-          <div class="bg-white rounded-xl p-2 border border-[#EAE3D9]">
-            <div class="text-[10px] text-[#726862]">TEMP</div>
-            <div id="wTemp" class="text-sm font-bold">--</div>
-          </div>
-          <div class="bg-white rounded-xl p-2 border border-[#EAE3D9]">
-            <div class="text-[10px] text-[#726862]">HUMIDITY</div>
-            <div id="wHumidity" class="text-sm font-bold">--</div>
-          </div>
-          <div class="bg-white rounded-xl p-2 border border-[#EAE3D9]">
-            <div class="text-[10px] text-[#726862]">UV</div>
-            <div id="wUV" class="text-sm font-bold">--</div>
-          </div>
-          <div class="bg-white rounded-xl p-2 border border-[#EAE3D9]">
-            <div class="text-[10px] text-[#726862]">AQI</div>
-            <div id="wAQI" class="text-sm font-bold">--</div>
-          </div>
-        </div>
-        <p id="climateAdviceText" class="text-xs text-[#594E47]">Select or enter your city in the <strong>Profile &amp; Pro</strong> tab to pull live weather, humidity, UV, and AQI.</p>
-      </div>
+ <div class="card p-4 bg-gradient-to-br from-white to-[#F8F3EA]">
+ <div class="flex items-center justify-between mb-2">
+ <div class="flex items-center gap-2">
+ <span>🌤️</span>
+ <h2 class="text-sm font-bold" id="locationHeading">No Location Set</h2>
+ </div>
+ <button type="button" onclick="fetchLocalClimate()" class="text-xs font-semibold text-[#A9772B] underline">Refresh Weather/AQI</button>
+ </div>
+ <div class="grid grid-cols-4 gap-2 text-center my-2">
+ <div class="bg-white rounded-xl p-2 border border-[#EAE3D9]">
+ <div class="text-[10px] text-[#726862]">TEMP</div>
+ <div id="wTemp" class="text-sm font-bold">--</div>
+ </div>
+ <div class="bg-white rounded-xl p-2 border border-[#EAE3D9]">
+ <div class="text-[10px] text-[#726862]">HUMIDITY</div>
+ <div id="wHumidity" class="text-sm font-bold">--</div>
+ </div>
+ <div class="bg-white rounded-xl p-2 border border-[#EAE3D9]">
+ <div class="text-[10px] text-[#726862]">UV</div>
+ <div id="wUV" class="text-sm font-bold">--</div>
+ </div>
+ <div class="bg-white rounded-xl p-2 border border-[#EAE3D9]">
+ <div class="text-[10px] text-[#726862]">AQI</div>
+ <div id="wAQI" class="text-sm font-bold">--</div>
+ </div>
+ </div>
+ <p id="climateAdviceText" class="text-xs text-[#594E47]">Select or enter your city in the <strong>Profile &amp; Pro</strong> tab to pull live weather, humidity, UV, and AQI.</p>
+ </div>
 
-      <div class="card p-4 space-y-3">
-        <h2 class="text-base font-bold">State Check-In (Selectable + Optional Photo/Note)</h2>
-        <div class="space-y-1.5">
-          <label class="block text-[11px] font-bold uppercase tracking-wider text-[#726862]">1. Current Hair / Protective Style State</label>
-          <div id="hairModeChipsBox" class="flex flex-wrap gap-1.5"></div>
-        </div>
-        <div class="space-y-1.5">
-          <label class="block text-[11px] font-bold uppercase tracking-wider text-[#726862]">2. Curling Iron or Roller / Curler Method</label>
-          <select id="stylingMethodSelect" onchange="updateStylingMethod(this.value)" class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5] font-medium">
-            <option value="None / Air Dry / Protective Set">None / Air Dry / Protective Set</option>
-            <option value="Curling Iron / Curling Wand (Heat)">Curling Iron / Curling Wand (Direct Heat)</option>
-            <option value="Hot Rollers / Heated Setter">Hot Rollers / Heated Setter</option>
-            <option value="Foam / Sponge Rollers">Foam / Sponge Rollers</option>
-            <option value="Flexi Rods (Bendy Foam Rods)">Flexi Rods (Bendy Foam Rods)</option>
-            <option value="Velcro Rollers (Volume & Blowout Set)">Velcro Rollers (Volume &amp; Blowout Set)</option>
-            <option value="Magnetic / Hard Plastic Rollers (Wet Set)">Magnetic / Hard Plastic Rollers (Wet Set)</option>
-            <option value="Satin / Heatless Curling Rod or Scarf">Satin / Heatless Curling Rod or Scarf</option>
-          </select>
-        </div>
-        <div class="space-y-1">
-          <span class="text-[11px] font-bold uppercase tracking-wider text-[#726862]">3. Today's Symptoms &amp; Change Factors (Tap all that apply)</span>
-          <div id="triggerChipsBox" class="flex flex-wrap gap-1.5 pt-1"></div>
-        </div>
-        <textarea id="checkinInput" rows="2" placeholder="Optional note or extra details, or attach a photo below..." class="w-full rounded-xl border border-[#DDD4C8] p-3 text-xs bg-[#FAF8F5]"></textarea>
-        <div class="flex items-center gap-2">
-          <label class="flex-1 cursor-pointer flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border border-dashed border-[#A9772B] bg-[#F8F3EA] text-xs font-semibold text-[#8A5E1B]">
-            <span>📸 Snap / Upload Photo (Optional)</span>
-            <input type="file" id="checkinPhotoInput" accept="image/*" capture="environment" class="hidden" onchange="handleCheckinPhoto(event)" />
-          </label>
-          <button id="clearPhotoBtn" type="button" onclick="clearCheckinPhoto()" class="hidden px-3 py-2.5 rounded-xl bg-red-50 text-red-700 text-xs font-semibold">Remove</button>
-        </div>
-        <div id="checkinPhotoPreviewBox" class="hidden">
-          <img id="checkinPhotoPreview" class="w-full h-40 object-cover rounded-xl border border-[#EAE3D9]" alt="Check-in preview" />
-        </div>
-        <button id="generateRoutineBtn" type="button" onclick="generateAIRoutine()" class="w-full py-3 rounded-xl bg-[#231F1D] text-white font-semibold text-sm">
-          ✨ Generate Tailored Routines, Styling Products &amp; Pro Care
-        </button>
-        <p id="aiStatusMsg" class="text-xs text-center text-red-700 font-medium hidden"></p>
-      </div>
+ <div class="card p-4 space-y-3">
+ <h2 class="text-base font-bold">State Check-In (Selectable + Optional Photo/Note)</h2>
+ <div class="space-y-1.5">
+ <label class="block text-[11px] font-bold uppercase tracking-wider text-[#726862]">1. Current Hair / Protective Style State</label>
+ <div id="hairModeChipsBox" class="flex flex-wrap gap-1.5"></div>
+ </div>
+ <div class="space-y-1.5">
+ <label class="block text-[11px] font-bold uppercase tracking-wider text-[#726862]">2. Curling Iron or Roller / Curler Method</label>
+ <select id="stylingMethodSelect" onchange="updateStylingMethod(this.value)" class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5] font-medium">
+ <option value="None / Air Dry / Protective Set">None / Air Dry / Protective Set</option>
+ <option value="Curling Iron / Curling Wand (Heat)">Curling Iron / Curling Wand (Direct Heat)</option>
+ <option value="Hot Rollers / Heated Setter">Hot Rollers / Heated Setter</option>
+ <option value="Foam / Sponge Rollers">Foam / Sponge Rollers</option>
+ <option value="Flexi Rods (Bendy Foam Rods)">Flexi Rods (Bendy Foam Rods)</option>
+ <option value="Velcro Rollers (Volume & Blowout Set)">Velcro Rollers (Volume &amp; Blowout Set)</option>
+ <option value="Magnetic / Hard Plastic Rollers (Wet Set)">Magnetic / Hard Plastic Rollers (Wet Set)</option>
+ <option value="Satin / Heatless Curling Rod or Scarf">Satin / Heatless Curling Rod or Scarf</option>
+ </select>
+ </div>
+ <div class="space-y-1">
+ <span class="text-[11px] font-bold uppercase tracking-wider text-[#726862]">3. Today's Symptoms &amp; Change Factors (Tap all that apply)</span>
+ <div id="triggerChipsBox" class="flex flex-wrap gap-1.5 pt-1"></div>
+ </div>
+ <textarea id="checkinInput" rows="2" placeholder="Optional note or extra details, or attach a photo below..." class="w-full rounded-xl border border-[#DDD4C8] p-3 text-xs bg-[#FAF8F5]"></textarea>
+ <div class="flex items-center gap-2">
+ <label class="flex-1 cursor-pointer flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border border-dashed border-[#A9772B] bg-[#F8F3EA] text-xs font-semibold text-[#8A5E1B]">
+ <span>📸 Snap / Upload Photo (Optional)</span>
+ <input type="file" id="checkinPhotoInput" accept="image/*" capture="environment" class="hidden" onchange="handleCheckinPhoto(event)" />
+ </label>
+ <button id="clearPhotoBtn" type="button" onclick="clearCheckinPhoto()" class="hidden px-3 py-2.5 rounded-xl bg-red-50 text-red-700 text-xs font-semibold">Remove</button>
+ </div>
+ <div id="checkinPhotoPreviewBox" class="hidden">
+ <img id="checkinPhotoPreview" class="w-full h-40 object-cover rounded-xl border border-[#EAE3D9]" alt="Check-in preview" />
+ </div>
+ <button id="generateRoutineBtn" type="button" onclick="generateAIRoutine()" class="w-full py-3 rounded-xl bg-[#231F1D] text-white font-semibold text-sm">
+ ✨ Generate Tailored Routines, Styling Products &amp; Pro Care
+ </button>
+ <p id="aiStatusMsg" class="text-xs text-center text-red-700 font-medium hidden"></p>
+ </div>
 
-      <div id="aiResultContainer" class="space-y-4"></div>
-    </section>
+ <div id="aiResultContainer" class="space-y-4"></div>
+ </section>
 
 <section id="tab-stash" class="hidden space-y-4">
-      <div class="card p-4 space-y-3">
-        <div>
-          <h2 class="text-base font-bold">My Product Stash (Starts Blank)</h2>
-          <p class="text-xs text-[#726862]">Snap a product label photo or add items manually below.</p>
-        </div>
+ <div class="card p-4 space-y-3">
+ <div>
+ <h2 class="text-base font-bold">My Product Stash</h2>
+ <p class="text-xs text-[#726862]">Snap a product label photo or add items manually below.</p>
+ </div>
 
-        <label class="cursor-pointer w-full py-3 px-4 rounded-xl bg-[#A9772B] text-white text-xs font-bold flex items-center justify-center gap-2 text-center shadow-sm">
-          <span>📷</span> Snap Product Label
-          <input type="file" id="productPhotoInput" accept="image/*" capture="environment" class="hidden" onchange="handleProductPhotoScan(event)" />
-        </label>
+ <label class="cursor-pointer w-full py-3 px-4 rounded-xl bg-[#A9772B] text-white text-xs font-bold flex items-center justify-center gap-2 text-center shadow-sm">
+ <span>📷</span> Snap Product Label
+ <input type="file" id="productPhotoInput" accept="image/*" capture="environment" class="hidden" onchange="handleProductPhotoScan(event)" />
+ </label>
 
-        <p id="scanStatusMsg" class="text-xs text-[#8A5E1B] font-medium hidden"></p>
+ <p id="scanStatusMsg" class="text-xs text-[#8A5E1B] font-medium hidden"></p>
 
-        <div class="pt-2 border-t border-[#EAE3D9] space-y-2">
-          <div class="text-xs font-semibold">Add Product or Homemade Mix Manually</div>
-          <input id="manName" type="text" onkeydown="if(event.key==='Enter'){event.preventDefault();addManualProduct();}" placeholder="Product name..." class="w-full text-xs border border-[#DDD4C8] rounded-lg p-2 bg-[#FAF8F5]" />
-          <div class="grid grid-cols-2 gap-2">
-            <select id="manDomain" class="text-xs border border-[#DDD4C8] rounded-lg p-2 bg-white">
-              <option value="hair">Hair &amp; Styling</option>
-              <option value="skin">Face Skin Care</option>
-              <option value="body">Body Care</option>
-            </select>
-            <select id="manCategory" class="text-xs border border-[#DDD4C8] rounded-lg p-2 bg-white">
-              <option value="Bond Repair">Hair — Bond Repair</option>
-              <option value="Clarifying / Chelating Shampoo">Hair — Clarifying / Chelating Shampoo</option>
-              <option value="Conditioner">Hair — Conditioner</option>
-              <option value="Deep Conditioner">Hair — Deep Conditioner</option>
-              <option value="Edge Control / Wax">Hair — Edge Control / Wax</option>
-              <option value="Hair Dye">Hair — Hair Dye</option>
-              <option value="Hair Gel">Hair — Hair Gel</option>
-              <option value="Hair Oil / Sealant">Hair — Hair Oil / Sealant</option>
-              <option value="Hair Relaxer">Hair — Hair Relaxer</option>
-              <option value="Heat Protectant">Hair — Heat Protectant</option>
-              <option value="Leave-In / Mist">Hair — Leave-In / Mist</option>
-              <option value="Moisturizer">Hair — Moisturizer</option>
-              <option value="Oil Sheen">Hair — Oil Sheen</option>
-              <option value="Protein Treatment">Hair — Protein Treatment</option>
-              <option value="Setting Mousse / Foam / Lotion">Hair — Setting Mousse / Foam / Lotion</option>
-              <option value="Shampoo">Hair — Shampoo</option>
-              <option value="Wig / Braid Scalp & Edge Care">Hair — Wig / Braid Scalp & Edge Care</option>
-              <option value="Face Cleanser">Face — Face Cleanser</option>
-              <option value="Face Moisturizer">Face — Face Moisturizer</option>
-              <option value="Face Treatment">Face — Face Treatment</option>
-              <option value="Sunscreen">Face — Sunscreen</option>
-              <option value="Body Butter">Body — Body Butter</option>
-              <option value="Body Lotion / Cream">Body — Body Lotion / Cream</option>
-              <option value="Body Oil">Body — Body Oil</option>
-              <option value="Body Powder / Dusting Powder">Body — Body Powder / Dusting Powder</option>
-              <option value="Body Scrub / Exfoliant">Body — Body Scrub / Exfoliant</option>
-              <option value="Body Wash / Bar Soap">Body — Body Wash / Bar Soap</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-          <button type="button" onclick="addManualProduct()" class="w-full py-2 rounded-lg bg-[#231F1D] text-white text-xs font-semibold">+ Add to Stash</button>
-        </div>
-      </div>
+ <div class="pt-2 border-t border-[#EAE3D9] space-y-2">
+ <div class="text-xs font-semibold">Add Product or Homemade Mix Manually</div>
+ <input id="manName" type="text" onkeydown="if(event.key==='Enter'){event.preventDefault();addManualProduct();}" placeholder="Product name..." class="w-full text-xs border border-[#DDD4C8] rounded-lg p-2 bg-[#FAF8F5]" />
+ <div class="grid grid-cols-2 gap-2">
+ <select id="manDomain" class="text-xs border border-[#DDD4C8] rounded-lg p-2 bg-white">
+ <option value="hair">Hair &amp; Styling</option>
+ <option value="skin">Face Skin Care</option>
+ <option value="body">Body Care</option>
+ </select>
+ <select id="manCategory" class="text-xs border border-[#DDD4C8] rounded-lg p-2 bg-white">
+ <option value="Bond Repair">Hair — Bond Repair</option>
+ <option value="Clarifying / Chelating Shampoo">Hair — Clarifying / Chelating Shampoo</option>
+ <option value="Conditioner">Hair — Conditioner</option>
+ <option value="Deep Conditioner">Hair — Deep Conditioner</option>
+ <option value="Edge Control / Wax">Hair — Edge Control / Wax</option>
+ <option value="Hair Dye">Hair — Hair Dye</option>
+ <option value="Hair Gel">Hair — Hair Gel</option>
+ <option value="Hair Oil / Sealant">Hair — Hair Oil / Sealant</option>
+ <option value="Hair Relaxer">Hair — Hair Relaxer</option>
+ <option value="Heat Protectant">Hair — Heat Protectant</option>
+ <option value="Leave-In / Mist">Hair — Leave-In / Mist</option>
+ <option value="Moisturizer">Hair — Moisturizer</option>
+ <option value="Oil Sheen">Hair — Oil Sheen</option>
+ <option value="Protein Treatment">Hair — Protein Treatment</option>
+ <option value="Setting Mousse / Foam / Lotion">Hair — Setting Mousse / Foam / Lotion</option>
+ <option value="Shampoo">Hair — Shampoo</option>
+ <option value="Wig / Braid Scalp & Edge Care">Hair — Wig / Braid Scalp & Edge Care</option>
+ <option value="Face Cleanser">Face — Face Cleanser</option>
+ <option value="Face Moisturizer">Face — Face Moisturizer</option>
+ <option value="Face Treatment">Face — Face Treatment</option>
+ <option value="Sunscreen">Face — Sunscreen</option>
+ <option value="Body Butter">Body — Body Butter</option>
+ <option value="Body Lotion / Cream">Body — Body Lotion / Cream</option>
+ <option value="Body Oil">Body — Body Oil</option>
+ <option value="Body Powder / Dusting Powder">Body — Body Powder / Dusting Powder</option>
+ <option value="Body Scrub / Exfoliant">Body — Body Scrub / Exfoliant</option>
+ <option value="Body Wash / Bar Soap">Body — Body Wash / Bar Soap</option>
+ <option value="Other">Other</option>
+ </select>
+ </div>
+ <button type="button" onclick="addManualProduct()" class="w-full py-2 rounded-lg bg-[#231F1D] text-white text-xs font-semibold">+ Add to Stash</button>
+ </div>
+ </div>
 
-      <div class="space-y-2">
-        <div class="flex items-center justify-between px-1">
-          <h3 class="text-sm font-bold">Owned Items (<span id="stashCount">0</span>)</h3>
-          <div class="flex gap-1 text-xs">
-            <button type="button" onclick="filterStash('all')" id="f-all" class="px-2.5 py-1 rounded-full bg-[#231F1D] text-white font-medium">All</button>
-            <button type="button" onclick="filterStash('hair')" id="f-hair" class="px-2.5 py-1 rounded-full bg-white border border-[#DDD4C8]">Hair</button>
-            <button type="button" onclick="filterStash('skin')" id="f-skin" class="px-2.5 py-1 rounded-full bg-white border border-[#DDD4C8]">Face</button>
-            <button type="button" onclick="filterStash('body')" id="f-body" class="px-2.5 py-1 rounded-full bg-white border border-[#DDD4C8]">Body</button>
-          </div>
-        </div>
-        <div id="stashList" class="space-y-2"></div>
-      </div>
-    </section>
+ <div class="space-y-2">
+ <div class="flex items-center justify-between px-1">
+ <h3 class="text-sm font-bold">Owned Items (<span id="stashCount">0</span>)</h3>
+ <div class="flex gap-1 text-xs">
+ <button type="button" onclick="filterStash('all')" id="f-all" class="px-2.5 py-1 rounded-full bg-[#231F1D] text-white font-medium">All</button>
+ <button type="button" onclick="filterStash('hair')" id="f-hair" class="px-2.5 py-1 rounded-full bg-white border border-[#DDD4C8]">Hair</button>
+ <button type="button" onclick="filterStash('skin')" id="f-skin" class="px-2.5 py-1 rounded-full bg-white border border-[#DDD4C8]">Face</button>
+ <button type="button" onclick="filterStash('body')" id="f-body" class="px-2.5 py-1 rounded-full bg-white border border-[#DDD4C8]">Body</button>
+ </div>
+ </div>
+ <div id="stashList" class="space-y-2"></div>
+ </div>
+ </section>
 
 <section id="tab-shop" class="hidden space-y-4">
-      <div class="card p-4 space-y-3">
-        <div class="flex items-center justify-between">
-          <div>
-            <h2 class="text-base font-bold">Recommended Additions (Store &amp; Price)</h2>
-            <p class="text-xs text-[#726862]">Tailored to your profile, hair state, curling/roller tools, preferred stores &amp; budget</p>
-          </div>
-          <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-[#F8F3EA] text-[#8A5E1B]">Max $<span id="budgetBadge">30</span></span>
-        </div>
-        <div class="space-y-1">
-          <div class="flex justify-between text-xs font-semibold">
-            <span>Max Price Per Product</span>
-            <span class="text-[#8A5E1B]">$<span id="budgetValLabel">30</span></span>
-          </div>
-          <input id="maxPriceSlider" type="range" min="10" max="100" step="5" value="30" oninput="updateBudgetSetting(this.value)" class="w-full accent-[#A9772B]" />
-        </div>
-        <div class="space-y-1.5">
-          <label class="block text-xs font-semibold">Preferred Stores (tap to toggle)</label>
-          <div id="storeChipsContainer" class="flex flex-wrap gap-1.5"></div>
-        </div>
-        <div class="grid grid-cols-2 gap-2 pt-1">
-          <select id="shopFocusSelect" class="text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]">
-            <option value="All missing hair, styling, face & body essentials">All Stash Gaps (Hair + Face + Body)</option>
-            <option value="Wig & braid extensions scalp care, edge protection & low-buildup moisture">Wig &amp; Braid Extension Care</option>
-            <option value="Curling iron heat protectants & roller setting mousses/lotions">Curling Iron &amp; Roller Styling</option>
-            <option value="Hair care, bond repair, scalp & hydration">Core Hair Care Gaps</option>
-            <option value="Face cleanser, treatment, moisturizer & SPF">Face Skincare Gaps</option>
-            <option value="Body wash, bar soap, lotion, body butter, body oil & dusting powder essentials">Body Care Gaps</option>
-          </select>
-          <button id="findDealsBtn" type="button" onclick="fetchStoreRecommendations()" class="py-2.5 px-3 rounded-xl bg-[#231F1D] text-white text-xs font-semibold">
-            🔍 Find Matches
-          </button>
-        </div>
-        <p id="shopStatusMsg" class="text-xs text-red-700 font-medium hidden"></p>
-      </div>
-      <div id="shopResultsList" class="space-y-2.5"></div>
-    </section>
+ <div class="card p-4 space-y-3">
+ <div class="flex items-center justify-between">
+ <div>
+ <h2 class="text-base font-bold">Recommended Additions (Store &amp; Price)</h2>
+ <p class="text-xs text-[#726862]">Tailored to your profile, hair state, curling/roller tools, preferred stores &amp; budget</p>
+ </div>
+ <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-[#F8F3EA] text-[#8A5E1B]">Max $<span id="budgetBadge">30</span></span>
+ </div>
+ <div class="space-y-1">
+ <div class="flex justify-between text-xs font-semibold">
+ <span>Max Price Per Product</span>
+ <span class="text-[#8A5E1B]">$<span id="budgetValLabel">30</span></span>
+ </div>
+ <input id="maxPriceSlider" type="range" min="10" max="100" step="5" value="30" oninput="updateBudgetSetting(this.value)" class="w-full accent-[#A9772B]" />
+ </div>
+ <div class="space-y-1.5">
+ <label class="block text-xs font-semibold">Preferred Stores (tap to toggle)</label>
+ <div id="storeChipsContainer" class="flex flex-wrap gap-1.5"></div>
+ </div>
+ <div class="grid grid-cols-2 gap-2 pt-1">
+ <select id="shopFocusSelect" class="text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]">
+ <option value="All missing hair, styling, face & body essentials">All Stash Gaps (Hair + Face + Body)</option>
+ <option value="Wig & braid extensions scalp care, edge protection & low-buildup moisture">Wig &amp; Braid Extension Care</option>
+ <option value="Curling iron heat protectants & roller setting mousses/lotions">Curling Iron &amp; Roller Styling</option>
+ <option value="Hair care, bond repair, scalp & hydration">Core Hair Care Gaps</option>
+ <option value="Face cleanser, treatment, moisturizer & SPF">Face Skincare Gaps</option>
+ <option value="Body wash, bar soap, lotion, body butter, body oil & dusting powder essentials">Body Care Gaps</option>
+ </select>
+ <button id="findDealsBtn" type="button" onclick="fetchStoreRecommendations()" class="py-2.5 px-3 rounded-xl bg-[#231F1D] text-white text-xs font-semibold">
+ 🔍 Find Matches
+ </button>
+ </div>
+ <p id="shopStatusMsg" class="text-xs text-red-700 font-medium hidden"></p>
+ </div>
+ <div id="shopResultsList" class="space-y-2.5"></div>
+ </section>
 
-    <section id="tab-profile" class="hidden space-y-4">
-      <div class="card p-3 flex gap-1.5 text-xs font-semibold">
-        <button type="button" onclick="setProfileSubTab('builder')" id="subtab-builder" class="flex-1 py-2 rounded-xl bg-[#231F1D] text-white">Guided Profile</button>
-        <button type="button" onclick="setProfileSubTab('prostyle')" id="subtab-prostyle" class="flex-1 py-2 rounded-xl bg-[#FAF8F5] border border-[#DDD4C8] text-[#594E47]">Pro &amp; Style Guide</button>
-      </div>
+ <section id="tab-profile" class="hidden space-y-4">
+ <div class="card p-3 flex gap-1.5 text-xs font-semibold">
+ <button type="button" onclick="setProfileSubTab('builder')" id="subtab-builder" class="flex-1 py-2 rounded-xl bg-[#231F1D] text-white">Guided Profile</button>
+ <button type="button" onclick="setProfileSubTab('prostyle')" id="subtab-prostyle" class="flex-1 py-2 rounded-xl bg-[#FAF8F5] border border-[#DDD4C8] text-[#594E47]">Pro &amp; Style Guide</button>
+ </div>
 
-      <div id="profile-subview-builder" class="space-y-4">
+ <div id="profile-subview-builder" class="space-y-4">
 <div class="card p-4 space-y-2 bg-gradient-to-br from-white to-[#F8F3EA]">
-        <div class="flex items-center justify-between">
-          <h1 class="text-base font-bold">Guided Profile Builder</h1>
-          <span class="text-xs font-bold text-[#A9772B]">Step <span id="stepNumLabel">1</span> of 5</span>
-        </div>
-        <p class="text-xs text-[#726862]">Selections and text fields auto-save immediately to your device as you tap or type.</p>
-        <div class="w-full bg-[#ECE5DC] h-2 rounded-full overflow-hidden">
-          <div id="builderProgressBar" class="bg-[#A9772B] h-full transition-all" style="width: 20%"></div>
-        </div>
-        <div class="grid grid-cols-5 gap-1 pt-1 text-[10px] font-semibold">
-          <button type="button" onclick="setBuilderStep(1)" id="stp-1" class="py-1.5 rounded-lg bg-[#231F1D] text-white">1. Basics</button>
-          <button type="button" onclick="setBuilderStep(2)" id="stp-2" class="py-1.5 rounded-lg bg-white border border-[#DDD4C8]">2. Hair &amp; Style</button>
-          <button type="button" onclick="setBuilderStep(3)" id="stp-3" class="py-1.5 rounded-lg bg-white border border-[#DDD4C8]">3. Face</button>
-          <button type="button" onclick="setBuilderStep(4)" id="stp-4" class="py-1.5 rounded-lg bg-white border border-[#DDD4C8]">4. Body</button>
-          <button type="button" onclick="setBuilderStep(5)" id="stp-5" class="py-1.5 rounded-lg bg-white border border-[#DDD4C8]">5. Shop &amp; Pro</button>
-        </div>
-      </div>
+ <div class="flex items-center justify-between">
+ <h1 class="text-base font-bold">Guided Profile Builder</h1>
+ <span class="text-xs font-bold text-[#A9772B]">Step <span id="stepNumLabel">1</span> of 5</span>
+ </div>
+ <p class="text-xs text-[#726862]">Selections and text fields auto-save immediately to your device as you tap or type.</p>
+ <div class="w-full bg-[#ECE5DC] h-2 rounded-full overflow-hidden">
+ <div id="builderProgressBar" class="bg-[#A9772B] h-full transition-all" style="width: 20%"></div>
+ </div>
+ <div class="grid grid-cols-5 gap-1 pt-1 text-[10px] font-semibold">
+ <button type="button" onclick="setBuilderStep(1)" id="stp-1" class="py-1.5 rounded-lg bg-[#231F1D] text-white">1. Basics</button>
+ <button type="button" onclick="setBuilderStep(2)" id="stp-2" class="py-1.5 rounded-lg bg-white border border-[#DDD4C8]">2. Hair &amp; Style</button>
+ <button type="button" onclick="setBuilderStep(3)" id="stp-3" class="py-1.5 rounded-lg bg-white border border-[#DDD4C8]">3. Face</button>
+ <button type="button" onclick="setBuilderStep(4)" id="stp-4" class="py-1.5 rounded-lg bg-white border border-[#DDD4C8]">4. Body</button>
+ <button type="button" onclick="setBuilderStep(5)" id="stp-5" class="py-1.5 rounded-lg bg-white border border-[#DDD4C8]">5. Shop &amp; Pro</button>
+ </div>
+ </div>
 
-      <div id="step-1" class="card p-4 space-y-3">
-        <h2 class="text-sm font-bold">1. Basics, Location &amp; Daily Environment</h2>
-        <div>
-          <label class="block text-xs font-semibold mb-1.5">Age Range (select one)</label>
-          <div id="chips_ageRange" class="flex flex-wrap gap-1.5"></div>
-        </div>
-        <div>
-          <label class="block text-xs font-semibold mb-1.5">Skin Tone &amp; Melanin Context (tap all that apply)</label>
-          <div id="chips_skinTone" class="flex flex-wrap gap-1.5"></div>
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block text-xs font-semibold mb-1">City, State (for Weather &amp; AQI)</label>
-            <input id="q_city" type="text" oninput="persistTextFields()" onchange="persistTextFields()" onblur="persistTextFields()" placeholder="e.g., Bloomfield, CT" class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold mb-1">Or detect automatically</label>
-            <button type="button" onclick="useGPSForProfile()" class="w-full py-2.5 px-3 rounded-xl border border-[#A9772B] text-[#A9772B] text-xs font-semibold">📍 Use Live GPS</button>
-          </div>
-        </div>
-        <div>
-          <label class="block text-xs font-semibold mb-1.5">Schedule &amp; Environment Factors (tap all that apply)</label>
-          <div id="chips_envFactors" class="flex flex-wrap gap-1.5"></div>
-        </div>
-        <div>
-          <label class="block text-xs font-semibold mb-1">Specific Allergies, Sensitivities, or Notes (optional open field)</label>
-          <input id="q_sensitivities" type="text" oninput="persistTextFields()" onchange="persistTextFields()" onblur="persistTextFields()" placeholder="e.g., fragrance allergy, low iron, retinoid prescription..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
-        </div>
-        <div class="flex justify-between items-center pt-1">
-          <button type="button" onclick="saveProfileNow(false)" class="px-3 py-2 rounded-xl border border-[#DDD4C8] text-xs font-semibold">Save Progress</button>
-          <button type="button" onclick="setBuilderStep(2)" class="px-4 py-2 rounded-xl bg-[#231F1D] text-white text-xs font-semibold">Next: Hair &amp; Style →</button>
-        </div>
-      </div>
+ <div id="step-1" class="card p-4 space-y-3">
+ <h2 class="text-sm font-bold">1. Basics, Location &amp; Daily Environment</h2>
+ <div>
+ <label class="block text-xs font-semibold mb-1.5">Age Range (select one)</label>
+ <div id="chips_ageRange" class="flex flex-wrap gap-1.5"></div>
+ </div>
+ <div>
+ <label class="block text-xs font-semibold mb-1.5">Skin Tone &amp; Melanin Context (tap all that apply)</label>
+ <div id="chips_skinTone" class="flex flex-wrap gap-1.5"></div>
+ </div>
+ <div class="grid grid-cols-2 gap-2">
+ <div>
+ <label class="block text-xs font-semibold mb-1">City, State (for Weather &amp; AQI)</label>
+ <input id="q_city" type="text" oninput="persistTextFields()" onchange="persistTextFields()" onblur="persistTextFields()" placeholder="e.g., Bloomfield, CT" class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+ </div>
+ <div>
+ <label class="block text-xs font-semibold mb-1">Or detect automatically</label>
+ <button type="button" onclick="useGPSForProfile()" class="w-full py-2.5 px-3 rounded-xl border border-[#A9772B] text-[#A9772B] text-xs font-semibold">📍 Use Live GPS</button>
+ </div>
+ </div>
+ <div>
+ <label class="block text-xs font-semibold mb-1.5">Schedule &amp; Environment Factors (tap all that apply)</label>
+ <div id="chips_envFactors" class="flex flex-wrap gap-1.5"></div>
+ </div>
+ <div>
+ <label class="block text-xs font-semibold mb-1">Specific Allergies, Sensitivities, or Notes (optional open field)</label>
+ <input id="q_sensitivities" type="text" oninput="persistTextFields()" onchange="persistTextFields()" onblur="persistTextFields()" placeholder="e.g., fragrance allergy, low iron, retinoid prescription..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+ </div>
+ <div class="flex justify-between items-center pt-1">
+ <button type="button" onclick="saveProfileNow(false)" class="px-3 py-2 rounded-xl border border-[#DDD4C8] text-xs font-semibold">Save Progress</button>
+ <button type="button" onclick="setBuilderStep(2)" class="px-4 py-2 rounded-xl bg-[#231F1D] text-white text-xs font-semibold">Next: Hair &amp; Style →</button>
+ </div>
+ </div>
 
-      <div id="step-2" class="card p-4 space-y-3 hidden">
-        <h2 class="text-sm font-bold">2. Hair Type, Chemical/Color History &amp; Styling Tools</h2>
-        <div>
-          <label class="block text-xs font-semibold mb-1.5">Natural Hair Texture &amp; Strand Thickness (tap all that apply)</label>
-          <div id="chips_hairTexture" class="flex flex-wrap gap-1.5"></div>
-        </div>
-        <div>
-          <label class="block text-xs font-semibold mb-1.5">Chemical, Color &amp; Heat History (tap all that apply)</label>
-          <div id="chips_hairChemical" class="flex flex-wrap gap-1.5"></div>
-          <input id="q_hairColorDetail" type="text" oninput="persistTextFields()" onchange="persistTextFields()" onblur="persistTextFields()" placeholder="Optional: exact color/chemical note..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2 bg-[#FAF8F5] mt-2" />
-        </div>
-        <div>
-          <label class="block text-xs font-semibold mb-1.5">Scalp &amp; Hair Problem Zones (tap all that apply)</label>
-          <div id="chips_hairIssues" class="flex flex-wrap gap-1.5"></div>
-        </div>
-        <div>
-          <label class="block text-xs font-semibold mb-1.5">Wash Frequency (select one)</label>
-          <div id="chips_washFreq" class="flex flex-wrap gap-1.5"></div>
-        </div>
-        <div>
-          <label class="block text-xs font-semibold mb-1.5">Top Hair Goals (tap all that apply)</label>
-          <div id="chips_hairGoals" class="flex flex-wrap gap-1.5"></div>
-        </div>
-        <div>
-          <label class="block text-xs font-semibold mb-1.5">Protective Styles Worn (tap all that apply)</label>
-          <div id="chips_protectiveStyles" class="flex flex-wrap gap-1.5"></div>
-        </div>
-        <div>
-          <label class="block text-xs font-semibold mb-1.5">Curling Tools &amp; Rollers Used (tap all that apply)</label>
-          <div id="chips_stylingTools" class="flex flex-wrap gap-1.5"></div>
-        </div>
-        <div>
-          <label class="block text-xs font-semibold mb-1">Custom Hair Oil Blend / DIY Concoction (optional open field)</label>
-          <input id="q_customOilNotes" type="text" oninput="persistTextFields()" onchange="persistTextFields()" onblur="persistTextFields()" placeholder="If you make your own oil mix, list the oils here..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
-        </div>
-        <div class="flex justify-between pt-1">
-          <button type="button" onclick="setBuilderStep(1)" class="px-3 py-2 rounded-xl border border-[#DDD4C8] text-xs font-semibold">← Back</button>
-          <button type="button" onclick="setBuilderStep(3)" class="px-4 py-2 rounded-xl bg-[#231F1D] text-white text-xs font-semibold">Next: Face Skin →</button>
-        </div>
-      </div>
+ <div id="step-2" class="card p-4 space-y-3 hidden">
+ <h2 class="text-sm font-bold">2. Hair Type, Chemical/Color History &amp; Styling Tools</h2>
+ <div>
+ <label class="block text-xs font-semibold mb-1.5">Natural Hair Texture &amp; Strand Thickness (tap all that apply)</label>
+ <div id="chips_hairTexture" class="flex flex-wrap gap-1.5"></div>
+ </div>
+ <div>
+ <label class="block text-xs font-semibold mb-1.5">Chemical, Color &amp; Heat History (tap all that apply)</label>
+ <div id="chips_hairChemical" class="flex flex-wrap gap-1.5"></div>
+ <input id="q_hairColorDetail" type="text" oninput="persistTextFields()" onchange="persistTextFields()" onblur="persistTextFields()" placeholder="Optional: exact color/chemical note..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2 bg-[#FAF8F5] mt-2" />
+ </div>
+ <div>
+ <label class="block text-xs font-semibold mb-1.5">Scalp &amp; Hair Problem Zones (tap all that apply)</label>
+ <div id="chips_hairIssues" class="flex flex-wrap gap-1.5"></div>
+ </div>
+ <div>
+ <label class="block text-xs font-semibold mb-1.5">Wash Frequency (select one)</label>
+ <div id="chips_washFreq" class="flex flex-wrap gap-1.5"></div>
+ </div>
+ <div>
+ <label class="block text-xs font-semibold mb-1.5">Top Hair Goals (tap all that apply)</label>
+ <div id="chips_hairGoals" class="flex flex-wrap gap-1.5"></div>
+ </div>
+ <div>
+ <label class="block text-xs font-semibold mb-1.5">Protective Styles Worn (tap all that apply)</label>
+ <div id="chips_protectiveStyles" class="flex flex-wrap gap-1.5"></div>
+ </div>
+ <div>
+ <label class="block text-xs font-semibold mb-1.5">Curling Tools &amp; Rollers Used (tap all that apply)</label>
+ <div id="chips_stylingTools" class="flex flex-wrap gap-1.5"></div>
+ </div>
+ <div>
+ <label class="block text-xs font-semibold mb-1">Custom Hair Oil Blend / DIY Concoction (optional open field)</label>
+ <input id="q_customOilNotes" type="text" oninput="persistTextFields()" onchange="persistTextFields()" onblur="persistTextFields()" placeholder="If you make your own oil mix, list the oils here..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-[#FAF8F5]" />
+ </div>
+ <div class="flex justify-between pt-1">
+ <button type="button" onclick="setBuilderStep(1)" class="px-3 py-2 rounded-xl border border-[#DDD4C8] text-xs font-semibold">← Back</button>
+ <button type="button" onclick="setBuilderStep(3)" class="px-4 py-2 rounded-xl bg-[#231F1D] text-white text-xs font-semibold">Next: Face Skin →</button>
+ </div>
+ </div>
 
-      <div id="step-3" class="card p-4 space-y-3 hidden">
-        <h2 class="text-sm font-bold">3. Face Skin Type, Concerns &amp; Routine Style</h2>
-        <div>
-          <label class="block text-xs font-semibold mb-1.5">Face Skin Type (select one)</label>
-          <div id="chips_faceType" class="flex flex-wrap gap-1.5"></div>
-        </div>
-        <div>
-          <label class="block text-xs font-semibold mb-1.5">Face Skin Concerns &amp; Goals (tap all that apply)</label>
-          <div id="chips_faceConcerns" class="flex flex-wrap gap-1.5"></div>
-        </div>
-        <div>
-          <label class="block text-xs font-semibold mb-1.5">Preferred Daily Face Routine Complexity (select one)</label>
-          <div id="chips_faceRoutinePref" class="flex flex-wrap gap-1.5"></div>
-        </div>
-        <div class="flex justify-between pt-1">
-          <button type="button" onclick="setBuilderStep(2)" class="px-3 py-2 rounded-xl border border-[#DDD4C8] text-xs font-semibold">← Back</button>
-          <button type="button" onclick="setBuilderStep(4)" class="px-4 py-2 rounded-xl bg-[#231F1D] text-white text-xs font-semibold">Next: Body Care →</button>
-        </div>
-      </div>
+ <div id="step-3" class="card p-4 space-y-3 hidden">
+ <h2 class="text-sm font-bold">3. Face Skin Type, Concerns &amp; Routine Style</h2>
+ <div>
+ <label class="block text-xs font-semibold mb-1.5">Face Skin Type (select one)</label>
+ <div id="chips_faceType" class="flex flex-wrap gap-1.5"></div>
+ </div>
+ <div>
+ <label class="block text-xs font-semibold mb-1.5">Face Skin Concerns &amp; Goals (tap all that apply)</label>
+ <div id="chips_faceConcerns" class="flex flex-wrap gap-1.5"></div>
+ </div>
+ <div>
+ <label class="block text-xs font-semibold mb-1.5">Preferred Daily Face Routine Complexity (select one)</label>
+ <div id="chips_faceRoutinePref" class="flex flex-wrap gap-1.5"></div>
+ </div>
+ <div class="flex justify-between pt-1">
+ <button type="button" onclick="setBuilderStep(2)" class="px-3 py-2 rounded-xl border border-[#DDD4C8] text-xs font-semibold">← Back</button>
+ <button type="button" onclick="setBuilderStep(4)" class="px-4 py-2 rounded-xl bg-[#231F1D] text-white text-xs font-semibold">Next: Body Care →</button>
+ </div>
+ </div>
 
-      <div id="step-4" class="card p-4 space-y-3 hidden">
-        <h2 class="text-sm font-bold">4. Body Care (Washes, Bar Soaps, Lotions, Butters, Oils &amp; Powders)</h2>
-        <div>
-          <label class="block text-xs font-semibold mb-1.5">Body Skin Concerns &amp; Trouble Areas (tap all that apply)</label>
-          <div id="chips_bodyConcerns" class="flex flex-wrap gap-1.5"></div>
-        </div>
-        <div>
-          <label class="block text-xs font-semibold mb-1.5">Preferred Body Cleansing Formats (tap all that apply)</label>
-          <div id="chips_bodyCleansePref" class="flex flex-wrap gap-1.5"></div>
-        </div>
-        <div>
-          <label class="block text-xs font-semibold mb-1.5">Preferred Body Moisture, Powder &amp; Scent Style (tap all that apply)</label>
-          <div id="chips_bodyMoisturePref" class="flex flex-wrap gap-1.5"></div>
-          <input id="q_customBodyPowderNotes" type="text" oninput="persistTextFields()" onchange="persistTextFields()" onblur="persistTextFields()" placeholder="Optional: homemade body powder recipe/ingredients..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2 bg-[#FAF8F5] mt-2" />
-        </div>
-        <div class="flex justify-between pt-1">
-          <button type="button" onclick="setBuilderStep(3)" class="px-3 py-2 rounded-xl border border-[#DDD4C8] text-xs font-semibold">← Back</button>
-          <button type="button" onclick="setBuilderStep(5)" class="px-4 py-2 rounded-xl bg-[#231F1D] text-white text-xs font-semibold">Next: Shopping &amp; Pro →</button>
-        </div>
-      </div>
+ <div id="step-4" class="card p-4 space-y-3 hidden">
+ <h2 class="text-sm font-bold">4. Body Care (Washes, Bar Soaps, Lotions, Butters, Oils &amp; Powders)</h2>
+ <div>
+ <label class="block text-xs font-semibold mb-1.5">Body Skin Concerns &amp; Trouble Areas (tap all that apply)</label>
+ <div id="chips_bodyConcerns" class="flex flex-wrap gap-1.5"></div>
+ </div>
+ <div>
+ <label class="block text-xs font-semibold mb-1.5">Preferred Body Cleansing Formats (tap all that apply)</label>
+ <div id="chips_bodyCleansePref" class="flex flex-wrap gap-1.5"></div>
+ </div>
+ <div>
+ <label class="block text-xs font-semibold mb-1.5">Preferred Body Moisture, Powder &amp; Scent Style (tap all that apply)</label>
+ <div id="chips_bodyMoisturePref" class="flex flex-wrap gap-1.5"></div>
+ <input id="q_customBodyPowderNotes" type="text" oninput="persistTextFields()" onchange="persistTextFields()" onblur="persistTextFields()" placeholder="Optional: homemade body powder recipe/ingredients..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2 bg-[#FAF8F5] mt-2" />
+ </div>
+ <div class="flex justify-between pt-1">
+ <button type="button" onclick="setBuilderStep(3)" class="px-3 py-2 rounded-xl border border-[#DDD4C8] text-xs font-semibold">← Back</button>
+ <button type="button" onclick="setBuilderStep(5)" class="px-4 py-2 rounded-xl bg-[#231F1D] text-white text-xs font-semibold">Next: Shopping &amp; Pro →</button>
+ </div>
+ </div>
 
-      <div id="step-5" class="card p-4 space-y-3 hidden">
-        <h2 class="text-sm font-bold">5. Budget, Preferred Stores &amp; Pro Treatments</h2>
-        <div>
-          <label class="block text-xs font-semibold mb-1.5">Max Price Per Product (select one)</label>
-          <div id="chips_maxPrice" class="flex flex-wrap gap-1.5"></div>
-        </div>
-        <div>
-          <label class="block text-xs font-semibold mb-1.5">Preferred Stores (tap all stores you shop at)</label>
-          <div id="chips_stores" class="flex flex-wrap gap-1.5"></div>
-          <input id="q_extraStores" type="text" oninput="persistTextFields()" onchange="persistTextFields()" onblur="persistTextFields()" placeholder="Optional: any other local or online store..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2 bg-[#FAF8F5] mt-2" />
-        </div>
-        <div>
-          <label class="block text-xs font-semibold mb-1.5">Salon, Dermatologist &amp; Esthetician Interests (tap all that apply)</label>
-          <div id="chips_proPrefs" class="flex flex-wrap gap-1.5"></div>
-        </div>
-        <div class="flex items-center justify-between pt-2 gap-2">
-          <button type="button" onclick="setBuilderStep(4)" class="px-3 py-2.5 rounded-xl border border-[#DDD4C8] text-xs font-semibold">← Back</button>
-          <button type="button" onclick="completeProfileSetup()" class="flex-1 py-2.5 px-4 rounded-xl bg-[#A9772B] text-white text-xs font-bold shadow-sm">
-            ✓ Save Profile &amp; Go to Check-In
-          </button>
-        </div>
-        <p id="profileSavedBanner" class="text-xs text-emerald-700 font-semibold text-center hidden">Profile saved!</p>
-      </div>
+ <div id="step-5" class="card p-4 space-y-3 hidden">
+ <h2 class="text-sm font-bold">5. Budget, Preferred Stores &amp; Pro Treatments</h2>
+ <div>
+ <label class="block text-xs font-semibold mb-1.5">Max Price Per Product (select one)</label>
+ <div id="chips_maxPrice" class="flex flex-wrap gap-1.5"></div>
+ </div>
+ <div>
+ <label class="block text-xs font-semibold mb-1.5">Preferred Stores (tap all stores you shop at)</label>
+ <div id="chips_stores" class="flex flex-wrap gap-1.5"></div>
+ <input id="q_extraStores" type="text" oninput="persistTextFields()" onchange="persistTextFields()" onblur="persistTextFields()" placeholder="Optional: any other local or online store..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2 bg-[#FAF8F5] mt-2" />
+ </div>
+ <div>
+ <label class="block text-xs font-semibold mb-1.5">Salon, Dermatologist &amp; Esthetician Interests (tap all that apply)</label>
+ <div id="chips_proPrefs" class="flex flex-wrap gap-1.5"></div>
+ </div>
+ <div class="flex items-center justify-between pt-2 gap-2">
+ <button type="button" onclick="setBuilderStep(4)" class="px-3 py-2.5 rounded-xl border border-[#DDD4C8] text-xs font-semibold">← Back</button>
+ <button type="button" onclick="completeProfileSetup()" class="flex-1 py-2.5 px-4 rounded-xl bg-[#A9772B] text-white text-xs font-bold shadow-sm">
+ ✓ Save Profile &amp; Go to Check-In
+ </button>
+ </div>
+ <p id="profileSavedBanner" class="text-xs text-emerald-700 font-semibold text-center hidden">Profile saved!</p>
+ </div>
 
-      <div id="profileSummaryCard" class="card p-4 space-y-2 hidden">
-        <div class="flex items-center justify-between">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-[#726862]">Current Saved Profile</h3>
-          <button type="button" onclick="switchTab('checkin')" class="text-xs font-semibold text-[#A9772B] underline">Open Check-In →</button>
-        </div>
-        <div id="profileSummaryBody" class="text-xs text-[#3D3530] space-y-1"></div>
-        <div class="flex flex-wrap gap-2 pt-2 border-t border-[#EAE3D9]">
-          <button type="button" onclick="exportBackupJSON()" class="px-2.5 py-1.5 rounded-lg border border-[#DDD4C8] bg-[#FAF8F5] text-[11px] font-semibold">⬇ Copy Backup Code</button>
-          <button type="button" onclick="importBackupJSON()" class="px-2.5 py-1.5 rounded-lg border border-[#DDD4C8] bg-[#FAF8F5] text-[11px] font-semibold">⬆ Restore Backup</button>
-        </div>
-      </div>
-      </div>
+ <div id="profileSummaryCard" class="card p-4 space-y-2 hidden">
+ <div class="flex items-center justify-between">
+ <h3 class="text-xs font-bold uppercase tracking-wider text-[#726862]">Current Saved Profile</h3>
+ <button type="button" onclick="switchTab('checkin')" class="text-xs font-semibold text-[#A9772B] underline">Open Check-In →</button>
+ </div>
+ <div id="profileSummaryBody" class="text-xs text-[#3D3530] space-y-1"></div>
+ <div class="flex flex-wrap gap-2 pt-2 border-t border-[#EAE3D9]">
+ <button type="button" onclick="exportBackupJSON()" class="px-2.5 py-1.5 rounded-lg border border-[#DDD4C8] bg-[#FAF8F5] text-[11px] font-semibold">⬇ Copy Backup Code</button>
+ <button type="button" onclick="importBackupJSON()" class="px-2.5 py-1.5 rounded-lg border border-[#DDD4C8] bg-[#FAF8F5] text-[11px] font-semibold">⬆ Restore Backup</button>
+ </div>
+ </div>
+ </div>
 
-      <div id="profile-subview-prostyle" class="space-y-4 hidden">
+ <div id="profile-subview-prostyle" class="space-y-4 hidden">
 <div class="card p-4 space-y-2">
-        <h2 class="text-base font-bold">Relaxed Hair, Wigs, Braids, Rollers &amp; Body Powder Rules</h2>
-        <div id="stylingReferenceBox" class="space-y-2 pt-1 text-xs"></div>
-      </div>
-      <div class="card p-4 space-y-2">
-        <h2 class="text-base font-bold">Salon, Dermatologist &amp; Esthetician Options</h2>
-        <div id="proGuidanceBox" class="space-y-2 pt-1 text-xs"></div>
-      </div>
-      <div class="card p-4 space-y-2">
-        <h2 class="text-base font-bold">Why Hair, Face &amp; Body Change (Beyond Weather)</h2>
-        <div id="rootCauseCardsBox" class="space-y-2 pt-1"></div>
-      </div>
-      </div>
-    </section>
-  </main>
+ <h2 class="text-base font-bold">Relaxed Hair, Wigs, Braids, Rollers &amp; Body Powder Rules</h2>
+ <div id="stylingReferenceBox" class="space-y-2 pt-1 text-xs"></div>
+ </div>
+ <div class="card p-4 space-y-2">
+ <h2 class="text-base font-bold">Salon, Dermatologist &amp; Esthetician Options</h2>
+ <div id="proGuidanceBox" class="space-y-2 pt-1 text-xs"></div>
+ </div>
+ <div class="card p-4 space-y-2">
+ <h2 class="text-base font-bold">Why Hair, Face &amp; Body Change (Beyond Weather)</h2>
+ <div id="rootCauseCardsBox" class="space-y-2 pt-1"></div>
+ </div>
+ </div>
+ </section>
+ </main>
 
-  <nav class="fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-md border-t border-[#EAE3D9] px-2 pt-2 pb-[calc(8px+env(safe-area-inset-bottom))]">
-    <div class="max-w-lg mx-auto grid grid-cols-4 items-center justify-items-center text-center text-[10px]">
-      <button type="button" onclick="switchTab('checkin')" id="nav-checkin" class="tab-active flex flex-col items-center justify-center gap-0.5 py-1 w-full">
-        <span class="text-base leading-none">✨</span>
-        <span>Check-In</span>
-      </button>
-      <button type="button" onclick="switchTab('stash')" id="nav-stash" class="text-[#726862] flex flex-col items-center justify-center gap-0.5 py-1 w-full">
-        <span class="text-base leading-none">🧴</span>
-        <span>My Stash</span>
-      </button>
-      <button type="button" onclick="switchTab('shop')" id="nav-shop" class="text-[#726862] flex flex-col items-center justify-center gap-0.5 py-1 w-full">
-        <span class="text-base leading-none">🏷️</span>
-        <span>Shop</span>
-      </button>
-      <button type="button" onclick="switchTab('profile')" id="nav-profile" class="text-[#726862] flex flex-col items-center justify-center gap-0.5 py-1 w-full">
-        <span class="text-base leading-none">📝</span>
-        <span>Profile &amp; Pro</span>
-      </button>
-    </div>
-  </nav>
+ <nav class="fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-md border-t border-[#EAE3D9] px-2 pt-2 pb-[calc(8px+env(safe-area-inset-bottom))]">
+ <div class="max-w-lg mx-auto grid grid-cols-4 items-center justify-items-center text-center text-[10px]">
+ <button type="button" onclick="switchTab('checkin')" id="nav-checkin" class="tab-active flex flex-col items-center justify-center gap-0.5 py-1 w-full">
+ <span class="text-base leading-none">✨</span>
+ <span>Check-In</span>
+ </button>
+ <button type="button" onclick="switchTab('stash')" id="nav-stash" class="text-[#726862] flex flex-col items-center justify-center gap-0.5 py-1 w-full">
+ <span class="text-base leading-none">🧴</span>
+ <span>My Stash</span>
+ </button>
+ <button type="button" onclick="switchTab('shop')" id="nav-shop" class="text-[#726862] flex flex-col items-center justify-center gap-0.5 py-1 w-full">
+ <span class="text-base leading-none">🏷️</span>
+ <span>Shop</span>
+ </button>
+ <button type="button" onclick="switchTab('profile')" id="nav-profile" class="text-[#726862] flex flex-col items-center justify-center gap-0.5 py-1 w-full">
+ <span class="text-base leading-none">📝</span>
+ <span>Profile &amp; Pro</span>
+ </button>
+ </div>
+ </nav>
 
-  <script>
-    const ALL_STORES = ["Walmart", "Target", "Ulta Beauty", "CVS", "Walgreens", "Sally Beauty", "Amazon"];
+ <script>
+ const ALL_STORES = ["Walmart", "Target", "Ulta Beauty", "CVS", "Walgreens", "Sally Beauty", "Amazon"];
 
-    const PROFILE_OPTIONS = {
-      ageRange: ["Under 20", "20s", "30s", "40s", "50+"],
-      skinTone: ["Deep / Rich Melanin", "Medium-Deep / Brown", "Olive / Tan", "Fair / Light", "Prone to Hyperpigmentation / Dark Marks"],
-      envFactors: ["Overnight / Shift Work", "Daytime Schedule", "Dry Indoor Heat / AC (HVAC)", "Hard Tap Water", "High Outdoor Pollution / Smoke", "Frequent Sun / UV Exposure"],
-      hairTexture: ["Fine Strands", "Medium Strands", "Coarse Strands", "Straight (Type 1)", "Wavy (Type 2)", "Curly (Type 3)", "Coily / Kinky (Type 4)"],
-      hairChemical: ["Relaxed", "Colored / Dyed", "Bleached / Lightened / Highlighted", "Natural / Virgin (No Chemicals)", "Texturized / Permed", "Keratin / Smoothing Treated", "Frequent Heat Styling"],
-      hairIssues: ["Temple / Edge Breakage", "Dry / Brittle Ends", "Line-of-Demarcation Shedding", "Brassiness / Color Fade", "Dry / Flaky Scalp", "Oily Scalp / Product Buildup", "Thinning / Excess Shedding"],
-      washFreq: ["2–3x Per Week", "Weekly (Every 7 Days)", "Biweekly (Every 14 Days)", "Every 3–4 Weeks"],
-      hairGoals: ["Stop Breakage & Rebuild Bonds", "Moisture & Elasticity", "Edge / Temple Regrowth", "Color Protection & Shine", "Frizz Control & Curl Hold", "Scalp Health"],
-      protectiveStyles: ["None (Hair Out)", "Lace Front / Glueless Wigs", "Braids / Cornrows Under Wig", "Box Braids / Knotless Braids", "Sew-In Weave / Crochet", "Twists / Faux Locs"],
-      stylingTools: ["None / Air Dry", "Curling Iron / Curling Wand", "Hot Rollers", "Foam / Sponge Rollers", "Flexi Rods", "Velcro Rollers", "Magnetic Wet-Set Rollers", "Satin / Heatless Curling Rod"],
-      faceType: ["Dry", "Oily", "Combination", "Normal", "Sensitive / Reactive"],
-      faceConcerns: ["Dark Spots / Hyperpigmentation", "Acne / Hormonal Breakouts", "Dehydration / Tightness", "Dullness / Uneven Texture", "Redness / Barrier Damage", "Fine Lines / Anti-Aging", "Large Pores / Excess Shine"],
-      faceRoutinePref: ["Minimal (2–3 Steps: Cleanse, Moisturize, SPF)", "Moderate (4–5 Steps + Targeted Serum)", "Full Multi-Step Routine"],
-      bodyConcerns: ["Dry / Ashy Skin", "Rough Elbows, Knees & Heels", "Chafing / Sweat & Friction Zones", "Body Bumps / Keratosis Pilaris (KP)", "Ingrown Hairs / Razor Bumps", "Body Dark Marks / Uneven Tone", "Back / Chest Breakouts", "Sensitive / Eczema-Prone"],
-      bodyCleansePref: ["Moisturizing Bar Soap", "Creamy / Hydrating Body Wash", "Exfoliating Body Scrub", "Shower Oil", "Antibacterial / Deodorant Bar"],
-      bodyMoisturePref: ["Lightweight Body Lotion", "Rich Body Cream", "Whipped Body Butter", "Body Oil (Damp Skin Seal)", "Homemade / DIY Body Powder", "Dusting / Talc-Free Body Powder", "Lotion + Butter/Oil + Body Powder Layering", "Fragrance-Free Only", "Scent Layering / Warm / Gourmand Scents"],
-      maxPrice: ["Under $15", "Under $20", "Under $30", "Under $45", "Under $60"],
-      proPrefs: ["Hair Salon (Bond Repair / Gloss / Trim)", "Hair Salon (Tension-Free Braids / Silk Press)", "Dermatologist (Scalp / Hairline Evaluation)", "Dermatologist (Dark Spots / Acne / KP Rx)", "Esthetician (Hydrating / Barrier Facials)", "Esthetician (Mandelic/Lactic Peels or Body Care)", "At-Home Care Only Right Now"]
-    };
+ const PROFILE_OPTIONS = {
+ ageRange: ["Under 20", "20s", "30s", "40s", "50+"],
+ skinTone: ["Deep / Rich Melanin", "Medium-Deep / Brown", "Olive / Tan", "Fair / Light", "Prone to Hyperpigmentation / Dark Marks"],
+ envFactors: ["Overnight / Shift Work", "Daytime Schedule", "Dry Indoor Heat / AC (HVAC)", "Hard Tap Water", "High Outdoor Pollution / Smoke", "Frequent Sun / UV Exposure"],
+ hairTexture: ["Fine Strands", "Medium Strands", "Coarse Strands", "Straight (Type 1)", "Wavy (Type 2)", "Curly (Type 3)", "Coily / Kinky (Type 4)"],
+ hairChemical: ["Relaxed", "Colored / Dyed", "Bleached / Lightened / Highlighted", "Natural / Virgin (No Chemicals)", "Texturized / Permed", "Keratin / Smoothing Treated", "Frequent Heat Styling"],
+ hairIssues: ["Temple / Edge Breakage", "Dry / Brittle Ends", "Line-of-Demarcation Shedding", "Brassiness / Color Fade", "Dry / Flaky Scalp", "Oily Scalp / Product Buildup", "Thinning / Excess Shedding"],
+ washFreq: ["2–3x Per Week", "Weekly (Every 7 Days)", "Biweekly (Every 14 Days)", "Every 3–4 Weeks"],
+ hairGoals: ["Stop Breakage & Rebuild Bonds", "Moisture & Elasticity", "Edge / Temple Regrowth", "Color Protection & Shine", "Frizz Control & Curl Hold", "Scalp Health"],
+ protectiveStyles: ["None (Hair Out)", "Lace Front / Glueless Wigs", "Braids / Cornrows Under Wig", "Box Braids / Knotless Braids", "Sew-In Weave / Crochet", "Twists / Faux Locs"],
+ stylingTools: ["None / Air Dry", "Curling Iron / Curling Wand", "Hot Rollers", "Foam / Sponge Rollers", "Flexi Rods", "Velcro Rollers", "Magnetic Wet-Set Rollers", "Satin / Heatless Curling Rod"],
+ faceType: ["Dry", "Oily", "Combination", "Normal", "Sensitive / Reactive"],
+ faceConcerns: ["Dark Spots / Hyperpigmentation", "Acne / Hormonal Breakouts", "Dehydration / Tightness", "Dullness / Uneven Texture", "Redness / Barrier Damage", "Fine Lines / Anti-Aging", "Large Pores / Excess Shine"],
+ faceRoutinePref: ["Minimal (2–3 Steps: Cleanse, Moisturize, SPF)", "Moderate (4–5 Steps + Targeted Serum)", "Full Multi-Step Routine"],
+ bodyConcerns: ["Dry / Ashy Skin", "Rough Elbows, Knees & Heels", "Chafing / Sweat & Friction Zones", "Body Bumps / Keratosis Pilaris (KP)", "Ingrown Hairs / Razor Bumps", "Body Dark Marks / Uneven Tone", "Back / Chest Breakouts", "Sensitive / Eczema-Prone"],
+ bodyCleansePref: ["Moisturizing Bar Soap", "Creamy / Hydrating Body Wash", "Exfoliating Body Scrub", "Shower Oil", "Antibacterial / Deodorant Bar"],
+ bodyMoisturePref: ["Lightweight Body Lotion", "Rich Body Cream", "Whipped Body Butter", "Body Oil (Damp Skin Seal)", "Homemade / DIY Body Powder", "Dusting / Talc-Free Body Powder", "Lotion + Butter/Oil + Body Powder Layering", "Fragrance-Free Only", "Scent Layering / Warm / Gourmand Scents"],
+ maxPrice: ["Under $15", "Under $20", "Under $30", "Under $45", "Under $60"],
+ proPrefs: ["Hair Salon (Bond Repair / Gloss / Trim)", "Hair Salon (Tension-Free Braids / Silk Press)", "Dermatologist (Scalp / Hairline Evaluation)", "Dermatologist (Dark Spots / Acne / KP Rx)", "Esthetician (Hydrating / Barrier Facials)", "Esthetician (Mandelic/Lactic Peels or Body Care)", "At-Home Care Only Right Now"]
+ };
 
-    const HAIR_PROTECTIVE_MODES = [
-      "Relaxed Hair (Out / Styled)",
-      "Natural / Unrelaxed Hair Out",
-      "Wearing a Wig (Unit On)",
-      "Wig Prep / Braids Underneath",
-      "Braid Extensions Installed",
-      "Braid Takedown / Recovery"
-    ];
+ const HAIR_PROTECTIVE_MODES = [
+ "Relaxed Hair (Out / Styled)",
+ "Natural / Unrelaxed Hair Out",
+ "Wearing a Wig (Unit On)",
+ "Wig Prep / Braids Underneath",
+ "Braid Extensions Installed",
+ "Braid Takedown / Recovery"
+ ];
 
-    const STYLING_REFERENCE_GUIDE = [
-      { title: "Relaxed Hair (Out / Styled)", note: "Focus on bond repair + protein-moisture balance, protect the line of demarcation where new growth meets relaxed strands, moisturize with water-based leave-in before sealing ends/temples with light oil, and keep direct heat low." },
-      { title: "Wearing a Wig (Unit On & Hair Underneath)", note: "Cleanse scalp between cornrows with diluted micellar/witch hazel or no-rinse scalp foam, lightly mist braids underneath, seal edges without heavy glue/gel buildup, and wear a satin wig grip or melt band instead of tight elastic." },
-      { title: "Braid Extensions (Box Braids, Knotless, Cornrows)", note: "Use a nozzle-tip diluted shampoo or no-rinse scalp cleanser to prevent buildup at the base, hydrate roots with lightweight leave-in spray + light oil, and avoid heavy creams that cause white buildup." },
-      { title: "Curling Iron / Wand & Hot Rollers (Direct Heat)", note: "Always apply a silicone or polymer thermal heat protectant before heat, keep temperature moderate for relaxed/colored/fine hair, and let curls cool completely before finger-combing." },
-      { title: "Foam / Sponge Rollers, Flexi Rods & Magnetic Wet Sets", note: "Use a lightweight setting mousse/foam or setting lotion on damp or misted hair, wrap ends with end papers (especially on foam/sponge rollers to prevent snagging), and ensure 100% dry before unrolling." },
-      { title: "Velcro Rollers & Satin Heatless Rods", note: "Velcro rollers work best on dry or 90% blown-dry hair with heat protectant and root-lift spray (roll away from fragile temples). Satin heatless rods work best on slightly misted hair with a drop of lightweight smoothing serum." },
-      { title: "Body Layering with Homemade Body Powder", note: "1) Cleanse with gentle bar soap/body wash -> 2) Apply lotion on damp skin -> 3) Seal dry spots with body butter or body oil -> 4) Dust homemade body powder with a puff on friction/sweat zones or over sticky lotion/oil for a silky finish." }
-    ];
+ const STYLING_REFERENCE_GUIDE = [
+ { title: "Relaxed Hair (Out / Styled)", note: "Focus on bond repair + protein-moisture balance, protect the line of demarcation where new growth meets relaxed strands, moisturize with water-based leave-in before sealing ends/temples with light oil, and keep direct heat low." },
+ { title: "Wearing a Wig (Unit On & Hair Underneath)", note: "Cleanse scalp between cornrows with diluted micellar/witch hazel or no-rinse scalp foam, lightly mist braids underneath, seal edges without heavy glue/gel buildup, and wear a satin wig grip or melt band instead of tight elastic." },
+ { title: "Braid Extensions (Box Braids, Knotless, Cornrows)", note: "Use a nozzle-tip diluted shampoo or no-rinse scalp cleanser to prevent buildup at the base, hydrate roots with lightweight leave-in spray + light oil, and avoid heavy creams that cause white buildup." },
+ { title: "Curling Iron / Wand & Hot Rollers (Direct Heat)", note: "Always apply a silicone or polymer thermal heat protectant before heat, keep temperature moderate for relaxed/colored/fine hair, and let curls cool completely before finger-combing." },
+ { title: "Foam / Sponge Rollers, Flexi Rods & Magnetic Wet Sets", note: "Use a lightweight setting mousse/foam or setting lotion on damp or misted hair, wrap ends with end papers (especially on foam/sponge rollers to prevent snagging), and ensure 100% dry before unrolling." },
+ { title: "Velcro Rollers & Satin Heatless Rods", note: "Velcro rollers work best on dry or 90% blown-dry hair with heat protectant and root-lift spray (roll away from fragile temples). Satin heatless rods work best on slightly misted hair with a drop of lightweight smoothing serum." },
+ { title: "Body Layering with Homemade Body Powder", note: "1) Cleanse with gentle bar soap/body wash -> 2) Apply lotion on damp skin -> 3) Seal dry spots with body butter or body oil -> 4) Dust homemade body powder with a puff on friction/sweat zones or over sticky lotion/oil for a silky finish." }
+ ];
 
-    const TRIGGER_FACTORS = [
-      { label: "Temple / edge breakage", domain: "hair", note: "Fine temple hairs snap easily from tension, dryness, or chemical overlap; keep styles loose and seal damp hair." },
-      { label: "Wig band / cap friction on edges", domain: "hair", note: "Wig combs, tight bands, or adhesive can thin the hairline; use a velvet/silicone grip and alcohol-free remover." },
-      { label: "Braid extension tension / buildup", domain: "hair", note: "Heavy extensions pull follicles and trap product at the base; use lightweight sprays and scalp cleansers." },
-      { label: "Heat styling dryness / curl drop", domain: "hair", note: "Curling irons and hot rollers need thermal protection and humidity-shielding hold so curls last without scorching." },
-      { label: "Hard water / mineral buildup", domain: "hair", note: "Minerals can dull/discolor hair and block moisture; chelating/clarifying washes + conditioning help." },
-      { label: "Protein vs. moisture imbalance", domain: "hair", note: "Too much protein can make hair brittle; too much moisture without structure can make hair limp." },
-      { label: "Shift work / sleep or circadian changes", domain: "skin", note: "Irregular sleep and indoor HVAC air affect skin hydration, puffiness, and barrier recovery." },
-      { label: "Hormonal or stress shifts", domain: "skin", note: "Hormones and stress can trigger breakouts, oil changes, shedding, or hyperpigmentation." },
-      { label: "Barrier irritation / over-exfoliation", domain: "skin", note: "Overusing actives or harsh cleansers causes stinging, dryness, and rebound spots." },
-      { label: "Body dryness / harsh soap stripping", domain: "body", note: "Drying soaps and hot water strip body lipids; apply lotion on damp skin and seal with butter/oil." },
-      { label: "Body chafing / sweat / friction zones", domain: "body", note: "Use breathable barrier moisture plus talc-free or homemade body powder on high-friction areas." },
-      { label: "Body bumps / KP / ingrown hairs", domain: "body", note: "Keratin plugs or shaving/waxing friction can cause bumps or dark marks; gentle exfoliation + moisture helps." }
-    ];
+ const TRIGGER_FACTORS = [
+ { label: "Temple / edge breakage", domain: "hair", note: "Fine temple hairs snap easily from tension, dryness, or chemical overlap; keep styles loose and seal damp hair." },
+ { label: "Wig band / cap friction on edges", domain: "hair", note: "Wig combs, tight bands, or adhesive can thin the hairline; use a velvet/silicone grip and alcohol-free remover." },
+ { label: "Braid extension tension / buildup", domain: "hair", note: "Heavy extensions pull follicles and trap product at the base; use lightweight sprays and scalp cleansers." },
+ { label: "Heat styling dryness / curl drop", domain: "hair", note: "Curling irons and hot rollers need thermal protection and humidity-shielding hold so curls last without scorching." },
+ { label: "Hard water / mineral buildup", domain: "hair", note: "Minerals can dull/discolor hair and block moisture; chelating/clarifying washes + conditioning help." },
+ { label: "Protein vs. moisture imbalance", domain: "hair", note: "Too much protein can make hair brittle; too much moisture without structure can make hair limp." },
+ { label: "Shift work / sleep or circadian changes", domain: "skin", note: "Irregular sleep and indoor HVAC air affect skin hydration, puffiness, and barrier recovery." },
+ { label: "Hormonal or stress shifts", domain: "skin", note: "Hormones and stress can trigger breakouts, oil changes, shedding, or hyperpigmentation." },
+ { label: "Barrier irritation / over-exfoliation", domain: "skin", note: "Overusing actives or harsh cleansers causes stinging, dryness, and rebound spots." },
+ { label: "Body dryness / harsh soap stripping", domain: "body", note: "Drying soaps and hot water strip body lipids; apply lotion on damp skin and seal with butter/oil." },
+ { label: "Body chafing / sweat / friction zones", domain: "body", note: "Use breathable barrier moisture plus talc-free or homemade body powder on high-friction areas." },
+ { label: "Body bumps / KP / ingrown hairs", domain: "body", note: "Keratin plugs or shaving/waxing friction can cause bumps or dark marks; gentle exfoliation + moisture helps." }
+ ];
 
-    const PRO_CATEGORIES = [
-      { provider: "Salon", focus: "Bond building, color gloss/toning, steam hydration, silk press/roller sets, tension-free braid installs, and trims." },
-      { provider: "Dermatologist", focus: "Medical scalp/hairline evaluation (traction vs. shedding), stubborn acne/eczema, or hyperpigmentation prescriptions." },
-      { provider: "Esthetician", focus: "Barrier-supporting facials, gentle chemical/enzyme exfoliation, LED light therapy, and body treatments." }
-    ];
+ const PRO_CATEGORIES = [
+ { provider: "Salon", focus: "Bond building, color gloss/toning, steam hydration, silk press/roller sets, tension-free braid installs, and trims." },
+ { provider: "Dermatologist", focus: "Medical scalp/hairline evaluation (traction vs. shedding), stubborn acne/eczema, or hyperpigmentation prescriptions." },
+ { provider: "Esthetician", focus: "Barrier-supporting facials, gentle chemical/enzyme exfoliation, LED light therapy, and body treatments." }
+ ];
 
-    const STASH_CATEGORIES = [
-      // Hair (A-Z)
-      "Bond Repair", "Clarifying / Chelating Shampoo", "Conditioner", "Deep Conditioner", "Edge Control / Wax", "Hair Dye", "Hair Gel", "Hair Oil / Sealant", "Hair Relaxer", "Heat Protectant", "Leave-In / Mist", "Moisturizer", "Oil Sheen", "Protein Treatment", "Setting Mousse / Foam / Lotion", "Shampoo", "Wig / Braid Scalp & Edge Care",
-      // Face (A-Z)
-      "Face Cleanser", "Face Moisturizer", "Face Treatment", "Sunscreen",
-      // Body (A-Z)
-      "Body Butter", "Body Lotion / Cream", "Body Oil", "Body Powder / Dusting Powder", "Body Scrub / Exfoliant", "Body Wash / Bar Soap",
-      "Other"
-    ];
+ const STASH_CATEGORIES = [
+ // Hair (A-Z)
+ "Bond Repair", "Clarifying / Chelating Shampoo", "Conditioner", "Deep Conditioner", "Edge Control / Wax", "Hair Dye", "Hair Gel", "Hair Oil / Sealant", "Hair Relaxer", "Heat Protectant", "Leave-In / Mist", "Moisturizer", "Oil Sheen", "Protein Treatment", "Setting Mousse / Foam / Lotion", "Shampoo", "Wig / Braid Scalp & Edge Care",
+ // Face (A-Z)
+ "Face Cleanser", "Face Moisturizer", "Face Treatment", "Sunscreen",
+ // Body (A-Z)
+ "Body Butter", "Body Lotion / Cream", "Body Oil", "Body Powder / Dusting Powder", "Body Scrub / Exfoliant", "Body Wash / Bar Soap",
+ "Other"
+ ];
 
-    function createBlankState() {
-      return {
-        lowEnergyMode: false,
-        currentStep: 1,
-        currentHairState: "Relaxed Hair (Out / Styled)",
-        selectedStylingMethod: "None / Air Dry / Protective Set",
-        profile: {
-          ageRange: "", skinTone: [], city: "", lat: null, lon: null, envFactors: [], sensitivities: "",
-          hairTexture: [], hairChemical: [], hairColorDetail: "", hairIssues: [], washFreq: "",
-          hairGoals: [], protectiveStyles: [], stylingTools: [], customOilNotes: "",
-          faceType: "", faceConcerns: [], faceRoutinePref: "",
-          bodyConcerns: [], bodyCleansePref: [], bodyMoisturePref: [], customBodyPowderNotes: "",
-          proPrefs: []
-        },
-        shoppingPrefs: { maxPrice: 30, stores: [], extraStores: "" },
-        activeTriggers: [],
-        inventory: [],
-        weather: { tempF: null, humidity: null, uv: null, aqi: null },
-        lastAIRoutine: null,
-        shopRecommendations: []
-      };
-    }
+ function createBlankState() {
+ return {
+ lowEnergyMode: false,
+ currentStep: 1,
+ currentHairState: "Relaxed Hair (Out / Styled)",
+ selectedStylingMethod: "None / Air Dry / Protective Set",
+ profile: {
+ ageRange: "", skinTone: [], city: "", lat: null, lon: null, envFactors: [], sensitivities: "",
+ hairTexture: [], hairChemical: [], hairColorDetail: "", hairIssues: [], washFreq: "",
+ hairGoals: [], protectiveStyles: [], stylingTools: [], customOilNotes: "",
+ faceType: "", faceConcerns: [], faceRoutinePref: "",
+ bodyConcerns: [], bodyCleansePref: [], bodyMoisturePref: [], customBodyPowderNotes: "",
+ proPrefs: []
+ },
+ shoppingPrefs: { maxPrice: 30, stores: [], extraStores: "" },
+ activeTriggers: [],
+ inventory: [],
+ weather: { tempF: null, humidity: null, uv: null, aqi: null },
+ lastAIRoutine: null,
+ shopRecommendations: []
+ };
+ }
 
-    function normalizeState(raw) {
-      const base = createBlankState();
-      if (!raw || typeof raw !== "object") return base;
-      const mergedProfile = { ...base.profile, ...(raw.profile && typeof raw.profile === "object" ? raw.profile : {}) };
-      ["skinTone", "envFactors", "hairTexture", "hairChemical", "hairIssues", "hairGoals", "protectiveStyles", "stylingTools", "faceConcerns", "bodyConcerns", "bodyCleansePref", "bodyMoisturePref", "proPrefs"].forEach(arrKey => {
-        if (!Array.isArray(mergedProfile[arrKey])) mergedProfile[arrKey] = [];
-      });
-      const mergedShop = { ...base.shoppingPrefs, ...(raw.shoppingPrefs && typeof raw.shoppingPrefs === "object" ? raw.shoppingPrefs : {}) };
-      if (!Array.isArray(mergedShop.stores)) mergedShop.stores = [];
-      mergedShop.maxPrice = Number(mergedShop.maxPrice) || 30;
-      return {
-        ...base, ...raw,
-        currentStep: Number(raw.currentStep) || 1,
-        currentHairState: raw.currentHairState || base.currentHairState,
-        selectedStylingMethod: raw.selectedStylingMethod || base.selectedStylingMethod,
-        profile: mergedProfile,
-        shoppingPrefs: mergedShop,
-        activeTriggers: Array.isArray(raw.activeTriggers) ? raw.activeTriggers : [],
-        inventory: Array.isArray(raw.inventory) ? raw.inventory : [],
-        weather: { ...base.weather, ...(raw.weather && typeof raw.weather === "object" ? raw.weather : {}) },
-        shopRecommendations: Array.isArray(raw.shopRecommendations) ? raw.shopRecommendations : []
-      };
-    }
+ function normalizeState(raw) {
+ const base = createBlankState();
+ if (!raw || typeof raw !== "object") return base;
+ const mergedProfile = { ...base.profile, ...(raw.profile && typeof raw.profile === "object" ? raw.profile : {}) };
+ ["skinTone", "envFactors", "hairTexture", "hairChemical", "hairIssues", "hairGoals", "protectiveStyles", "stylingTools", "faceConcerns", "bodyConcerns", "bodyCleansePref", "bodyMoisturePref", "proPrefs"].forEach(arrKey => {
+ if (!Array.isArray(mergedProfile[arrKey])) mergedProfile[arrKey] = [];
+ });
+ const mergedShop = { ...base.shoppingPrefs, ...(raw.shoppingPrefs && typeof raw.shoppingPrefs === "object" ? raw.shoppingPrefs : {}) };
+ if (!Array.isArray(mergedShop.stores)) mergedShop.stores = [];
+ mergedShop.maxPrice = Number(mergedShop.maxPrice) || 30;
+ return {
+ ...base, ...raw,
+ currentStep: Number(raw.currentStep) || 1,
+ currentHairState: raw.currentHairState || base.currentHairState,
+ selectedStylingMethod: raw.selectedStylingMethod || base.selectedStylingMethod,
+ profile: mergedProfile,
+ shoppingPrefs: mergedShop,
+ activeTriggers: Array.isArray(raw.activeTriggers) ? raw.activeTriggers : [],
+ inventory: Array.isArray(raw.inventory) ? raw.inventory : [],
+ weather: { ...base.weather, ...(raw.weather && typeof raw.weather === "object" ? raw.weather : {}) },
+ shopRecommendations: Array.isArray(raw.shopRecommendations) ? raw.shopRecommendations : []
+ };
+ }
 
-    const STORAGE_KEY = "auracare_state_persistent";
-    const LEGACY_KEYS = [
-      "auracare_blank_state_v213",
-      "auracare_blank_state_v212",
-      "auracare_blank_state_v210",
-      "auracare_blank_state_v29",
-      "auracare_blank_state_v28",
-      "auracare_blank_state_v27",
-      "auracare_blank_state_v26",
-      "auracare_blank_state_v25",
-      "auracare_blank_state_v24"
-    ];
+ const STORAGE_KEY = "auracare_state_persistent";
+ const LEGACY_KEYS = [
+ "auracare_blank_state_v213",
+ "auracare_blank_state_v212",
+ "auracare_blank_state_v210",
+ "auracare_blank_state_v29",
+ "auracare_blank_state_v28",
+ "auracare_blank_state_v27",
+ "auracare_blank_state_v26",
+ "auracare_blank_state_v25",
+ "auracare_blank_state_v24"
+ ];
 
-    function hasMeaningfulSavedData(st) {
-      if (!st || typeof st !== "object") return false;
-      const p = st.profile || {};
-      const hasProfile = Boolean(
-        p.ageRange || p.city || p.sensitivities || p.hairColorDetail || p.washFreq ||
-        p.customOilNotes || p.faceType || p.faceRoutinePref || p.customBodyPowderNotes ||
-        (Array.isArray(p.skinTone) && p.skinTone.length) ||
-        (Array.isArray(p.envFactors) && p.envFactors.length) ||
-        (Array.isArray(p.hairTexture) && p.hairTexture.length) ||
-        (Array.isArray(p.hairChemical) && p.hairChemical.length) ||
-        (Array.isArray(p.hairIssues) && p.hairIssues.length) ||
-        (Array.isArray(p.hairGoals) && p.hairGoals.length) ||
-        (Array.isArray(p.protectiveStyles) && p.protectiveStyles.length) ||
-        (Array.isArray(p.stylingTools) && p.stylingTools.length) ||
-        (Array.isArray(p.faceConcerns) && p.faceConcerns.length) ||
-        (Array.isArray(p.bodyConcerns) && p.bodyConcerns.length) ||
-        (Array.isArray(p.bodyCleansePref) && p.bodyCleansePref.length) ||
-        (Array.isArray(p.bodyMoisturePref) && p.bodyMoisturePref.length) ||
-        (Array.isArray(p.proPrefs) && p.proPrefs.length)
-      );
-      const hasInv = Array.isArray(st.inventory) && st.inventory.length > 0;
-      const hasRoutine = Boolean(st.lastAIRoutine);
-      const hasShop = Array.isArray(st.shopRecommendations) && st.shopRecommendations.length > 0;
-      return hasProfile || hasInv || hasRoutine || hasShop;
-    }
+ function hasMeaningfulSavedData(st) {
+ if (!st || typeof st !== "object") return false;
+ const p = st.profile || {};
+ const hasProfile = Boolean(
+ p.ageRange || p.city || p.sensitivities || p.hairColorDetail || p.washFreq ||
+ p.customOilNotes || p.faceType || p.faceRoutinePref || p.customBodyPowderNotes ||
+ (Array.isArray(p.skinTone) && p.skinTone.length) ||
+ (Array.isArray(p.envFactors) && p.envFactors.length) ||
+ (Array.isArray(p.hairTexture) && p.hairTexture.length) ||
+ (Array.isArray(p.hairChemical) && p.hairChemical.length) ||
+ (Array.isArray(p.hairIssues) && p.hairIssues.length) ||
+ (Array.isArray(p.hairGoals) && p.hairGoals.length) ||
+ (Array.isArray(p.protectiveStyles) && p.protectiveStyles.length) ||
+ (Array.isArray(p.stylingTools) && p.stylingTools.length) ||
+ (Array.isArray(p.faceConcerns) && p.faceConcerns.length) ||
+ (Array.isArray(p.bodyConcerns) && p.bodyConcerns.length) ||
+ (Array.isArray(p.bodyCleansePref) && p.bodyCleansePref.length) ||
+ (Array.isArray(p.bodyMoisturePref) && p.bodyMoisturePref.length) ||
+ (Array.isArray(p.proPrefs) && p.proPrefs.length)
+ );
+ const hasInv = Array.isArray(st.inventory) && st.inventory.length > 0;
+ const hasRoutine = Boolean(st.lastAIRoutine);
+ const hasShop = Array.isArray(st.shopRecommendations) && st.shopRecommendations.length > 0;
+ return hasProfile || hasInv || hasRoutine || hasShop;
+ }
 
-    function loadInitialState() {
-      const allKeys = [STORAGE_KEY, ...LEGACY_KEYS];
-      for (const k of allKeys) {
-        try {
-          const raw = localStorage.getItem(k);
-          if (raw) {
-            const parsed = normalizeState(JSON.parse(raw));
-            if (hasMeaningfulSavedData(parsed) || k === STORAGE_KEY) {
-              return parsed;
-            }
-          }
-        } catch (_) {}
+ function loadInitialState() {
+ const allKeys = [STORAGE_KEY, ...LEGACY_KEYS];
+ for (const k of allKeys) {
+ try {
+ const raw = localStorage.getItem(k);
+ if (raw) {
+ const parsed = normalizeState(JSON.parse(raw));
+ if (hasMeaningfulSavedData(parsed) || k === STORAGE_KEY) {
+ return parsed;
+ }
+ }
+ } catch (_) {}
+ }
+ try {
+ if (window.name) {
+ const parsedWin = normalizeState(JSON.parse(window.name));
+ if (hasMeaningfulSavedData(parsedWin)) return parsedWin;
+ }
+ } catch (_) {}
+ return createBlankState();
+ }
+
+ let state = loadInitialState();
+ let pendingCheckinImage = null;
+ let currentStashFilter = "all";
+ let editingStashId = null;
+
+ function saveState() {
+ state = normalizeState(state);
+ const serialized = JSON.stringify(state);
+ try {
+ localStorage.setItem(STORAGE_KEY, serialized);
+ } catch (_) {}
+ try {
+ window.name = serialized;
+ } catch (_) {}
+ }
+
+ function wipeAllToBlank() {
+ if (!confirm("Wipe all profile selections, owned products, and saved results back to completely blank?")) return;
+ try {
+ [STORAGE_KEY, ...LEGACY_KEYS].forEach(k => localStorage.removeItem(k));
+ } catch (_) {}
+ try { window.name = ""; } catch (_) {}
+ state = createBlankState();
+ pendingCheckinImage = null;
+ document.getElementById("aiResultContainer").innerHTML = "";
+ document.getElementById("shopResultsList").innerHTML = "";
+ init();
+ }
+
+ function setProfileSubTab(sub) {
+ const bView = document.getElementById("profile-subview-builder");
+ const pView = document.getElementById("profile-subview-prostyle");
+ const bBtn = document.getElementById("subtab-builder");
+ const pBtn = document.getElementById("subtab-prostyle");
+ if (bView && pView) {
+ bView.classList.toggle("hidden", sub !== "builder");
+ pView.classList.toggle("hidden", sub !== "prostyle");
+ }
+ if (bBtn && pBtn) {
+ bBtn.className = sub === "builder"
+ ? "flex-1 py-2 rounded-xl bg-[#231F1D] text-white"
+ : "flex-1 py-2 rounded-xl bg-[#FAF8F5] border border-[#DDD4C8] text-[#594E47]";
+ pBtn.className = sub === "prostyle"
+ ? "flex-1 py-2 rounded-xl bg-[#231F1D] text-white"
+ : "flex-1 py-2 rounded-xl bg-[#FAF8F5] border border-[#DDD4C8] text-[#594E47]";
+ }
+ }
+
+ function switchTab(tab) {
+ persistTextFields();
+ ["checkin", "stash", "shop", "profile"].forEach(t => {
+ const el = document.getElementById(`tab-${t}`);
+ if (el) el.classList.toggle("hidden", t !== tab);
+ const nav = document.getElementById(`nav-${t}`);
+ if (nav) {
+ if (t === tab) {
+ nav.classList.add("tab-active");
+ nav.classList.remove("text-[#726862]");
+ } else {
+ nav.classList.remove("tab-active");
+ nav.classList.add("text-[#726862]");
+ }
+ }
+ });
+ }
+
+ function toggleEnergyMode() {
+ state.lowEnergyMode = !state.lowEnergyMode;
+ saveState();
+ renderEnergyButton();
+ if (state.lastAIRoutine) renderAIRoutine(state.lastAIRoutine);
+ }
+
+ function renderEnergyButton() {
+ const btn = document.getElementById("energyToggleBtn");
+ document.getElementById("energyIcon").textContent = state.lowEnergyMode ? "🌱" : "🔋";
+ document.getElementById("energyLabel").textContent = state.lowEnergyMode ? "Short" : "Full";
+ btn.classList.toggle("bg-emerald-50", state.lowEnergyMode);
+ }
+
+ function toggleSingleOption(field, value) {
+ persistTextFields();
+ state.profile[field] = state.profile[field] === value ? "" : value;
+ saveState();
+ renderAllProfileChips();
+ renderProfileSummary();
+ }
+
+ function toggleMultiOption(field, value) {
+ persistTextFields();
+ if (!Array.isArray(state.profile[field])) state.profile[field] = [];
+ const idx = state.profile[field].indexOf(value);
+ if (idx >= 0) state.profile[field].splice(idx, 1);
+ else state.profile[field].push(value);
+ saveState();
+ renderAllProfileChips();
+ renderProfileSummary();
+ }
+
+ function selectPriceOption(label) {
+ persistTextFields();
+ const num = Number(label.replace(/[^0-9]/g, "")) || 30;
+ state.shoppingPrefs.maxPrice = num;
+ saveState();
+ renderAllProfileChips();
+ updateBudgetSetting(num);
+ renderProfileSummary();
+ }
+
+ function renderChipGroup(containerId, options, currentVal, isMulti, onClickFnName, fieldName) {
+ const box = document.getElementById(containerId);
+ if (!box) return;
+ box.innerHTML = options.map(opt => {
+ const active = isMulti ? Array.isArray(currentVal) && currentVal.includes(opt) : currentVal === opt;
+ return `<button type="button" onclick="${onClickFnName}('${fieldName}', '${opt.replace(/'/g, "'")}')" class="text-[11px] px-2.5 py-1.5 rounded-full border font-semibold transition ${active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#594E47] border-[#DDD4C8]"}">${active ? "✓ " : "+ "}${opt}</button>`;
+ }).join("");
+ }
+
+ function renderAllProfileChips() {
+ const p = state.profile;
+ renderChipGroup("chips_ageRange", PROFILE_OPTIONS.ageRange, p.ageRange, false, "toggleSingleOption", "ageRange");
+ renderChipGroup("chips_skinTone", PROFILE_OPTIONS.skinTone, p.skinTone, true, "toggleMultiOption", "skinTone");
+ renderChipGroup("chips_envFactors", PROFILE_OPTIONS.envFactors, p.envFactors, true, "toggleMultiOption", "envFactors");
+ renderChipGroup("chips_hairTexture", PROFILE_OPTIONS.hairTexture, p.hairTexture, true, "toggleMultiOption", "hairTexture");
+ renderChipGroup("chips_hairChemical", PROFILE_OPTIONS.hairChemical, p.hairChemical, true, "toggleMultiOption", "hairChemical");
+ renderChipGroup("chips_hairIssues", PROFILE_OPTIONS.hairIssues, p.hairIssues, true, "toggleMultiOption", "hairIssues");
+ renderChipGroup("chips_washFreq", PROFILE_OPTIONS.washFreq, p.washFreq, false, "toggleSingleOption", "washFreq");
+ renderChipGroup("chips_hairGoals", PROFILE_OPTIONS.hairGoals, p.hairGoals, true, "toggleMultiOption", "hairGoals");
+ renderChipGroup("chips_protectiveStyles", PROFILE_OPTIONS.protectiveStyles, p.protectiveStyles, true, "toggleMultiOption", "protectiveStyles");
+ renderChipGroup("chips_stylingTools", PROFILE_OPTIONS.stylingTools, p.stylingTools, true, "toggleMultiOption", "stylingTools");
+ renderChipGroup("chips_faceType", PROFILE_OPTIONS.faceType, p.faceType, false, "toggleSingleOption", "faceType");
+ renderChipGroup("chips_faceConcerns", PROFILE_OPTIONS.faceConcerns, p.faceConcerns, true, "toggleMultiOption", "faceConcerns");
+ renderChipGroup("chips_faceRoutinePref", PROFILE_OPTIONS.faceRoutinePref, p.faceRoutinePref, false, "toggleSingleOption", "faceRoutinePref");
+ renderChipGroup("chips_bodyConcerns", PROFILE_OPTIONS.bodyConcerns, p.bodyConcerns, true, "toggleMultiOption", "bodyConcerns");
+ renderChipGroup("chips_bodyCleansePref", PROFILE_OPTIONS.bodyCleansePref, p.bodyCleansePref, true, "toggleMultiOption", "bodyCleansePref");
+ renderChipGroup("chips_bodyMoisturePref", PROFILE_OPTIONS.bodyMoisturePref, p.bodyMoisturePref, true, "toggleMultiOption", "bodyMoisturePref");
+ renderChipGroup("chips_maxPrice", PROFILE_OPTIONS.maxPrice, `Under $${state.shoppingPrefs.maxPrice}`, false, "selectPriceOption", "maxPrice");
+
+ const storeBox = document.getElementById("chips_stores");
+ storeBox.innerHTML = ALL_STORES.map(store => {
+ const active = (state.shoppingPrefs.stores || []).includes(store);
+ return `<button type="button" onclick="toggleStorePref('${store}')" class="text-[11px] px-2.5 py-1.5 rounded-full border font-semibold transition ${active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#594E47] border-[#DDD4C8]"}">${active ? "✓ " : "+ "}${store}</button>`;
+ }).join("");
+
+ renderChipGroup("chips_proPrefs", PROFILE_OPTIONS.proPrefs, p.proPrefs, true, "toggleMultiOption", "proPrefs");
+ }
+
+ function setHairState(modeLabel) {
+ state.currentHairState = modeLabel;
+ saveState();
+ renderHairModeChips();
+ }
+
+ function renderHairModeChips() {
+ const box = document.getElementById("hairModeChipsBox");
+ box.innerHTML = HAIR_PROTECTIVE_MODES.map(m => {
+ const active = state.currentHairState === m;
+ return `<button type="button" onclick="setHairState('${m}')" class="text-[11px] px-2.5 py-1 rounded-full border font-semibold ${active ? "bg-[#A9772B] text-white border-[#A9772B]" : "bg-white text-[#594E47] border-[#DDD4C8]"}">${active ? "✓ " : ""}${m}</button>`;
+ }).join("");
+ }
+
+ function updateStylingMethod(val) {
+ state.selectedStylingMethod = val;
+ saveState();
+ }
+
+ function setBuilderStep(step) {
+ persistTextFields();
+ state.currentStep = step;
+ saveState();
+ for (let i = 1; i <= 5; i++) {
+ document.getElementById(`step-${i}`).classList.toggle("hidden", i !== step);
+ const pill = document.getElementById(`stp-${i}`);
+ pill.className = i === step ? "py-1.5 rounded-lg bg-[#231F1D] text-white" : "py-1.5 rounded-lg bg-white border border-[#DDD4C8]";
+ }
+ document.getElementById("stepNumLabel").textContent = step;
+ document.getElementById("builderProgressBar").style.width = `${step * 20}%`;
+ }
+
+ function syncInputsFromState() {
+ const p = state.profile;
+ document.getElementById("q_city").value = p.city || "";
+ document.getElementById("q_sensitivities").value = p.sensitivities || "";
+ document.getElementById("q_hairColorDetail").value = p.hairColorDetail || "";
+ document.getElementById("q_customOilNotes").value = p.customOilNotes || "";
+ document.getElementById("q_customBodyPowderNotes").value = p.customBodyPowderNotes || "";
+ document.getElementById("q_extraStores").value = state.shoppingPrefs.extraStores || "";
+ document.getElementById("stylingMethodSelect").value = state.selectedStylingMethod || "None / Air Dry / Protective Set";
+ }
+
+ function persistTextFields() {
+ const prevCity = state.profile.city || "";
+ const nextCity = document.getElementById("q_city").value.trim();
+ if (nextCity !== prevCity) {
+ state.profile.lat = null;
+ state.profile.lon = null;
+ }
+ state.profile.city = nextCity;
+ state.profile.sensitivities = document.getElementById("q_sensitivities").value.trim();
+ state.profile.hairColorDetail = document.getElementById("q_hairColorDetail").value.trim();
+ state.profile.customOilNotes = document.getElementById("q_customOilNotes").value.trim();
+ state.profile.customBodyPowderNotes = document.getElementById("q_customBodyPowderNotes").value.trim();
+ state.shoppingPrefs.extraStores = document.getElementById("q_extraStores").value.trim();
+ saveState();
+ renderProfileSummary();
+ }
+
+ function saveProfileNow(goToCheckin) {
+ persistTextFields();
+ const banner = document.getElementById("profileSavedBanner");
+ banner.classList.remove("hidden");
+ setTimeout(() => {
+ banner.classList.add("hidden");
+ if (goToCheckin) switchTab("checkin");
+ }, 600);
+ }
+
+ function getEffectiveStores() {
+ const base = [...(state.shoppingPrefs.stores || [])];
+ if (state.shoppingPrefs.extraStores) {
+ state.shoppingPrefs.extraStores.split(",").map(s => s.trim()).filter(Boolean).forEach(s => {
+ if (!base.includes(s)) base.push(s);
+ });
+ }
+ return base;
+ }
+
+ async function completeProfileSetup() {
+ persistTextFields();
+ if (state.profile.city && (state.profile.lat === null || state.profile.lon === null)) {
+ await geocodeCity(state.profile.city);
+ } else if (state.profile.lat !== null && state.profile.lon !== null) {
+ await fetchLocalClimate();
+ }
+ saveProfileNow(true);
+ }
+
+ function renderProfileSummary() {
+ const p = state.profile;
+ const storesList = getEffectiveStores();
+ const entries = [
+ ["Basics", [p.ageRange, ...(p.skinTone || []), p.city].filter(Boolean).join(" • ")],
+ ["Environment", [...(p.envFactors || []), p.sensitivities].filter(Boolean).join(" • ")],
+ ["Hair", [...(p.hairTexture || []), ...(p.hairChemical || []), p.hairColorDetail, p.washFreq && `Wash: ${p.washFreq}`].filter(Boolean).join(" • ")],
+ ["Hair Concerns & Goals", [...(p.hairIssues || []), ...(p.hairGoals || [])].filter(Boolean).join(" • ")],
+ ["Wigs, Braids & Styling", [...(p.protectiveStyles || []), ...(p.stylingTools || []), p.customOilNotes].filter(Boolean).join(" • ")],
+ ["Face", [p.faceType, ...(p.faceConcerns || []), p.faceRoutinePref].filter(Boolean).join(" • ")],
+ ["Body & Powder", [...(p.bodyConcerns || []), ...(p.bodyCleansePref || []), ...(p.bodyMoisturePref || []), p.customBodyPowderNotes].filter(Boolean).join(" • ")],
+ ["Shopping", `$${state.shoppingPrefs.maxPrice} max${storesList.length ? ` • ${storesList.join(", ")}` : ""}`],
+ ["Pro Care", (p.proPrefs || []).join(" • ")]
+ ].filter(([, v]) => v);
+
+ const pill = document.getElementById("profileStatusPill");
+ if (entries.length) {
+ pill.textContent = "Profile Saved";
+ pill.className = "text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900";
+ document.getElementById("profileSummaryCard").classList.remove("hidden");
+ document.getElementById("profileSummaryBody").innerHTML = entries.map(([k, v]) => `<div><strong>${k}:</strong> ${v}</div>`).join("");
+ } else {
+ pill.textContent = "Blank Profile";
+ pill.className = "text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900";
+ document.getElementById("profileSummaryCard").classList.add("hidden");
+ }
+ }
+
+ async function geocodeCity(cityName) {
+ try {
+ const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityName)}&count=1&language=en&format=json`);
+ const data = await res.json();
+ const loc = data.results?.[0];
+ if (loc) {
+ state.profile.lat = loc.latitude;
+ state.profile.lon = loc.longitude;
+ state.profile.city = [loc.name, loc.admin1, loc.country_code].filter(Boolean).join(", ");
+ document.getElementById("q_city").value = state.profile.city;
+ saveState();
+ renderProfileSummary();
+ await fetchLocalClimate();
+ }
+ } catch (e) {}
+ }
+
+ function useGPSForProfile() {
+ persistTextFields();
+ if (!navigator.geolocation) return alert("Geolocation not supported.");
+ navigator.geolocation.getCurrentPosition(async (pos) => {
+ state.profile.lat = pos.coords.latitude;
+ state.profile.lon = pos.coords.longitude;
+ state.profile.city = `${pos.coords.latitude.toFixed(2)}, ${pos.coords.longitude.toFixed(2)}`;
+ document.getElementById("q_city").value = state.profile.city;
+ saveState();
+ renderProfileSummary();
+ fetchLocalClimate();
+ }, () => alert("Location permission denied."));
+ }
+
+ async function fetchLocalClimate() {
+ const { lat, lon, city } = state.profile;
+ if (!city && (lat === null || lon === null)) {
+ document.getElementById("locationHeading").textContent = "No Location Set";
+ document.getElementById("climateSummaryBar").textContent = "Set location in Profile Builder for weather & AQI";
+ return;
+ }
+ if ((lat === null || lon === null) && city) {
+ await geocodeCity(city);
+ return;
+ }
+ document.getElementById("locationHeading").textContent = state.profile.city || "Local Climate";
+ try {
+ const wUrl = `https://api.open-meteo.com/v1/forecast?latitude=${state.profile.lat}&longitude=${state.profile.lon}&current=temperature_2m,relative_humidity_2m,dew_point_2m,uv_index&temperature_unit=fahrenheit`;
+ const aUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${state.profile.lat}&longitude=${state.profile.lon}&current=us_aqi`;
+ const [wRes, aRes] = await Promise.all([fetch(wUrl), fetch(aUrl)]);
+ const wData = await wRes.json();
+ const aData = await aRes.json();
+
+ const temp = Math.round(wData.current?.temperature_2m ?? 0);
+ const hum = Math.round(wData.current?.relative_humidity_2m ?? 0);
+ const dew = Math.round(wData.current?.dew_point_2m ?? 0);
+ const uv = (wData.current?.uv_index ?? 0).toFixed(1);
+ const aqi = Math.round(aData.current?.us_aqi ?? 0);
+
+ state.weather = { tempF: temp, humidity: hum, dewPointF: dew, uv, aqi };
+ saveState();
+
+ document.getElementById("wTemp").textContent = `${temp}°F`;
+ document.getElementById("wHumidity").textContent = `${hum}%`;
+ document.getElementById("wUV").textContent = uv;
+ document.getElementById("wAQI").textContent = aqi;
+ document.getElementById("climateSummaryBar").textContent = `${state.profile.city} • ${temp}°F • ${hum}% Hum • AQI ${aqi}`;
+ document.getElementById("climateAdviceText").textContent =
+ `Dew point is ${dew}°F with ${hum}% humidity, UV ${uv}, and US AQI ${aqi}. Low dew points increase moisture loss from hair, face, and body skin; higher humidity impacts curl hold and frizz.`;
+ } catch (e) {
+ document.getElementById("climateAdviceText").textContent = "Unable to load weather/AQI right now.";
+ }
+ }
+
+ function toggleTrigger(label) {
+ const idx = state.activeTriggers.indexOf(label);
+ if (idx >= 0) state.activeTriggers.splice(idx, 1);
+ else state.activeTriggers.push(label);
+ saveState();
+ renderTriggers();
+ }
+
+ function renderTriggers() {
+ const box = document.getElementById("triggerChipsBox");
+ box.innerHTML = TRIGGER_FACTORS.map(t => {
+ const active = state.activeTriggers.includes(t.label);
+ return `<button type="button" onclick="toggleTrigger('${t.label}')" class="text-[11px] px-2.5 py-1 rounded-full border font-semibold ${active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#594E47] border-[#DDD4C8]"}">${active ? "✓ " : "+ "}${t.label}</button>`;
+ }).join("");
+ document.getElementById("stylingReferenceBox").innerHTML = STYLING_REFERENCE_GUIDE.map(sg => `<div class="p-3 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9]"><div class="font-bold text-[#231F1D]">${sg.title}</div><div class="text-[#594E47] mt-0.5">${sg.note}</div></div>`).join("");
+ document.getElementById("proGuidanceBox").innerHTML = PRO_CATEGORIES.map(pc => `<div class="p-3 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9]"><div class="font-bold text-[#A9772B]">${pc.provider}</div><div class="text-[#594E47] mt-0.5">${pc.focus}</div></div>`).join("");
+ document.getElementById("rootCauseCardsBox").innerHTML = TRIGGER_FACTORS.map(t => {
+ const active = state.activeTriggers.includes(t.label);
+ return `<div class="p-3 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] flex items-start justify-between gap-2"><div><div class="text-xs font-bold">${t.label} <span class="text-[10px] uppercase text-[#726862]">(${t.domain})</span></div><div class="text-xs text-[#594E47] mt-0.5">${t.note}</div></div><button type="button" onclick="toggleTrigger('${t.label}')" class="text-[11px] font-semibold px-2 py-1 rounded-lg border shrink-0 ${active ? "bg-[#231F1D] text-white" : "bg-white"}">${active ? "Active" : "Track"}</button></div>`;
+ }).join("");
+ }
+
+ function compressImageToDataURL(file, maxDim = 768) {
+ return new Promise((resolve) => {
+ const reader = new FileReader();
+ reader.onload = (e) => {
+ const img = new Image();
+ img.onload = () => {
+ const canvas = document.createElement("canvas");
+ let { width, height } = img;
+ if (width > height && width > maxDim) {
+ height = Math.round((height * maxDim) / width);
+ width = maxDim;
+ } else if (height > maxDim) {
+ width = Math.round((width * maxDim) / height);
+ height = maxDim;
+ }
+ canvas.width = width;
+ canvas.height = height;
+ canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+ resolve(canvas.toDataURL("image/jpeg", 0.85));
+ };
+ img.src = e.target.result;
+ };
+ reader.readAsDataURL(file);
+ });
+ }
+
+ async function handleCheckinPhoto(e) {
+ const file = e.target.files?.[0];
+ if (!file) return;
+ pendingCheckinImage = await compressImageToDataURL(file, 640);
+ document.getElementById("checkinPhotoPreview").src = pendingCheckinImage;
+ document.getElementById("checkinPhotoPreviewBox").classList.remove("hidden");
+ document.getElementById("clearPhotoBtn").classList.remove("hidden");
+ }
+
+ function clearCheckinPhoto() {
+ pendingCheckinImage = null;
+ document.getElementById("checkinPhotoInput").value = "";
+ document.getElementById("checkinPhotoPreviewBox").classList.add("hidden");
+ document.getElementById("clearPhotoBtn").classList.add("hidden");
+ }
+
+ function compactProfileForApi(prof) {
+ if (!prof || typeof prof !== "object") return {};
+ const out = {};
+ Object.entries(prof).forEach(([k, v]) => {
+ if (k === "lat" || k === "lon") return;
+ if (Array.isArray(v) && v.length > 0) out[k] = v;
+ else if (typeof v === "string" && v.trim() !== "") out[k] = v.trim();
+ });
+ return out;
+ }
+
+ function compactInventoryForApi(inv) {
+ if (!Array.isArray(inv) || !inv.length) return [];
+ return inv.slice(0, 20).map(i => ({
+ n: String(i.name || "").slice(0, 60),
+ c: String(i.category || "").slice(0, 35)
+ }));
+ }
+
+ const clientApiCache = new Map();
+
+ async function generateAIRoutine() {
+ persistTextFields();
+ const btn = document.getElementById("generateRoutineBtn");
+ const status = document.getElementById("aiStatusMsg");
+ const description = document.getElementById("checkinInput").value.trim();
+
+ const payload = {
+ mode: "routine",
+ description: description.slice(0, 240),
+ currentHairState: state.currentHairState,
+ selectedStylingMethod: state.selectedStylingMethod,
+ activeTriggers: (state.activeTriggers || []).slice(0, 6),
+ imageBase64: pendingCheckinImage,
+ profile: compactProfileForApi(state.profile),
+ weather: state.weather && state.weather.tempF != null ? {
+ tempF: state.weather.tempF,
+ humidity: state.weather.humidity,
+ aqi: state.weather.aqi
+ } : {},
+ inventory: compactInventoryForApi(state.inventory),
+ lowEnergyMode: state.lowEnergyMode,
+ shoppingPrefs: {
+ maxPrice: state.shoppingPrefs.maxPrice,
+ stores: getEffectiveStores().slice(0, 5)
+ }
+ };
+
+ const cacheKey = JSON.stringify(payload);
+ if (!pendingCheckinImage && clientApiCache.has(cacheKey)) {
+ const cachedRes = clientApiCache.get(cacheKey);
+ state.lastAIRoutine = cachedRes;
+ saveState();
+ renderAIRoutine(cachedRes);
+ status.classList.add("hidden");
+ return;
+ }
+
+ btn.disabled = true;
+ btn.textContent = "Generating routines...";
+ status.textContent = "Analyzing profile, hair state, stash & weather/AQI...";
+ status.classList.remove("hidden");
+
+ try {
+ const resp = await fetch("/api/analyze", {
+ method: "POST",
+ headers: { "Content-Type": "application/json" },
+ body: JSON.stringify(payload)
+ });
+ const data = await resp.json().catch(() => ({}));
+ if (!resp.ok || !data.result) throw new Error(data.error || "Failed to generate routine");
+ if (!pendingCheckinImage) clientApiCache.set(cacheKey, data.result);
+ state.lastAIRoutine = data.result;
+ saveState();
+ renderAIRoutine(data.result);
+ status.classList.add("hidden");
+ } catch (err) {
+ const fallbackRes = buildLocalCheckinFallback();
+ state.lastAIRoutine = fallbackRes;
+ saveState();
+ renderAIRoutine(fallbackRes);
+ status.textContent = "Groq limit reached—generated plan using your saved stash & profile.";
+ } finally {
+ btn.disabled = false;
+ btn.textContent = "✨ Generate Tailored Routines, Styling Products & Pro Care";
+ }
+ }
+
+ function pickStashItemsForDomain(domain) {
+ const inv = Array.isArray(state.inventory) ? state.inventory : [];
+ return inv.filter(item => {
+ if (!item || !item.name) return false;
+ if (domain === "all") return true;
+ return item.domain === domain;
+ }).slice(0, 4);
+ }
+
+ const CATALOG_CANDIDATES = [
+ {
+ name: "Olaplex No. 3 Hair Perfector",
+ domain: "hair",
+ category: "Bond Repair",
+ priceNum: 28,
+ stores: ["Ulta Beauty", "Amazon", "Target"],
+ tags: ["breakage", "color", "dye", "bleached", "relaxed", "bond", "repair"],
+ why: "Rebuilds bonds in chemically treated or color-processed hair."
+ },
+ {
+ name: "Aunt Jackie's Knot On My Watch Instant Detangling Therapy",
+ domain: "hair",
+ category: "Leave-In / Mist",
+ priceNum: 9,
+ stores: ["Sally Beauty", "Target", "Walmart", "Ulta Beauty", "Amazon"],
+ tags: ["breakage", "tangle", "moisture", "relaxed", "edge", "temple"],
+ why: "Slip-rich detangler that helps reduce tugging and breakage on sensitive or relaxed strands."
+ },
+ {
+ name: "Mizani Miracle Milk Leave-In Conditioner",
+ domain: "hair",
+ category: "Leave-In / Mist",
+ priceNum: 22,
+ stores: ["Ulta Beauty", "Sally Beauty", "Amazon"],
+ tags: ["moisture", "heat", "roller", "curling", "breakage", "color"],
+ why: "Lightweight leave-in that adds moisture, slip, and heat protection before styling."
+ },
+ {
+ name: "ORS Olive Oil Sheen Spray",
+ domain: "hair",
+ category: "Oil Sheen",
+ priceNum: 8,
+ stores: ["Sally Beauty", "Walmart", "CVS", "Walgreens", "Amazon"],
+ tags: ["sheen", "shine", "dull", "dry", "roller", "curling", "wig", "braid"],
+ why: "Adds lightweight shine and softness without weighing down styled or relaxed hair."
+ },
+ {
+ name: "Ebin New York 24 Hour Edge Tamer",
+ domain: "hair",
+ category: "Edge Control / Wax",
+ priceNum: 11,
+ stores: ["Sally Beauty", "Amazon", "Walmart", "Target"],
+ tags: ["edge", "temple", "wig", "braid"],
+ why: "Smooths edges and flyaways with firm hold for clean finishing."
+ },
+ {
+ name: "CeraVe Hydrating Facial Cleanser",
+ domain: "skin",
+ category: "Face Cleanser",
+ priceNum: 16,
+ stores: ["Target", "Walmart", "CVS", "Walgreens", "Ulta Beauty", "Amazon"],
+ tags: ["dry", "sensitive", "barrier", "face", "cleanser"],
+ why: "Non-foaming cleanser with ceramides and hyaluronic acid that preserves the skin barrier."
+ },
+ {
+ name: "CeraVe Moisturizing Cream",
+ domain: "skin",
+ category: "Face Moisturizer",
+ priceNum: 19,
+ stores: ["Target", "Walmart", "CVS", "Walgreens", "Ulta Beauty", "Amazon"],
+ tags: ["dry", "barrier", "hyperpigmentation", "dark spots", "moisturizer"],
+ why: "Rich ceramide moisture that supports barrier recovery and reduces dryness."
+ },
+ {
+ name: "AmLactin Daily Moisturizing Body Lotion",
+ domain: "body",
+ category: "Body Lotion / Cream",
+ priceNum: 18,
+ stores: ["Target", "Walmart", "CVS", "Walgreens", "Amazon"],
+ tags: ["rough", "kp", "bumps", "ingrown", "body", "dry"],
+ why: "Lactic acid lotion that smooths rough texture, KP bumps, and dry body skin."
+ },
+ {
+ name: "SheaMoisture Coconut & Hibiscus Body Lotion",
+ domain: "body",
+ category: "Body Lotion / Cream",
+ priceNum: 13,
+ stores: ["Target", "Walmart", "Ulta Beauty", "CVS", "Walgreens", "Amazon"],
+ tags: ["body", "dry", "moisture", "powder"],
+ why: "Moisturizes body skin so it pairs smoothly with body oil or body powder."
+ }
+ ];
+
+    function isCompatibleWithContext(candidate, inventory, profile, triggers) {
+      const invText = JSON.stringify(inventory || []).toLowerCase();
+      const profText = JSON.stringify({ profile, triggers }).toLowerCase();
+      const catLower = String(candidate.category || "").toLowerCase();
+
+      if (profText.includes("fragrance-free only") && (catLower.includes("oil sheen") || catLower.includes("edge control"))) {
+        return false;
       }
-      try {
-        if (window.name) {
-          const parsedWin = normalizeState(JSON.parse(window.name));
-          if (hasMeaningfulSavedData(parsedWin)) return parsedWin;
-        }
-      } catch (_) {}
-      return createBlankState();
+      const alreadyHasCat = (inventory || []).some(i => String(i.category || "").toLowerCase() === catLower);
+      if (alreadyHasCat) return false;
+
+      if (catLower.includes("oil sheen") && invText.includes("sheen")) return false;
+      if (catLower.includes("edge control") && invText.includes("edge")) return false;
+
+      return true;
     }
 
-    let state = loadInitialState();
-    let pendingCheckinImage = null;
-    let currentStashFilter = "all";
-    let editingStashId = null;
+    function pickRelevantCatalogItems({ domain, maxPrice, stores, inventory, triggers, profile, limit = 3 }) {
+      const invNames = new Set((inventory || []).map(i => String(i.name || "").toLowerCase()));
+      const invCats = new Set((inventory || []).map(i => String(i.category || "").toLowerCase()));
+      const contextText = JSON.stringify({ profile, triggers, domain }).toLowerCase();
+      const preferredStores = (stores || []).map(s => s.toLowerCase());
 
-    function saveState() {
-      state = normalizeState(state);
-      const serialized = JSON.stringify(state);
-      try {
-        localStorage.setItem(STORAGE_KEY, serialized);
-      } catch (_) {}
-      try {
-        window.name = serialized;
-      } catch (_) {}
-    }
+      const scored = CATALOG_CANDIDATES
+        .filter(item => {
+          if (domain && domain !== "all" && item.domain !== domain) return false;
+          if (item.priceNum > maxPrice) return false;
+          if (invNames.has(item.name.toLowerCase())) return false;
+          if (!isCompatibleWithContext(item, inventory, profile, triggers)) return false;
+          return true;
+        })
+        .map(item => {
+          let score = 0;
+          if (!invCats.has(item.category.toLowerCase())) score += 4;
+          if (preferredStores.length && item.stores.some(s => preferredStores.includes(s.toLowerCase()))) score += 3;
+          item.tags.forEach(tag => {
+            if (contextText.includes(tag)) score += 2;
+          });
+          return { item, score };
+        })
+        .sort((a, b) => b.score - a.score || a.item.priceNum - b.item.priceNum);
 
-    function wipeAllToBlank() {
-      if (!confirm("Wipe all profile selections, owned products, and saved results back to completely blank?")) return;
-      try {
-        [STORAGE_KEY, ...LEGACY_KEYS].forEach(k => localStorage.removeItem(k));
-      } catch (_) {}
-      try { window.name = ""; } catch (_) {}
-      state = createBlankState();
-      pendingCheckinImage = null;
-      document.getElementById("aiResultContainer").innerHTML = "";
-      document.getElementById("shopResultsList").innerHTML = "";
-      init();
-    }
-
-    function setProfileSubTab(sub) {
-      const bView = document.getElementById("profile-subview-builder");
-      const pView = document.getElementById("profile-subview-prostyle");
-      const bBtn = document.getElementById("subtab-builder");
-      const pBtn = document.getElementById("subtab-prostyle");
-      if (bView && pView) {
-        bView.classList.toggle("hidden", sub !== "builder");
-        pView.classList.toggle("hidden", sub !== "prostyle");
-      }
-      if (bBtn && pBtn) {
-        bBtn.className = sub === "builder"
-          ? "flex-1 py-2 rounded-xl bg-[#231F1D] text-white"
-          : "flex-1 py-2 rounded-xl bg-[#FAF8F5] border border-[#DDD4C8] text-[#594E47]";
-        pBtn.className = sub === "prostyle"
-          ? "flex-1 py-2 rounded-xl bg-[#231F1D] text-white"
-          : "flex-1 py-2 rounded-xl bg-[#FAF8F5] border border-[#DDD4C8] text-[#594E47]";
-      }
-    }
-
-    function switchTab(tab) {
-      persistTextFields();
-      ["checkin", "stash", "shop", "profile"].forEach(t => {
-        const el = document.getElementById(`tab-${t}`);
-        if (el) el.classList.toggle("hidden", t !== tab);
-        const nav = document.getElementById(`nav-${t}`);
-        if (nav) {
-          if (t === tab) {
-            nav.classList.add("tab-active");
-            nav.classList.remove("text-[#726862]");
-          } else {
-            nav.classList.remove("tab-active");
-            nav.classList.add("text-[#726862]");
-          }
-        }
-      });
-    }
-
-    function toggleEnergyMode() {
-      state.lowEnergyMode = !state.lowEnergyMode;
-      saveState();
-      renderEnergyButton();
-      if (state.lastAIRoutine) renderAIRoutine(state.lastAIRoutine);
-    }
-
-    function renderEnergyButton() {
-      const btn = document.getElementById("energyToggleBtn");
-      document.getElementById("energyIcon").textContent = state.lowEnergyMode ? "🌱" : "🔋";
-      document.getElementById("energyLabel").textContent = state.lowEnergyMode ? "Short" : "Full";
-      btn.classList.toggle("bg-emerald-50", state.lowEnergyMode);
-    }
-
-    function toggleSingleOption(field, value) {
-      persistTextFields();
-      state.profile[field] = state.profile[field] === value ? "" : value;
-      saveState();
-      renderAllProfileChips();
-      renderProfileSummary();
-    }
-
-    function toggleMultiOption(field, value) {
-      persistTextFields();
-      if (!Array.isArray(state.profile[field])) state.profile[field] = [];
-      const idx = state.profile[field].indexOf(value);
-      if (idx >= 0) state.profile[field].splice(idx, 1);
-      else state.profile[field].push(value);
-      saveState();
-      renderAllProfileChips();
-      renderProfileSummary();
-    }
-
-    function selectPriceOption(label) {
-      persistTextFields();
-      const num = Number(label.replace(/[^0-9]/g, "")) || 30;
-      state.shoppingPrefs.maxPrice = num;
-      saveState();
-      renderAllProfileChips();
-      updateBudgetSetting(num);
-      renderProfileSummary();
-    }
-
-    function renderChipGroup(containerId, options, currentVal, isMulti, onClickFnName, fieldName) {
-      const box = document.getElementById(containerId);
-      if (!box) return;
-      box.innerHTML = options.map(opt => {
-        const active = isMulti ? Array.isArray(currentVal) && currentVal.includes(opt) : currentVal === opt;
-        return `<button type="button" onclick="${onClickFnName}('${fieldName}', '${opt.replace(/'/g, "'")}')" class="text-[11px] px-2.5 py-1.5 rounded-full border font-semibold transition ${active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#594E47] border-[#DDD4C8]"}">${active ? "✓ " : "+ "}${opt}</button>`;
-      }).join("");
-    }
-
-    function renderAllProfileChips() {
-      const p = state.profile;
-      renderChipGroup("chips_ageRange", PROFILE_OPTIONS.ageRange, p.ageRange, false, "toggleSingleOption", "ageRange");
-      renderChipGroup("chips_skinTone", PROFILE_OPTIONS.skinTone, p.skinTone, true, "toggleMultiOption", "skinTone");
-      renderChipGroup("chips_envFactors", PROFILE_OPTIONS.envFactors, p.envFactors, true, "toggleMultiOption", "envFactors");
-      renderChipGroup("chips_hairTexture", PROFILE_OPTIONS.hairTexture, p.hairTexture, true, "toggleMultiOption", "hairTexture");
-      renderChipGroup("chips_hairChemical", PROFILE_OPTIONS.hairChemical, p.hairChemical, true, "toggleMultiOption", "hairChemical");
-      renderChipGroup("chips_hairIssues", PROFILE_OPTIONS.hairIssues, p.hairIssues, true, "toggleMultiOption", "hairIssues");
-      renderChipGroup("chips_washFreq", PROFILE_OPTIONS.washFreq, p.washFreq, false, "toggleSingleOption", "washFreq");
-      renderChipGroup("chips_hairGoals", PROFILE_OPTIONS.hairGoals, p.hairGoals, true, "toggleMultiOption", "hairGoals");
-      renderChipGroup("chips_protectiveStyles", PROFILE_OPTIONS.protectiveStyles, p.protectiveStyles, true, "toggleMultiOption", "protectiveStyles");
-      renderChipGroup("chips_stylingTools", PROFILE_OPTIONS.stylingTools, p.stylingTools, true, "toggleMultiOption", "stylingTools");
-      renderChipGroup("chips_faceType", PROFILE_OPTIONS.faceType, p.faceType, false, "toggleSingleOption", "faceType");
-      renderChipGroup("chips_faceConcerns", PROFILE_OPTIONS.faceConcerns, p.faceConcerns, true, "toggleMultiOption", "faceConcerns");
-      renderChipGroup("chips_faceRoutinePref", PROFILE_OPTIONS.faceRoutinePref, p.faceRoutinePref, false, "toggleSingleOption", "faceRoutinePref");
-      renderChipGroup("chips_bodyConcerns", PROFILE_OPTIONS.bodyConcerns, p.bodyConcerns, true, "toggleMultiOption", "bodyConcerns");
-      renderChipGroup("chips_bodyCleansePref", PROFILE_OPTIONS.bodyCleansePref, p.bodyCleansePref, true, "toggleMultiOption", "bodyCleansePref");
-      renderChipGroup("chips_bodyMoisturePref", PROFILE_OPTIONS.bodyMoisturePref, p.bodyMoisturePref, true, "toggleMultiOption", "bodyMoisturePref");
-      renderChipGroup("chips_maxPrice", PROFILE_OPTIONS.maxPrice, `Under $${state.shoppingPrefs.maxPrice}`, false, "selectPriceOption", "maxPrice");
-
-      const storeBox = document.getElementById("chips_stores");
-      storeBox.innerHTML = ALL_STORES.map(store => {
-        const active = (state.shoppingPrefs.stores || []).includes(store);
-        return `<button type="button" onclick="toggleStorePref('${store}')" class="text-[11px] px-2.5 py-1.5 rounded-full border font-semibold transition ${active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#594E47] border-[#DDD4C8]"}">${active ? "✓ " : "+ "}${store}</button>`;
-      }).join("");
-
-      renderChipGroup("chips_proPrefs", PROFILE_OPTIONS.proPrefs, p.proPrefs, true, "toggleMultiOption", "proPrefs");
-    }
-
-    function setHairState(modeLabel) {
-      state.currentHairState = modeLabel;
-      saveState();
-      renderHairModeChips();
-    }
-
-    function renderHairModeChips() {
-      const box = document.getElementById("hairModeChipsBox");
-      box.innerHTML = HAIR_PROTECTIVE_MODES.map(m => {
-        const active = state.currentHairState === m;
-        return `<button type="button" onclick="setHairState('${m}')" class="text-[11px] px-2.5 py-1 rounded-full border font-semibold ${active ? "bg-[#A9772B] text-white border-[#A9772B]" : "bg-white text-[#594E47] border-[#DDD4C8]"}">${active ? "✓ " : ""}${m}</button>`;
-      }).join("");
-    }
-
-    function updateStylingMethod(val) {
-      state.selectedStylingMethod = val;
-      saveState();
-    }
-
-    function setBuilderStep(step) {
-      persistTextFields();
-      state.currentStep = step;
-      saveState();
-      for (let i = 1; i <= 5; i++) {
-        document.getElementById(`step-${i}`).classList.toggle("hidden", i !== step);
-        const pill = document.getElementById(`stp-${i}`);
-        pill.className = i === step ? "py-1.5 rounded-lg bg-[#231F1D] text-white" : "py-1.5 rounded-lg bg-white border border-[#DDD4C8]";
-      }
-      document.getElementById("stepNumLabel").textContent = step;
-      document.getElementById("builderProgressBar").style.width = `${step * 20}%`;
-    }
-
-    function syncInputsFromState() {
-      const p = state.profile;
-      document.getElementById("q_city").value = p.city || "";
-      document.getElementById("q_sensitivities").value = p.sensitivities || "";
-      document.getElementById("q_hairColorDetail").value = p.hairColorDetail || "";
-      document.getElementById("q_customOilNotes").value = p.customOilNotes || "";
-      document.getElementById("q_customBodyPowderNotes").value = p.customBodyPowderNotes || "";
-      document.getElementById("q_extraStores").value = state.shoppingPrefs.extraStores || "";
-      document.getElementById("stylingMethodSelect").value = state.selectedStylingMethod || "None / Air Dry / Protective Set";
-    }
-
-    function persistTextFields() {
-      const prevCity = state.profile.city || "";
-      const nextCity = document.getElementById("q_city").value.trim();
-      if (nextCity !== prevCity) {
-        state.profile.lat = null;
-        state.profile.lon = null;
-      }
-      state.profile.city = nextCity;
-      state.profile.sensitivities = document.getElementById("q_sensitivities").value.trim();
-      state.profile.hairColorDetail = document.getElementById("q_hairColorDetail").value.trim();
-      state.profile.customOilNotes = document.getElementById("q_customOilNotes").value.trim();
-      state.profile.customBodyPowderNotes = document.getElementById("q_customBodyPowderNotes").value.trim();
-      state.shoppingPrefs.extraStores = document.getElementById("q_extraStores").value.trim();
-      saveState();
-      renderProfileSummary();
-    }
-
-    function saveProfileNow(goToCheckin) {
-      persistTextFields();
-      const banner = document.getElementById("profileSavedBanner");
-      banner.classList.remove("hidden");
-      setTimeout(() => {
-        banner.classList.add("hidden");
-        if (goToCheckin) switchTab("checkin");
-      }, 600);
-    }
-
-    function getEffectiveStores() {
-      const base = [...(state.shoppingPrefs.stores || [])];
-      if (state.shoppingPrefs.extraStores) {
-        state.shoppingPrefs.extraStores.split(",").map(s => s.trim()).filter(Boolean).forEach(s => {
-          if (!base.includes(s)) base.push(s);
-        });
-      }
-      return base;
-    }
-
-    async function completeProfileSetup() {
-      persistTextFields();
-      if (state.profile.city && (state.profile.lat === null || state.profile.lon === null)) {
-        await geocodeCity(state.profile.city);
-      } else if (state.profile.lat !== null && state.profile.lon !== null) {
-        await fetchLocalClimate();
-      }
-      saveProfileNow(true);
-    }
-
-    function renderProfileSummary() {
-      const p = state.profile;
-      const storesList = getEffectiveStores();
-      const entries = [
-        ["Basics", [p.ageRange, ...(p.skinTone || []), p.city].filter(Boolean).join(" • ")],
-        ["Environment", [...(p.envFactors || []), p.sensitivities].filter(Boolean).join(" • ")],
-        ["Hair", [...(p.hairTexture || []), ...(p.hairChemical || []), p.hairColorDetail, p.washFreq && `Wash: ${p.washFreq}`].filter(Boolean).join(" • ")],
-        ["Hair Concerns & Goals", [...(p.hairIssues || []), ...(p.hairGoals || [])].filter(Boolean).join(" • ")],
-        ["Wigs, Braids & Styling", [...(p.protectiveStyles || []), ...(p.stylingTools || []), p.customOilNotes].filter(Boolean).join(" • ")],
-        ["Face", [p.faceType, ...(p.faceConcerns || []), p.faceRoutinePref].filter(Boolean).join(" • ")],
-        ["Body & Powder", [...(p.bodyConcerns || []), ...(p.bodyCleansePref || []), ...(p.bodyMoisturePref || []), p.customBodyPowderNotes].filter(Boolean).join(" • ")],
-        ["Shopping", `$${state.shoppingPrefs.maxPrice} max${storesList.length ? ` • ${storesList.join(", ")}` : ""}`],
-        ["Pro Care", (p.proPrefs || []).join(" • ")]
-      ].filter(([, v]) => v);
-
-      const pill = document.getElementById("profileStatusPill");
-      if (entries.length) {
-        pill.textContent = "Profile Saved";
-        pill.className = "text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900";
-        document.getElementById("profileSummaryCard").classList.remove("hidden");
-        document.getElementById("profileSummaryBody").innerHTML = entries.map(([k, v]) => `<div><strong>${k}:</strong> ${v}</div>`).join("");
-      } else {
-        pill.textContent = "Blank Profile";
-        pill.className = "text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900";
-        document.getElementById("profileSummaryCard").classList.add("hidden");
-      }
-    }
-
-    async function geocodeCity(cityName) {
-      try {
-        const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityName)}&count=1&language=en&format=json`);
-        const data = await res.json();
-        const loc = data.results?.[0];
-        if (loc) {
-          state.profile.lat = loc.latitude;
-          state.profile.lon = loc.longitude;
-          state.profile.city = [loc.name, loc.admin1, loc.country_code].filter(Boolean).join(", ");
-          document.getElementById("q_city").value = state.profile.city;
-          saveState();
-          renderProfileSummary();
-          await fetchLocalClimate();
-        }
-      } catch (e) {}
-    }
-
-    function useGPSForProfile() {
-      persistTextFields();
-      if (!navigator.geolocation) return alert("Geolocation not supported.");
-      navigator.geolocation.getCurrentPosition(async (pos) => {
-        state.profile.lat = pos.coords.latitude;
-        state.profile.lon = pos.coords.longitude;
-        state.profile.city = `${pos.coords.latitude.toFixed(2)}, ${pos.coords.longitude.toFixed(2)}`;
-        document.getElementById("q_city").value = state.profile.city;
-        saveState();
-        renderProfileSummary();
-        fetchLocalClimate();
-      }, () => alert("Location permission denied."));
-    }
-
-    async function fetchLocalClimate() {
-      const { lat, lon, city } = state.profile;
-      if (!city && (lat === null || lon === null)) {
-        document.getElementById("locationHeading").textContent = "No Location Set";
-        document.getElementById("climateSummaryBar").textContent = "Set location in Profile Builder for weather & AQI";
-        return;
-      }
-      if ((lat === null || lon === null) && city) {
-        await geocodeCity(city);
-        return;
-      }
-      document.getElementById("locationHeading").textContent = state.profile.city || "Local Climate";
-      try {
-        const wUrl = `https://api.open-meteo.com/v1/forecast?latitude=${state.profile.lat}&longitude=${state.profile.lon}&current=temperature_2m,relative_humidity_2m,dew_point_2m,uv_index&temperature_unit=fahrenheit`;
-        const aUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${state.profile.lat}&longitude=${state.profile.lon}&current=us_aqi`;
-        const [wRes, aRes] = await Promise.all([fetch(wUrl), fetch(aUrl)]);
-        const wData = await wRes.json();
-        const aData = await aRes.json();
-
-        const temp = Math.round(wData.current?.temperature_2m ?? 0);
-        const hum = Math.round(wData.current?.relative_humidity_2m ?? 0);
-        const dew = Math.round(wData.current?.dew_point_2m ?? 0);
-        const uv = (wData.current?.uv_index ?? 0).toFixed(1);
-        const aqi = Math.round(aData.current?.us_aqi ?? 0);
-
-        state.weather = { tempF: temp, humidity: hum, dewPointF: dew, uv, aqi };
-        saveState();
-
-        document.getElementById("wTemp").textContent = `${temp}°F`;
-        document.getElementById("wHumidity").textContent = `${hum}%`;
-        document.getElementById("wUV").textContent = uv;
-        document.getElementById("wAQI").textContent = aqi;
-        document.getElementById("climateSummaryBar").textContent = `${state.profile.city} • ${temp}°F • ${hum}% Hum • AQI ${aqi}`;
-        document.getElementById("climateAdviceText").textContent =
-          `Dew point is ${dew}°F with ${hum}% humidity, UV ${uv}, and US AQI ${aqi}. Low dew points increase moisture loss from hair, face, and body skin; higher humidity impacts curl hold and frizz.`;
-      } catch (e) {
-        document.getElementById("climateAdviceText").textContent = "Unable to load weather/AQI right now.";
-      }
-    }
-
-    function toggleTrigger(label) {
-      const idx = state.activeTriggers.indexOf(label);
-      if (idx >= 0) state.activeTriggers.splice(idx, 1);
-      else state.activeTriggers.push(label);
-      saveState();
-      renderTriggers();
-    }
-
-    function renderTriggers() {
-      const box = document.getElementById("triggerChipsBox");
-      box.innerHTML = TRIGGER_FACTORS.map(t => {
-        const active = state.activeTriggers.includes(t.label);
-        return `<button type="button" onclick="toggleTrigger('${t.label}')" class="text-[11px] px-2.5 py-1 rounded-full border font-semibold ${active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#594E47] border-[#DDD4C8]"}">${active ? "✓ " : "+ "}${t.label}</button>`;
-      }).join("");
-      document.getElementById("stylingReferenceBox").innerHTML = STYLING_REFERENCE_GUIDE.map(sg => `<div class="p-3 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9]"><div class="font-bold text-[#231F1D]">${sg.title}</div><div class="text-[#594E47] mt-0.5">${sg.note}</div></div>`).join("");
-      document.getElementById("proGuidanceBox").innerHTML = PRO_CATEGORIES.map(pc => `<div class="p-3 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9]"><div class="font-bold text-[#A9772B]">${pc.provider}</div><div class="text-[#594E47] mt-0.5">${pc.focus}</div></div>`).join("");
-      document.getElementById("rootCauseCardsBox").innerHTML = TRIGGER_FACTORS.map(t => {
-        const active = state.activeTriggers.includes(t.label);
-        return `<div class="p-3 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] flex items-start justify-between gap-2"><div><div class="text-xs font-bold">${t.label} <span class="text-[10px] uppercase text-[#726862]">(${t.domain})</span></div><div class="text-xs text-[#594E47] mt-0.5">${t.note}</div></div><button type="button" onclick="toggleTrigger('${t.label}')" class="text-[11px] font-semibold px-2 py-1 rounded-lg border shrink-0 ${active ? "bg-[#231F1D] text-white" : "bg-white"}">${active ? "Active" : "Track"}</button></div>`;
-      }).join("");
-    }
-
-    function compressImageToDataURL(file, maxDim = 768) {
-      return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const img = new Image();
-          img.onload = () => {
-            const canvas = document.createElement("canvas");
-            let { width, height } = img;
-            if (width > height && width > maxDim) {
-              height = Math.round((height * maxDim) / width);
-              width = maxDim;
-            } else if (height > maxDim) {
-              width = Math.round((width * maxDim) / height);
-              height = maxDim;
-            }
-            canvas.width = width;
-            canvas.height = height;
-            canvas.getContext("2d").drawImage(img, 0, 0, width, height);
-            resolve(canvas.toDataURL("image/jpeg", 0.85));
-          };
-          img.src = e.target.result;
+      return scored.slice(0, limit).map(({ item }) => {
+        const matchedStore = (stores || []).find(s => item.stores.map(x => x.toLowerCase()).includes(s.toLowerCase()))
+          || item.stores[0]
+          || "Target";
+        const otherStores = item.stores.filter(s => s.toLowerCase() !== matchedStore.toLowerCase()).slice(0, 2).join(", ");
+        return {
+          name: item.name,
+          domain: item.domain,
+          category: item.category,
+          price: `$${item.priceNum.toFixed(2)}`,
+          numericPrice: item.priceNum,
+          bestStore: matchedStore,
+          alsoAt: otherStores,
+          store: matchedStore,
+          estimatedPrice: `$${item.priceNum.toFixed(2)}`,
+          whyItFits: `${item.why} Compatible with your active routine without clashing.`,
+          reason: `${item.why} Compatible with your active routine without clashing.`
         };
-        reader.readAsDataURL(file);
       });
     }
 
-    async function handleCheckinPhoto(e) {
-      const file = e.target.files?.[0];
-      if (!file) return;
-      pendingCheckinImage = await compressImageToDataURL(file, 640);
-      document.getElementById("checkinPhotoPreview").src = pendingCheckinImage;
-      document.getElementById("checkinPhotoPreviewBox").classList.remove("hidden");
-      document.getElementById("clearPhotoBtn").classList.remove("hidden");
-    }
+ function getMissingStashRecommendations() {
+ const inv = Array.isArray(state.inventory) ? state.inventory : [];
+ const maxP = Number(state.shoppingPrefs?.maxPrice) || 30;
+ const stores = getEffectiveStores();
+ const profText = JSON.stringify({
+ profile: state.profile,
+ hairState: state.currentHairState,
+ styling: state.selectedStylingMethod,
+ triggers: state.activeTriggers
+ }).toLowerCase();
 
-    function clearCheckinPhoto() {
-      pendingCheckinImage = null;
-      document.getElementById("checkinPhotoInput").value = "";
-      document.getElementById("checkinPhotoPreviewBox").classList.add("hidden");
-      document.getElementById("clearPhotoBtn").classList.add("hidden");
-    }
+ const hasCat = (regex) => inv.some(i => regex.test(`${i.category || ""} ${i.name || ""}`));
+ const recs = [];
 
-    function compactProfileForApi(prof) {
-      if (!prof || typeof prof !== "object") return {};
-      const out = {};
-      Object.entries(prof).forEach(([k, v]) => {
-        if (k === "lat" || k === "lon") return;
-        if (Array.isArray(v) && v.length > 0) out[k] = v;
-        else if (typeof v === "string" && v.trim() !== "") out[k] = v.trim();
-      });
-      return out;
-    }
+ if ((profText.includes("relax") || profText.includes("dye") || profText.includes("color") || profText.includes("breakage") || profText.includes("temple") || profText.includes("edge")) && !hasCat(/bond repair/i)) {
+ const match = pickRelevantCatalogItems({ domain: "hair", maxPrice: maxP, stores, inventory: inv, triggers: ["bond repair breakage"], profile: state.profile, limit: 1 })[0];
+ if (match) recs.push({ ...match, reason: `Missing Bond Repair in your stash for ${state.currentHairState} / breakage support.` });
+ }
+ if (!hasCat(/leave-in|conditioner|deep conditioner|mist/i)) {
+ const match = pickRelevantCatalogItems({ domain: "hair", maxPrice: maxP, stores, inventory: inv, triggers: ["moisture"], profile: state.profile, limit: 1 })[0];
+ if (match) recs.push({ ...match, reason: "Missing conditioning/leave-in moisture in your stash." });
+ }
+ if ((profText.includes("curling") || profText.includes("roller") || profText.includes("heat") || profText.includes("sheen") || profText.includes("shine")) && !hasCat(/oil sheen/i)) {
+ const sheenItem = CATALOG_CANDIDATES.find(c => c.category === "Oil Sheen" && c.priceNum <= maxP && !inv.some(i => i.name.toLowerCase() === c.name.toLowerCase()));
+ if (sheenItem) {
+ const st = stores.find(s => sheenItem.stores.map(x => x.toLowerCase()).includes(s.toLowerCase())) || sheenItem.stores[0] || "Target";
+ recs.push({
+ name: sheenItem.name,
+ domain: "hair",
+ category: "Oil Sheen",
+ price: `$${sheenItem.priceNum.toFixed(2)}`,
+ estimatedPrice: `$${sheenItem.priceNum.toFixed(2)}`,
+ bestStore: st,
+ store: st,
+ alsoAt: sheenItem.stores.filter(s => s.toLowerCase() !== st.toLowerCase()).slice(0, 2).join(", "),
+ whyItFits: sheenItem.why,
+ reason: `Missing Oil Sheen in your stash for ${state.selectedStylingMethod}.`
+ });
+ }
+ }
 
-    function compactInventoryForApi(inv) {
-      if (!Array.isArray(inv) || !inv.length) return [];
-      return inv.slice(0, 20).map(i => ({
-        n: String(i.name || "").slice(0, 60),
-        c: String(i.category || "").slice(0, 35)
-      }));
-    }
+ if (!hasCat(/face cleanser|cleanser/i)) {
+ const faceClean = CATALOG_CANDIDATES.find(c => c.category === "Face Cleanser" && c.priceNum <= maxP && !inv.some(i => i.name.toLowerCase() === c.name.toLowerCase()));
+ if (faceClean) {
+ const st = stores.find(s => faceClean.stores.map(x => x.toLowerCase()).includes(s.toLowerCase())) || faceClean.stores[0] || "Target";
+ recs.push({
+ name: faceClean.name,
+ domain: "skin",
+ category: "Face Cleanser",
+ price: `$${faceClean.priceNum.toFixed(2)}`,
+ estimatedPrice: `$${faceClean.priceNum.toFixed(2)}`,
+ bestStore: st,
+ store: st,
+ alsoAt: faceClean.stores.filter(s => s.toLowerCase() !== st.toLowerCase()).slice(0, 2).join(", "),
+ whyItFits: faceClean.why,
+ reason: "Missing Face Cleanser in your stash."
+ });
+ }
+ }
+ if (!hasCat(/face moisturizer|moisturizer/i)) {
+ const faceMoist = CATALOG_CANDIDATES.find(c => c.category === "Face Moisturizer" && c.priceNum <= maxP && !inv.some(i => i.name.toLowerCase() === c.name.toLowerCase()));
+ if (faceMoist) {
+ const st = stores.find(s => faceMoist.stores.map(x => x.toLowerCase()).includes(s.toLowerCase())) || faceMoist.stores[0] || "Target";
+ recs.push({
+ name: faceMoist.name,
+ domain: "skin",
+ category: "Face Moisturizer",
+ price: `$${faceMoist.priceNum.toFixed(2)}`,
+ estimatedPrice: `$${faceMoist.priceNum.toFixed(2)}`,
+ bestStore: st,
+ store: st,
+ alsoAt: faceMoist.stores.filter(s => s.toLowerCase() !== st.toLowerCase()).slice(0, 2).join(", "),
+ whyItFits: faceMoist.why,
+ reason: "Missing Face Moisturizer in your stash."
+ });
+ }
+ }
 
-    const clientApiCache = new Map();
+ if (!hasCat(/body lotion|body butter|body oil|lotion|butter/i)) {
+ const bodyItem = pickRelevantCatalogItems({ domain: "body", maxPrice: maxP, stores, inventory: inv, triggers: state.activeTriggers, profile: state.profile, limit: 1 })[0];
+ if (bodyItem) recs.push({ ...bodyItem, reason: "Missing body moisture product in your stash." });
+ }
 
-    async function generateAIRoutine() {
-      persistTextFields();
-      const btn = document.getElementById("generateRoutineBtn");
-      const status = document.getElementById("aiStatusMsg");
-      const description = document.getElementById("checkinInput").value.trim();
-
-      const payload = {
-        mode: "routine",
-        description: description.slice(0, 240),
-        currentHairState: state.currentHairState,
-        selectedStylingMethod: state.selectedStylingMethod,
-        activeTriggers: (state.activeTriggers || []).slice(0, 6),
-        imageBase64: pendingCheckinImage,
-        profile: compactProfileForApi(state.profile),
-        weather: state.weather && state.weather.tempF != null ? {
-          tempF: state.weather.tempF,
-          humidity: state.weather.humidity,
-          aqi: state.weather.aqi
-        } : {},
-        inventory: compactInventoryForApi(state.inventory),
-        lowEnergyMode: state.lowEnergyMode,
-        shoppingPrefs: {
-          maxPrice: state.shoppingPrefs.maxPrice,
-          stores: getEffectiveStores().slice(0, 5)
-        }
-      };
-
-      const cacheKey = JSON.stringify(payload);
-      if (!pendingCheckinImage && clientApiCache.has(cacheKey)) {
-        const cachedRes = clientApiCache.get(cacheKey);
-        state.lastAIRoutine = cachedRes;
-        saveState();
-        renderAIRoutine(cachedRes);
-        status.classList.add("hidden");
-        return;
-      }
-
-      btn.disabled = true;
-      btn.textContent = "Generating routines...";
-      status.textContent = "Analyzing profile, hair state, stash & weather/AQI...";
-      status.classList.remove("hidden");
-
-      try {
-        const resp = await fetch("/api/analyze", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-        const data = await resp.json().catch(() => ({}));
-        if (!resp.ok || !data.result) throw new Error(data.error || "Failed to generate routine");
-        if (!pendingCheckinImage) clientApiCache.set(cacheKey, data.result);
-        state.lastAIRoutine = data.result;
-        saveState();
-        renderAIRoutine(data.result);
-        status.classList.add("hidden");
-      } catch (err) {
-        const fallbackRes = buildLocalCheckinFallback();
-        state.lastAIRoutine = fallbackRes;
-        saveState();
-        renderAIRoutine(fallbackRes);
-        status.textContent = "Groq limit reached—generated plan using your saved stash & profile.";
-      } finally {
-        btn.disabled = false;
-        btn.textContent = "✨ Generate Tailored Routines, Styling Products & Pro Care";
-      }
-    }
-
-    function pickStashItemsForDomain(domain) {
-      const inv = Array.isArray(state.inventory) ? state.inventory : [];
-      return inv.filter(item => {
-        if (!item || !item.name) return false;
-        if (domain === "all") return true;
-        return item.domain === domain;
-      }).slice(0, 4);
-    }
+ if (!recs.length) {
+ return pickRelevantCatalogItems({ domain: "all", maxPrice: maxP, stores, inventory: inv, triggers: state.activeTriggers, profile: state.profile, limit: 3 });
+ }
+ return recs.slice(0, 4);
+ }
 
     function buildLocalCheckinFallback() {
-      const inv = Array.isArray(state.inventory) ? state.inventory : [];
       const hairStash = pickStashItemsForDomain("hair").map(i => i.name);
       const skinStash = pickStashItemsForDomain("skin").map(i => i.name);
       const bodyStash = pickStashItemsForDomain("body").map(i => i.name);
-      const maxP = Number(state.shoppingPrefs?.maxPrice) || 30;
-      const stores = getEffectiveStores();
-      const storeLabel = stores.length ? stores.join(", ") : "Target / Ulta / Walmart";
 
-      const suggestedAdditions = [];
-      if (!inv.some(i => /heat protectant/i.test(i.category || i.name))) {
-        suggestedAdditions.push({
-          name: "Thermal Heat Protectant Spray",
-          domain: "hair",
-          store: storeLabel,
-          reason: "Protects strands during styling or roller sets when not already in your stash.",
-          estimatedPrice: `Under $${Math.min(maxP, 18)}`
-        });
-      }
-      if (!inv.some(i => /sunscreen|spf/i.test(i.category || i.name))) {
-        suggestedAdditions.push({
-          name: "Daily Broad-Spectrum Sunscreen SPF 30+",
-          domain: "skin",
-          store: storeLabel,
-          reason: "Helps protect skin and prevent dark marks from UV exposure.",
-          estimatedPrice: `Under $${Math.min(maxP, 20)}`
-        });
-      }
-      if (!inv.some(i => /lotion|butter|body oil/i.test(i.category || i.name))) {
-        suggestedAdditions.push({
-          name: "Hydrating Body Lotion or Body Butter",
-          domain: "body",
-          store: storeLabel,
-          reason: "Locks in moisture after cleansing before adding body powder.",
-          estimatedPrice: `Under $${Math.min(maxP, 16)}`
-        });
-      }
+      const suggestedAdditions = getMissingStashRecommendations();
+      const hairRec = suggestedAdditions.find(x => x.domain === "hair");
+      const skinRec = suggestedAdditions.find(x => x.domain === "skin");
+      const bodyRec = suggestedAdditions.find(x => x.domain === "body");
 
       return {
         climateImpact: state.profile.city
-          ? `Using ${state.profile.city} conditions (${state.weather?.tempF ?? "--"}°F, ${state.weather?.humidity ?? "--"}% humidity, AQI ${state.weather?.aqi ?? "--"})—pair your stash products with steady hydration and low tension.`
+          ? `Using ${state.profile.city} conditions (${state.weather?.tempF ?? "--"}°F, ${state.weather?.humidity ?? "--"}% humidity, AQI ${state.weather?.aqi ?? "--"})—apply water-based hydration before any oil/butter seal so products absorb without pilling or buildup.`
           : "Add your city in Profile & Pro for live weather and AQI adjustments.",
         rootCauseInsights: (state.activeTriggers || []).slice(0, 3).map(t => ({
           cause: t,
-          fix: "Pull matching items from your stash first, keep tension gentle, and avoid layering heavy products that cause buildup."
+          fix: "Use compatible products in thin-to-thick order and avoid stacking heavy oils/actives that block absorption or cause flaking."
         })),
-        hairAssessment: `Hair mode: ${state.currentHairState}. Pulled from ${hairStash.length} hair stash item(s).`,
-        skinAssessment: `Face care based on ${skinStash.length} face stash item(s) and your skin profile.`,
+        hairAssessment: `Hair mode: ${state.currentHairState}. Pulled ${hairStash.length} hair stash item(s) with non-clashing application order.`,
+        skinAssessment: `Face care based on ${skinStash.length} face stash item(s) in thin-to-thick order.`,
         hairRoutine: [
           {
-            step: "Pull From Stash: Cleanse & Prep",
+            step: "Step 1: Cleanse & Prep (Optimize Usage)",
             detail: hairStash.length
-              ? `Use ${hairStash.slice(0, 2).join(" + ")} for your current ${state.currentHairState} state.`
-              : "Add your shampoo, conditioner, relaxer, dye, oil sheen, or gel to My Stash so Check-In pulls your exact bottles.",
-            productUsed: hairStash.join(", ") || "Add hair items in My Stash",
+              ? `Apply a small amount of ${hairStash[0]} focused where needed for ${state.currentHairState}; rinse thoroughly before adding heavier care.`
+              : (hairRec ? `Missing in stash—add ${hairRec.name} (${hairRec.price}) at ${hairRec.bestStore} and apply a small amount on damp sections.` : "Add hair care items in My Stash or Shop."),
+            productUsed: hairStash[0] || (hairRec ? `Recommend: ${hairRec.name}` : "Recommend in Shop"),
             essential: true
           },
           {
-            step: "Style, Seal & Protect",
-            detail: `Apply styling/finishing care suited to ${state.selectedStylingMethod} with low tension around edges.`,
-            productUsed: hairStash[2] || hairStash[0] || "Oil sheen / edge control / gel",
+            step: "Step 2: Hydrate Before Sealing (No Clash)",
+            detail: hairStash[1]
+              ? `Layer ${hairStash[1]} on damp hair first so moisture binds before sealing; keep heavy waxes/oils off roots to prevent weighing down.`
+              : "Apply light moisture first before any oil or styling hold so products don't repel each other.",
+            productUsed: hairStash[1] || hairStash[0] || "Lightweight moisture step",
             essential: true
+          },
+          {
+            step: "Step 3: Style & Finish Cleanly",
+            detail: `Finish with ${state.selectedStylingMethod} using a light hand—avoid layering thick gel over heavy oil/wax to prevent flaking or pilling.`,
+            productUsed: hairStash[2] || (hairRec ? `Recommend: ${hairRec.name}` : "Light oil sheen or edge control"),
+            essential: false
           }
         ],
         stylingGuide: {
           method: state.selectedStylingMethod,
           prepAndProtection: hairStash.length
-            ? `Start with ${hairStash[0]} and keep heat/tension controlled.`
-            : "Prep clean or styled hair and protect edges before setting.",
-          recommendedProducts: suggestedAdditions.slice(0, 2).map(s => ({
+            ? `Start with ${hairStash[0]} and apply only what is needed so strands stay bouncy without buildup.`
+            : (hairRec ? `Recommend adding ${hairRec.name} (${hairRec.price}) at ${hairRec.bestStore} for prep.` : "Prep clean/conditioned hair with a light hand before setting."),
+          recommendedProducts: suggestedAdditions.filter(s => s.domain === "hair").slice(0, 2).map(s => ({
             productType: s.category || "Recommended Addition",
-            suggestion: `${s.name} (${s.estimatedPrice})`,
+            suggestion: `${s.name} (${s.estimatedPrice}) at ${s.bestStore}`,
             howToUse: s.reason
           })),
-          techniqueAndTakedown: "Work in clean sections and remove pins/clips/bands gently."
+          techniqueAndTakedown: "Work in clean sections, use measured amounts, and release gently without tugging."
         },
         skinRoutine: [
           {
-            step: "Pull From Stash: Face Care",
-            detail: skinStash.length
-              ? `Use ${skinStash.join(", ")} in order from thinnest to richest.`
-              : "Add face cleanser, moisturizer, or treatment items in My Stash to pull them here.",
-            productUsed: skinStash.join(", ") || "Add face items in My Stash",
+            step: "Step 1: Gentle Cleanse",
+            detail: skinStash[0]
+              ? `Massage a nickel-sized amount of ${skinStash[0]} onto damp skin for 30–60 seconds and rinse lukewarm—skip harsh scrubbing to protect your barrier.`
+              : (skinRec && skinRec.category === "Face Cleanser" ? `Missing in stash—add ${skinRec.name} (${skinRec.price}) at ${skinRec.bestStore} for gentle cleansing.` : "Use a gentle cleanser without over-stripping."),
+            productUsed: skinStash[0] || (skinRec && skinRec.category === "Face Cleanser" ? `Recommend: ${skinRec.name}` : "Gentle cleanser"),
+            essential: true
+          },
+          {
+            step: "Step 2: Moisturize & Seal Barrier",
+            detail: skinStash[1]
+              ? `Apply ${skinStash.slice(1).join(" then ")} while skin is slightly damp; avoid mixing competing strong exfoliants/actives in the same step.`
+              : (skinRec && skinRec.category === "Face Moisturizer" ? `Missing in stash—add ${skinRec.name} (${skinRec.price}) at ${skinRec.bestStore} and apply a pea-to-nickel amount.` : "Apply barrier moisturizer on damp skin."),
+            productUsed: skinStash.slice(1).join(", ") || (skinRec && skinRec.category === "Face Moisturizer" ? `Recommend: ${skinRec.name}` : "Barrier moisturizer"),
             essential: true
           }
         ],
         bodyRoutine: [
           {
-            step: "Pull From Stash: Body & Powder Layering",
-            detail: bodyStash.length
-              ? `Layer ${bodyStash.join(" -> ")} on damp skin, dusting powder where friction or sweat occurs.`
-              : "Add body wash, lotion, butter, oil, or body powder in My Stash to pull them here.",
-            productUsed: bodyStash.join(", ") || "Add body items in My Stash",
+            step: "Step 1: Cleanse Without Stripping",
+            detail: bodyStash[0]
+              ? `Cleanse with ${bodyStash[0]} and pat skin lightly so it stays slightly damp rather than bone-dry.`
+              : (bodyRec ? `Missing in stash—add ${bodyRec.name} (${bodyRec.price}) at ${bodyRec.bestStore}.` : "Cleanse gently with a hydrating wash/soap."),
+            productUsed: bodyStash[0] || (bodyRec ? `Recommend: ${bodyRec.name}` : "Hydrating wash/soap"),
+            essential: true
+          },
+          {
+            step: "Step 2: Moisture & Powder Layering",
+            detail: bodyStash.length > 1
+              ? `Apply ${bodyStash.slice(1).join(" -> ")} in thin layers; if using body powder, dust lightly over friction/sweat areas after lotion/oil settles so it doesn't cake.`
+              : "Apply lotion/butter on damp skin first, then dust a light layer of powder only on friction/sweat spots if needed.",
+            productUsed: bodyStash.slice(1).join(", ") || "Lotion/butter + light powder on friction zones",
             essential: true
           }
         ],
@@ -1236,414 +1468,414 @@
       };
     }
 
-    function renderAIRoutine(r) {
-      const box = document.getElementById("aiResultContainer");
-      const hairSteps = state.lowEnergyMode ? (r.hairRoutine || []).filter(s => s.essential) : (r.hairRoutine || []);
-      const skinSteps = state.lowEnergyMode ? (r.skinRoutine || []).filter(s => s.essential) : (r.skinRoutine || []);
-      const bodySteps = state.lowEnergyMode ? (r.bodyRoutine || []).filter(s => s.essential) : (r.bodyRoutine || []);
+ function renderAIRoutine(r) {
+ const box = document.getElementById("aiResultContainer");
+ const hairSteps = state.lowEnergyMode ? (r.hairRoutine || []).filter(s => s.essential) : (r.hairRoutine || []);
+ const skinSteps = state.lowEnergyMode ? (r.skinRoutine || []).filter(s => s.essential) : (r.skinRoutine || []);
+ const bodySteps = state.lowEnergyMode ? (r.bodyRoutine || []).filter(s => s.essential) : (r.bodyRoutine || []);
 
-      const stashHair = pickStashItemsForDomain("hair");
-      const stashSkin = pickStashItemsForDomain("skin");
-      const stashBody = pickStashItemsForDomain("body");
-      const allPulled = [...stashHair, ...stashSkin, ...stashBody].slice(0, 8);
+ const stashHair = pickStashItemsForDomain("hair");
+ const stashSkin = pickStashItemsForDomain("skin");
+ const stashBody = pickStashItemsForDomain("body");
+ const allPulled = [...stashHair, ...stashSkin, ...stashBody].slice(0, 8);
 
-      box.innerHTML = `
-        <div class="card p-4 space-y-3">
-          <div class="flex items-center justify-between gap-2">
-            <h3 class="text-sm font-bold">Tailored Care &amp; Styling Plan</h3>
-            <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#F8F3EA] text-[#8A5E1B]">${state.currentHairState}</span>
-          </div>
+ box.innerHTML = `
+ <div class="card p-4 space-y-3">
+ <div class="flex items-center justify-between gap-2">
+ <h3 class="text-sm font-bold">Tailored Care &amp; Styling Plan</h3>
+ <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#F8F3EA] text-[#8A5E1B]">${state.currentHairState}</span>
+ </div>
 
-          <div class="p-3 rounded-xl bg-[#F8F3EA]/60 border border-[#E5D7C1] space-y-1.5">
-            <div class="flex items-center justify-between">
-              <span class="text-[11px] font-bold uppercase text-[#8A5E1B]">Pulled From Your Stash (${state.inventory.length} owned)</span>
-              <button type="button" onclick="switchTab('stash')" class="text-[11px] font-semibold text-[#231F1D] underline">Edit Stash</button>
-            </div>
-            ${allPulled.length
-              ? `<div class="flex flex-wrap gap-1.5 pt-0.5">${allPulled.map(item => `<span class="text-[11px] px-2 py-0.5 rounded-full bg-white border border-[#DDD4C8] font-medium">${escapeAttr(item.name)} <span class="text-[#726862]">(${escapeAttr(item.category)})</span></span>`).join("")}</div>`
-              : `<p class="text-xs text-[#594E47]">No stash items added yet—add items in <strong>My Stash</strong> and Check-In will pull them directly into your steps.</p>`
-            }
-          </div>
+ <div class="p-3 rounded-xl bg-[#F8F3EA]/60 border border-[#E5D7C1] space-y-1.5">
+ <div class="flex items-center justify-between">
+ <span class="text-[11px] font-bold uppercase text-[#8A5E1B]">Pulled From Your Stash (${state.inventory.length} owned)</span>
+ <button type="button" onclick="switchTab('stash')" class="text-[11px] font-semibold text-[#231F1D] underline">Edit Stash</button>
+ </div>
+ ${allPulled.length
+ ? `<div class="flex flex-wrap gap-1.5 pt-0.5">${allPulled.map(item => `<span class="text-[11px] px-2 py-0.5 rounded-full bg-white border border-[#DDD4C8] font-medium">${escapeAttr(item.name)} <span class="text-[#726862]">(${escapeAttr(item.category)})</span></span>`).join("")}</div>`
+ : `<p class="text-xs text-[#594E47]">No stash items added yet—add items in <strong>My Stash</strong> and Check-In will pull them directly into your steps.</p>`
+ }
+ </div>
 
-          ${r.climateImpact ? `<p class="text-xs text-[#594E47] bg-[#FAF8F5] p-2.5 rounded-xl"><strong>Weather &amp; AQI:</strong> ${r.climateImpact}</p>` : ""}
-          ${(r.rootCauseInsights && r.rootCauseInsights.length) ? `<div class="space-y-1.5"><h4 class="text-xs font-bold uppercase text-[#726862]">Root Causes &amp; Fixes</h4>${r.rootCauseInsights.map(rc => `<div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs"><div class="font-bold">${rc.cause}</div><div class="text-[#594E47] mt-0.5">${rc.fix}</div></div>`).join("")}</div>` : ""}
-          <div class="space-y-2">
-            <h4 class="text-xs font-bold uppercase text-[#8A5E1B]">Hair, Scalp &amp; Protective Style Routine</h4>
-            ${r.hairAssessment ? `<p class="text-xs text-[#726862]">${r.hairAssessment}</p>` : ""}
-            ${hairSteps.map(s => `<div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs"><div class="font-bold">${s.step}</div><div class="text-[#594E47] mt-0.5">${s.detail}</div>${s.productUsed ? `<div class="text-[11px] text-[#8A5E1B] font-semibold mt-1">From Stash / Step: ${s.productUsed}</div>` : ""}</div>`).join("")}
-          </div>
-          ${r.stylingGuide ? `<div class="p-3 rounded-xl bg-[#F8F3EA]/70 border border-[#E5D7C1] space-y-2 text-xs"><div class="font-bold text-[#8A5E1B]">🔥 Styling &amp; Roller Guide: ${r.stylingGuide.method || state.selectedStylingMethod}</div>${r.stylingGuide.prepAndProtection ? `<div><strong>Prep &amp; Protection:</strong> ${r.stylingGuide.prepAndProtection}</div>` : ""}${(r.stylingGuide.recommendedProducts || []).map(p => `<div class="p-2 rounded-lg bg-white border border-[#EAE3D9]"><div class="font-bold">${p.productType}: <span class="text-[#8A5E1B]">${p.suggestion}</span></div><div class="text-[#594E47] mt-0.5">${p.howToUse}</div></div>`).join("")}${r.stylingGuide.techniqueAndTakedown ? `<div><strong>Technique &amp; Takedown:</strong> ${r.stylingGuide.techniqueAndTakedown}</div>` : ""}</div>` : ""}
-          <div class="space-y-2">
-            <h4 class="text-xs font-bold uppercase text-[#355243]">Face Skin Routine</h4>
-            ${r.skinAssessment ? `<p class="text-xs text-[#726862]">${r.skinAssessment}</p>` : ""}
-            ${skinSteps.map(s => `<div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs"><div class="font-bold">${s.step}</div><div class="text-[#594E47] mt-0.5">${s.detail}</div>${s.productUsed ? `<div class="text-[11px] text-[#355243] font-semibold mt-1">From Stash / Step: ${s.productUsed}</div>` : ""}</div>`).join("")}
-          </div>
-          <div class="space-y-2">
-            <h4 class="text-xs font-bold uppercase text-[#5B2C6F]">Body Care &amp; Body Powder Layering Routine</h4>
-            ${bodySteps.map(s => `<div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs"><div class="font-bold">${s.step}</div><div class="text-[#594E47] mt-0.5">${s.detail}</div>${s.productUsed ? `<div class="text-[11px] text-[#5B2C6F] font-semibold mt-1">From Stash / Step: ${s.productUsed}</div>` : ""}</div>`).join("")}
-          </div>
-          ${(r.proTreatments && r.proTreatments.length) ? `<div class="space-y-1.5 pt-2 border-t border-[#EAE3D9]"><h4 class="text-xs font-bold uppercase text-[#231F1D]">Salon, Dermatologist &amp; Esthetician Suggestions</h4>${r.proTreatments.map(pt => `<div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs"><div class="flex justify-between font-bold"><span class="text-[#A9772B]">${pt.provider}: ${pt.treatment}</span><span class="text-[10px] text-[#726862]">${pt.cadence || ""}</span></div><div class="text-[#594E47] mt-0.5">${pt.why}</div></div>`).join("")}</div>` : ""}
-          ${(r.missingProducts && r.missingProducts.length) ? `<div class="space-y-1.5 pt-2 border-t border-[#EAE3D9]"><h4 class="text-xs font-bold uppercase text-[#9A3412]">Recommended Additions From Check-In</h4>${r.missingProducts.map(m => `<div class="p-2 rounded-lg bg-amber-50/70 text-xs flex justify-between items-start gap-2"><div><strong>${m.name}</strong> ${m.store ? `(${m.store})` : ""}<div class="text-[#594E47]">${m.reason}</div></div><span class="font-bold text-[#8A5E1B] shrink-0">${m.estimatedPrice || ""}</span></div>`).join("")}</div>` : ""}
-        </div>
-      `;
-    }
+ ${r.climateImpact ? `<p class="text-xs text-[#594E47] bg-[#FAF8F5] p-2.5 rounded-xl"><strong>Weather &amp; AQI:</strong> ${r.climateImpact}</p>` : ""}
+ ${(r.rootCauseInsights && r.rootCauseInsights.length) ? `<div class="space-y-1.5"><h4 class="text-xs font-bold uppercase text-[#726862]">Root Causes &amp; Fixes</h4>${r.rootCauseInsights.map(rc => `<div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs"><div class="font-bold">${rc.cause}</div><div class="text-[#594E47] mt-0.5">${rc.fix}</div></div>`).join("")}</div>` : ""}
+ <div class="space-y-2">
+ <h4 class="text-xs font-bold uppercase text-[#8A5E1B]">Hair, Scalp &amp; Protective Style Routine</h4>
+ ${r.hairAssessment ? `<p class="text-xs text-[#726862]">${r.hairAssessment}</p>` : ""}
+ ${hairSteps.map(s => `<div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs"><div class="font-bold">${s.step}</div><div class="text-[#594E47] mt-0.5">${s.detail}</div>${s.productUsed ? `<div class="text-[11px] text-[#8A5E1B] font-semibold mt-1">From Stash / Step: ${s.productUsed}</div>` : ""}</div>`).join("")}
+ </div>
+ ${r.stylingGuide ? `<div class="p-3 rounded-xl bg-[#F8F3EA]/70 border border-[#E5D7C1] space-y-2 text-xs"><div class="font-bold text-[#8A5E1B]">🔥 Styling &amp; Roller Guide: ${r.stylingGuide.method || state.selectedStylingMethod}</div>${r.stylingGuide.prepAndProtection ? `<div><strong>Prep &amp; Protection:</strong> ${r.stylingGuide.prepAndProtection}</div>` : ""}${(r.stylingGuide.recommendedProducts || []).map(p => `<div class="p-2 rounded-lg bg-white border border-[#EAE3D9]"><div class="font-bold">${p.productType}: <span class="text-[#8A5E1B]">${p.suggestion}</span></div><div class="text-[#594E47] mt-0.5">${p.howToUse}</div></div>`).join("")}${r.stylingGuide.techniqueAndTakedown ? `<div><strong>Technique &amp; Takedown:</strong> ${r.stylingGuide.techniqueAndTakedown}</div>` : ""}</div>` : ""}
+ <div class="space-y-2">
+ <h4 class="text-xs font-bold uppercase text-[#355243]">Face Skin Routine</h4>
+ ${r.skinAssessment ? `<p class="text-xs text-[#726862]">${r.skinAssessment}</p>` : ""}
+ ${skinSteps.map(s => `<div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs"><div class="font-bold">${s.step}</div><div class="text-[#594E47] mt-0.5">${s.detail}</div>${s.productUsed ? `<div class="text-[11px] text-[#355243] font-semibold mt-1">From Stash / Step: ${s.productUsed}</div>` : ""}</div>`).join("")}
+ </div>
+ <div class="space-y-2">
+ <h4 class="text-xs font-bold uppercase text-[#5B2C6F]">Body Care &amp; Body Powder Layering Routine</h4>
+ ${bodySteps.map(s => `<div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs"><div class="font-bold">${s.step}</div><div class="text-[#594E47] mt-0.5">${s.detail}</div>${s.productUsed ? `<div class="text-[11px] text-[#5B2C6F] font-semibold mt-1">From Stash / Step: ${s.productUsed}</div>` : ""}</div>`).join("")}
+ </div>
+ ${(r.proTreatments && r.proTreatments.length) ? `<div class="space-y-1.5 pt-2 border-t border-[#EAE3D9]"><h4 class="text-xs font-bold uppercase text-[#231F1D]">Salon, Dermatologist &amp; Esthetician Suggestions</h4>${r.proTreatments.map(pt => `<div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs"><div class="flex justify-between font-bold"><span class="text-[#A9772B]">${pt.provider}: ${pt.treatment}</span><span class="text-[10px] text-[#726862]">${pt.cadence || ""}</span></div><div class="text-[#594E47] mt-0.5">${pt.why}</div></div>`).join("")}</div>` : ""}
+ ${(r.missingProducts && r.missingProducts.length) ? `<div class="space-y-1.5 pt-2 border-t border-[#EAE3D9]"><h4 class="text-xs font-bold uppercase text-[#9A3412]">Recommended Additions From Check-In</h4>${r.missingProducts.map(m => `<div class="p-2 rounded-lg bg-amber-50/70 text-xs flex justify-between items-start gap-2"><div><strong>${m.name}</strong> ${m.store ? `(${m.store})` : ""}<div class="text-[#594E47]">${m.reason}</div></div><span class="font-bold text-[#8A5E1B] shrink-0">${m.estimatedPrice || ""}</span></div>`).join("")}</div>` : ""}
+ </div>
+ `;
+ }
 
-    async function analyzeBase64ProductImage(imageBase64) {
-      const status = document.getElementById("scanStatusMsg");
-      status.textContent = "Reading product label with AI...";
-      status.classList.remove("hidden");
-      try {
-        const res = await fetch("/api/analyze", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ mode: "product_photo", imageBase64, profile: state.profile })
-        });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok || !data.result) throw new Error(data.error || "Scan failed");
-        const item = data.result;
-        state.inventory.unshift({
-          id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-          name: item.name || "Scanned Product",
-          brand: item.brand || "",
-          domain: ["hair", "skin", "body"].includes(item.domain) ? item.domain : "hair",
-          category: item.category || "Other",
-          notes: `${item.safetyNote || ""} ${(item.keyIngredients || []).join(", ")}`.trim()
-        });
-        saveState();
-        renderStash();
-        status.textContent = `✓ Added "${item.name}" to your stash!`;
-      } catch (err) {
-        status.textContent = err.message;
-      }
-    }
+ async function analyzeBase64ProductImage(imageBase64) {
+ const status = document.getElementById("scanStatusMsg");
+ status.textContent = "Reading product label with AI...";
+ status.classList.remove("hidden");
+ try {
+ const res = await fetch("/api/analyze", {
+ method: "POST",
+ headers: { "Content-Type": "application/json" },
+ body: JSON.stringify({ mode: "product_photo", imageBase64, profile: state.profile })
+ });
+ const data = await res.json().catch(() => ({}));
+ if (!res.ok || !data.result) throw new Error(data.error || "Scan failed");
+ const item = data.result;
+ state.inventory.unshift({
+ id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+ name: item.name || "Scanned Product",
+ brand: item.brand || "",
+ domain: ["hair", "skin", "body"].includes(item.domain) ? item.domain : "hair",
+ category: item.category || "Other",
+ notes: `${item.safetyNote || ""} ${(item.keyIngredients || []).join(", ")}`.trim()
+ });
+ saveState();
+ renderStash();
+ status.textContent = `✓ Added "${item.name}" to your stash!`;
+ } catch (err) {
+ status.textContent = err.message;
+ }
+ }
 
-    async function handleProductPhotoScan(e) {
-      const file = e.target.files?.[0];
-      if (!file) return;
-      const status = document.getElementById("scanStatusMsg");
-      status.textContent = "Preparing photo...";
-      status.classList.remove("hidden");
-      try {
-        const imageBase64 = await compressImageToDataURL(file, 512);
-        await analyzeBase64ProductImage(imageBase64);
-      } catch (err) {
-        status.textContent = err.message;
-      } finally {
-        e.target.value = "";
-      }
-    }
+ async function handleProductPhotoScan(e) {
+ const file = e.target.files?.[0];
+ if (!file) return;
+ const status = document.getElementById("scanStatusMsg");
+ status.textContent = "Preparing photo...";
+ status.classList.remove("hidden");
+ try {
+ const imageBase64 = await compressImageToDataURL(file, 512);
+ await analyzeBase64ProductImage(imageBase64);
+ } catch (err) {
+ status.textContent = err.message;
+ } finally {
+ e.target.value = "";
+ }
+ }
 
-    function addManualProduct() {
-      const nameEl = document.getElementById("manName");
-      const domainEl = document.getElementById("manDomain");
-      const catEl = document.getElementById("manCategory");
-      const name = (nameEl ? nameEl.value : "").trim();
-      if (!name) {
-        const status = document.getElementById("scanStatusMsg");
-        if (status) {
-          status.textContent = "Enter a product name first.";
-          status.classList.remove("hidden");
-        }
-        return;
-      }
-      if (!Array.isArray(state.inventory)) state.inventory = [];
-      state.inventory.unshift({
-        id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-        name,
-        brand: "",
-        domain: domainEl ? domainEl.value : "hair",
-        category: catEl ? catEl.value : "Other",
-        notes: ""
-      });
-      nameEl.value = "";
-      saveState();
-      renderStash();
-      const status = document.getElementById("scanStatusMsg");
-      if (status) {
-        status.textContent = `✓ Saved "${name}" to your stash.`;
-        status.classList.remove("hidden");
-      }
-    }
+ function addManualProduct() {
+ const nameEl = document.getElementById("manName");
+ const domainEl = document.getElementById("manDomain");
+ const catEl = document.getElementById("manCategory");
+ const name = (nameEl ? nameEl.value : "").trim();
+ if (!name) {
+ const status = document.getElementById("scanStatusMsg");
+ if (status) {
+ status.textContent = "Enter a product name first.";
+ status.classList.remove("hidden");
+ }
+ return;
+ }
+ if (!Array.isArray(state.inventory)) state.inventory = [];
+ state.inventory.unshift({
+ id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+ name,
+ brand: "",
+ domain: domainEl ? domainEl.value : "hair",
+ category: catEl ? catEl.value : "Other",
+ notes: ""
+ });
+ nameEl.value = "";
+ saveState();
+ renderStash();
+ const status = document.getElementById("scanStatusMsg");
+ if (status) {
+ status.textContent = `✓ Saved "${name}" to your stash.`;
+ status.classList.remove("hidden");
+ }
+ }
 
-    function removeProduct(id) {
-      state.inventory = state.inventory.filter(i => i.id !== id);
-      saveState();
-      renderStash();
-    }
+ function removeProduct(id) {
+ state.inventory = state.inventory.filter(i => i.id !== id);
+ saveState();
+ renderStash();
+ }
 
-    function filterStash(f) {
-      currentStashFilter = f;
-      ["all", "hair", "skin", "body"].forEach(k => {
-        document.getElementById(`f-${k}`).className = k === f ? "px-2.5 py-1 rounded-full bg-[#231F1D] text-white font-medium" : "px-2.5 py-1 rounded-full bg-white border border-[#DDD4C8]";
-      });
-      renderStash();
-    }
+ function filterStash(f) {
+ currentStashFilter = f;
+ ["all", "hair", "skin", "body"].forEach(k => {
+ document.getElementById(`f-${k}`).className = k === f ? "px-2.5 py-1 rounded-full bg-[#231F1D] text-white font-medium" : "px-2.5 py-1 rounded-full bg-white border border-[#DDD4C8]";
+ });
+ renderStash();
+ }
 
-    function startEditProduct(id) {
-      editingStashId = id;
-      renderStash();
-    }
+ function startEditProduct(id) {
+ editingStashId = id;
+ renderStash();
+ }
 
-    function cancelEditProduct() {
-      editingStashId = null;
-      renderStash();
-    }
+ function cancelEditProduct() {
+ editingStashId = null;
+ renderStash();
+ }
 
-    function escapeAttr(str) {
-      return String(str || "")
-        .replace(/&/g, "&amp;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#39;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
-    }
+ function escapeAttr(str) {
+ return String(str || "")
+ .replace(/&/g, "&amp;")
+ .replace(/"/g, "&quot;")
+ .replace(/'/g, "&#39;")
+ .replace(/</g, "&lt;")
+ .replace(/>/g, "&gt;");
+ }
 
-    function saveEditProduct(id) {
-      const idx = (state.inventory || []).findIndex(item => item.id === id);
-      if (idx === -1) return;
+ function saveEditProduct(id) {
+ const idx = (state.inventory || []).findIndex(item => item.id === id);
+ if (idx === -1) return;
 
-      const nameEl = document.getElementById(`edit-name-${id}`);
-      const domainEl = document.getElementById(`edit-domain-${id}`);
-      const catEl = document.getElementById(`edit-category-${id}`);
-      const notesEl = document.getElementById(`edit-notes-${id}`);
+ const nameEl = document.getElementById(`edit-name-${id}`);
+ const domainEl = document.getElementById(`edit-domain-${id}`);
+ const catEl = document.getElementById(`edit-category-${id}`);
+ const notesEl = document.getElementById(`edit-notes-${id}`);
 
-      const updatedName = (nameEl ? nameEl.value : "").trim();
-      if (!updatedName) {
-        const status = document.getElementById("scanStatusMsg");
-        if (status) {
-          status.textContent = "Product name cannot be empty.";
-          status.classList.remove("hidden");
-        }
-        return;
-      }
+ const updatedName = (nameEl ? nameEl.value : "").trim();
+ if (!updatedName) {
+ const status = document.getElementById("scanStatusMsg");
+ if (status) {
+ status.textContent = "Product name cannot be empty.";
+ status.classList.remove("hidden");
+ }
+ return;
+ }
 
-      state.inventory[idx] = {
-        ...state.inventory[idx],
-        name: updatedName,
-        domain: domainEl ? domainEl.value : state.inventory[idx].domain || "hair",
-        category: catEl ? catEl.value : state.inventory[idx].category || "Other",
-        notes: notesEl ? notesEl.value.trim() : ""
-      };
-      editingStashId = null;
-      saveState();
-      renderStash();
+ state.inventory[idx] = {
+ ...state.inventory[idx],
+ name: updatedName,
+ domain: domainEl ? domainEl.value : state.inventory[idx].domain || "hair",
+ category: catEl ? catEl.value : state.inventory[idx].category || "Other",
+ notes: notesEl ? notesEl.value.trim() : ""
+ };
+ editingStashId = null;
+ saveState();
+ renderStash();
 
-      const status = document.getElementById("scanStatusMsg");
-      if (status) {
-        status.textContent = `✓ Updated "${updatedName}" in your stash.`;
-        status.classList.remove("hidden");
-      }
-    }
+ const status = document.getElementById("scanStatusMsg");
+ if (status) {
+ status.textContent = `✓ Updated "${updatedName}" in your stash.`;
+ status.classList.remove("hidden");
+ }
+ }
 
-    function renderStash() {
-      const list = document.getElementById("stashList");
-      const items = currentStashFilter === "all" ? state.inventory : state.inventory.filter(i => i.domain === currentStashFilter);
-      document.getElementById("stashCount").textContent = state.inventory.length;
-      if (!items.length) {
-        list.innerHTML = `<div class="card p-4 text-xs text-[#726862]">Your stash is empty. Snap a product label photo or add an item (including homemade body powder) above.</div>`;
-        return;
-      }
-      list.innerHTML = items.map(i => {
-        if (editingStashId === i.id) {
-          const catOptions = STASH_CATEGORIES.map(c =>
-            `<option value="${escapeAttr(c)}" ${i.category === c ? "selected" : ""}>${escapeAttr(c)}</option>`
-          ).join("");
-          return `
-            <div class="card p-3.5 space-y-2 border-[#A9772B]">
-              <div class="text-[11px] font-bold uppercase text-[#8A5E1B]">Editing Stash Item</div>
-              <input id="edit-name-${i.id}" type="text" value="${escapeAttr(i.name)}" onkeydown="if(event.key==='Enter'){event.preventDefault();saveEditProduct('${i.id}');}" class="w-full text-xs border border-[#DDD4C8] rounded-lg p-2 bg-[#FAF8F5]" />
-              <div class="grid grid-cols-2 gap-2">
-                <select id="edit-domain-${i.id}" class="text-xs border border-[#DDD4C8] rounded-lg p-2 bg-white">
-                  <option value="hair" ${i.domain === "hair" ? "selected" : ""}>Hair &amp; Styling</option>
-                  <option value="skin" ${i.domain === "skin" ? "selected" : ""}>Face Skin Care</option>
-                  <option value="body" ${i.domain === "body" ? "selected" : ""}>Body Care</option>
-                </select>
-                <select id="edit-category-${i.id}" class="text-xs border border-[#DDD4C8] rounded-lg p-2 bg-white">
-                  ${catOptions}
-                </select>
-              </div>
-              <input id="edit-notes-${i.id}" type="text" value="${escapeAttr(i.notes || "")}" placeholder="Notes (optional)..." class="w-full text-xs border border-[#DDD4C8] rounded-lg p-2 bg-[#FAF8F5]" />
-              <div class="flex justify-end gap-2 pt-1">
-                <button type="button" onclick="cancelEditProduct()" class="px-3 py-1.5 rounded-lg border border-[#DDD4C8] text-xs font-semibold bg-white">Cancel</button>
-                <button type="button" onclick="saveEditProduct('${i.id}')" class="px-3 py-1.5 rounded-lg bg-[#231F1D] text-white text-xs font-semibold">Save Changes</button>
-              </div>
-            </div>
-          `;
-        }
+ function renderStash() {
+ const list = document.getElementById("stashList");
+ const items = currentStashFilter === "all" ? state.inventory : state.inventory.filter(i => i.domain === currentStashFilter);
+ document.getElementById("stashCount").textContent = state.inventory.length;
+ if (!items.length) {
+ list.innerHTML = `<div class="card p-4 text-xs text-[#726862]">Your stash is empty. Snap a product label photo or add an item (including homemade body powder) above.</div>`;
+ return;
+ }
+ list.innerHTML = items.map(i => {
+ if (editingStashId === i.id) {
+ const catOptions = STASH_CATEGORIES.map(c =>
+ `<option value="${escapeAttr(c)}" ${i.category === c ? "selected" : ""}>${escapeAttr(c)}</option>`
+ ).join("");
+ return `
+ <div class="card p-3.5 space-y-2 border-[#A9772B]">
+ <div class="text-[11px] font-bold uppercase text-[#8A5E1B]">Editing Stash Item</div>
+ <input id="edit-name-${i.id}" type="text" value="${escapeAttr(i.name)}" onkeydown="if(event.key==='Enter'){event.preventDefault();saveEditProduct('${i.id}');}" class="w-full text-xs border border-[#DDD4C8] rounded-lg p-2 bg-[#FAF8F5]" />
+ <div class="grid grid-cols-2 gap-2">
+ <select id="edit-domain-${i.id}" class="text-xs border border-[#DDD4C8] rounded-lg p-2 bg-white">
+ <option value="hair" ${i.domain === "hair" ? "selected" : ""}>Hair &amp; Styling</option>
+ <option value="skin" ${i.domain === "skin" ? "selected" : ""}>Face Skin Care</option>
+ <option value="body" ${i.domain === "body" ? "selected" : ""}>Body Care</option>
+ </select>
+ <select id="edit-category-${i.id}" class="text-xs border border-[#DDD4C8] rounded-lg p-2 bg-white">
+ ${catOptions}
+ </select>
+ </div>
+ <input id="edit-notes-${i.id}" type="text" value="${escapeAttr(i.notes || "")}" placeholder="Notes (optional)..." class="w-full text-xs border border-[#DDD4C8] rounded-lg p-2 bg-[#FAF8F5]" />
+ <div class="flex justify-end gap-2 pt-1">
+ <button type="button" onclick="cancelEditProduct()" class="px-3 py-1.5 rounded-lg border border-[#DDD4C8] text-xs font-semibold bg-white">Cancel</button>
+ <button type="button" onclick="saveEditProduct('${i.id}')" class="px-3 py-1.5 rounded-lg bg-[#231F1D] text-white text-xs font-semibold">Save Changes</button>
+ </div>
+ </div>
+ `;
+ }
 
-        return `
-          <div class="card p-3 flex items-start justify-between gap-2">
-            <div class="min-w-0">
-              <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#F8F3EA] text-[#8A5E1B]">${escapeAttr(i.domain)} • ${escapeAttr(i.category)}</span>
-              <div class="text-xs font-bold mt-1 break-words">${escapeAttr(i.name)}</div>
-              ${i.notes ? `<div class="text-[11px] text-[#726862] mt-0.5 break-words">${escapeAttr(i.notes)}</div>` : ""}
-            </div>
-            <div class="flex items-center gap-1 shrink-0">
-              <button type="button" onclick="startEditProduct('${i.id}')" class="text-[11px] font-semibold px-2 py-1 rounded-lg border border-[#DDD4C8] bg-[#FAF8F5] text-[#231F1D]">Edit</button>
-              <button type="button" onclick="removeProduct('${i.id}')" aria-label="Delete item" class="text-[11px] font-semibold px-2 py-1 rounded-lg border border-red-200 bg-red-50 text-red-700">Delete</button>
-            </div>
-          </div>
-        `;
-      }).join("");
-    }
+ return `
+ <div class="card p-3 flex items-start justify-between gap-2">
+ <div class="min-w-0">
+ <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#F8F3EA] text-[#8A5E1B]">${escapeAttr(i.domain)} • ${escapeAttr(i.category)}</span>
+ <div class="text-xs font-bold mt-1 break-words">${escapeAttr(i.name)}</div>
+ ${i.notes ? `<div class="text-[11px] text-[#726862] mt-0.5 break-words">${escapeAttr(i.notes)}</div>` : ""}
+ </div>
+ <div class="flex items-center gap-1 shrink-0">
+ <button type="button" onclick="startEditProduct('${i.id}')" class="text-[11px] font-semibold px-2 py-1 rounded-lg border border-[#DDD4C8] bg-[#FAF8F5] text-[#231F1D]">Edit</button>
+ <button type="button" onclick="removeProduct('${i.id}')" aria-label="Delete item" class="text-[11px] font-semibold px-2 py-1 rounded-lg border border-red-200 bg-red-50 text-red-700">Delete</button>
+ </div>
+ </div>
+ `;
+ }).join("");
+ }
 
-    function renderStoreChips() {
-      const box = document.getElementById("storeChipsContainer");
-      box.innerHTML = ALL_STORES.map(store => {
-        const active = (state.shoppingPrefs.stores || []).includes(store);
-        return `<button type="button" onclick="toggleStorePref('${store}')" class="px-2.5 py-1 rounded-full text-xs font-semibold border ${active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#726862] border-[#DDD4C8]"}">${active ? "✓ " : "+ "}${store}</button>`;
-      }).join("");
-    }
+ function renderStoreChips() {
+ const box = document.getElementById("storeChipsContainer");
+ box.innerHTML = ALL_STORES.map(store => {
+ const active = (state.shoppingPrefs.stores || []).includes(store);
+ return `<button type="button" onclick="toggleStorePref('${store}')" class="px-2.5 py-1 rounded-full text-xs font-semibold border ${active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#726862] border-[#DDD4C8]"}">${active ? "✓ " : "+ "}${store}</button>`;
+ }).join("");
+ }
 
-    function toggleStorePref(store) {
-      persistTextFields();
-      const arr = [...(state.shoppingPrefs.stores || [])];
-      const idx = arr.indexOf(store);
-      if (idx >= 0) arr.splice(idx, 1);
-      else arr.push(store);
-      state.shoppingPrefs.stores = arr;
-      saveState();
-      renderAllProfileChips();
-      renderStoreChips();
-      renderProfileSummary();
-    }
+ function toggleStorePref(store) {
+ persistTextFields();
+ const arr = [...(state.shoppingPrefs.stores || [])];
+ const idx = arr.indexOf(store);
+ if (idx >= 0) arr.splice(idx, 1);
+ else arr.push(store);
+ state.shoppingPrefs.stores = arr;
+ saveState();
+ renderAllProfileChips();
+ renderStoreChips();
+ renderProfileSummary();
+ }
 
-    function updateBudgetSetting(val) {
-      const num = Number(val) || 30;
-      state.shoppingPrefs.maxPrice = num;
-      document.getElementById("budgetValLabel").textContent = num;
-      document.getElementById("budgetBadge").textContent = num;
-      document.getElementById("maxPriceSlider").value = num;
-      saveState();
-      renderAllProfileChips();
-      renderProfileSummary();
-    }
+ function updateBudgetSetting(val) {
+ const num = Number(val) || 30;
+ state.shoppingPrefs.maxPrice = num;
+ document.getElementById("budgetValLabel").textContent = num;
+ document.getElementById("budgetBadge").textContent = num;
+ document.getElementById("maxPriceSlider").value = num;
+ saveState();
+ renderAllProfileChips();
+ renderProfileSummary();
+ }
 
-    async function fetchStoreRecommendations() {
-      persistTextFields();
-      const btn = document.getElementById("findDealsBtn");
-      const status = document.getElementById("shopStatusMsg");
-      const payload = {
-        mode: "shop_recs",
-        profile: compactProfileForApi(state.profile),
-        currentHairState: state.currentHairState,
-        selectedStylingMethod: state.selectedStylingMethod,
-        activeTriggers: (state.activeTriggers || []).slice(0, 5),
-        inventory: compactInventoryForApi(state.inventory).map(i => i.n),
-        shoppingPrefs: {
-          maxPrice: state.shoppingPrefs.maxPrice,
-          stores: getEffectiveStores().slice(0, 5),
-          focusArea: document.getElementById("shopFocusSelect").value
-        }
-      };
-      const cacheKey = JSON.stringify(payload);
-      if (clientApiCache.has(cacheKey)) {
-        const cachedRecs = clientApiCache.get(cacheKey);
-        state.shopRecommendations = cachedRecs;
-        saveState();
-        renderShopResults(cachedRecs);
-        status.classList.add("hidden");
-        return;
-      }
+ async function fetchStoreRecommendations() {
+ persistTextFields();
+ const btn = document.getElementById("findDealsBtn");
+ const status = document.getElementById("shopStatusMsg");
+ const payload = {
+ mode: "shop_recs",
+ profile: compactProfileForApi(state.profile),
+ currentHairState: state.currentHairState,
+ selectedStylingMethod: state.selectedStylingMethod,
+ activeTriggers: (state.activeTriggers || []).slice(0, 5),
+ inventory: compactInventoryForApi(state.inventory).map(i => i.n),
+ shoppingPrefs: {
+ maxPrice: state.shoppingPrefs.maxPrice,
+ stores: getEffectiveStores().slice(0, 5),
+ focusArea: document.getElementById("shopFocusSelect").value
+ }
+ };
+ const cacheKey = JSON.stringify(payload);
+ if (clientApiCache.has(cacheKey)) {
+ const cachedRecs = clientApiCache.get(cacheKey);
+ state.shopRecommendations = cachedRecs;
+ saveState();
+ renderShopResults(cachedRecs);
+ status.classList.add("hidden");
+ return;
+ }
 
-      btn.disabled = true;
-      btn.textContent = "Searching...";
-      status.textContent = "Finding store & price matches...";
-      status.classList.remove("hidden");
+ btn.disabled = true;
+ btn.textContent = "Searching...";
+ status.textContent = "Finding store & price matches...";
+ status.classList.remove("hidden");
 
-      try {
-        const res = await fetch("/api/analyze", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok || !data.result?.recommendations) throw new Error(data.error || "Failed to fetch recommendations");
-        clientApiCache.set(cacheKey, data.result.recommendations);
-        state.shopRecommendations = data.result.recommendations;
-        saveState();
-        renderShopResults(state.shopRecommendations);
-        status.classList.add("hidden");
-      } catch (err) {
-        status.textContent = err.message;
-      } finally {
-        btn.disabled = false;
-        btn.textContent = "🔍 Find Matches";
-      }
-    }
+ try {
+ const res = await fetch("/api/analyze", {
+ method: "POST",
+ headers: { "Content-Type": "application/json" },
+ body: JSON.stringify(payload)
+ });
+ const data = await res.json().catch(() => ({}));
+ if (!res.ok || !data.result?.recommendations) throw new Error(data.error || "Failed to fetch recommendations");
+ clientApiCache.set(cacheKey, data.result.recommendations);
+ state.shopRecommendations = data.result.recommendations;
+ saveState();
+ renderShopResults(state.shopRecommendations);
+ status.classList.add("hidden");
+ } catch (err) {
+ status.textContent = err.message;
+ } finally {
+ btn.disabled = false;
+ btn.textContent = "🔍 Find Matches";
+ }
+ }
 
-    function addRecToStash(idx) {
-      const item = (state.shopRecommendations || [])[idx];
-      if (!item) return;
-      state.inventory.unshift({
-        id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-        name: item.name,
-        brand: "",
-        domain: ["hair", "skin", "body"].includes(item.domain) ? item.domain : "hair",
-        category: item.category || "Other",
-        notes: `${item.price || ""} at ${item.bestStore || ""}`.trim()
-      });
-      saveState();
-      renderStash();
-      alert(`Added "${item.name}" to your stash.`);
-    }
+ function addRecToStash(idx) {
+ const item = (state.shopRecommendations || [])[idx];
+ if (!item) return;
+ state.inventory.unshift({
+ id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+ name: item.name,
+ brand: "",
+ domain: ["hair", "skin", "body"].includes(item.domain) ? item.domain : "hair",
+ category: item.category || "Other",
+ notes: `${item.price || ""} at ${item.bestStore || ""}`.trim()
+ });
+ saveState();
+ renderStash();
+ alert(`Added "${item.name}" to your stash.`);
+ }
 
-    function renderShopResults(recs) {
-      const list = document.getElementById("shopResultsList");
-      if (!recs || !recs.length) {
-        list.innerHTML = `<div class="card p-4 text-xs text-[#726862]">No recommendations generated yet. Select your profile options or click <strong>Find Matches</strong>.</div>`;
-        return;
-      }
-      list.innerHTML = recs.map((r, idx) => `<div class="card p-3.5 space-y-1.5"><div class="flex items-start justify-between gap-2"><div><span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#F8F3EA] text-[#8A5E1B]">${r.domain} • ${r.category}</span><h4 class="text-sm font-bold mt-1">${r.name}</h4><div class="text-[11px] font-semibold text-[#231F1D]">Store: ${r.bestStore || "Any"} ${r.alsoAt ? `• Also: ${r.alsoAt}` : ""}</div></div><div class="text-sm font-extrabold text-[#2E6F40] shrink-0">${r.price || ""}</div></div><p class="text-xs text-[#594E47]">${r.whyItFits}</p><div class="pt-1 flex justify-end"><button type="button" onclick="addRecToStash(${idx})" class="text-xs font-semibold px-3 py-1 rounded-lg bg-[#FAF8F5] border border-[#DDD4C8]">+ Add to Stash</button></div></div>`).join("");
-    }
+ function renderShopResults(recs) {
+ const list = document.getElementById("shopResultsList");
+ if (!recs || !recs.length) {
+ list.innerHTML = `<div class="card p-4 text-xs text-[#726862]">No recommendations generated yet. Select your profile options or click <strong>Find Matches</strong>.</div>`;
+ return;
+ }
+ list.innerHTML = recs.map((r, idx) => `<div class="card p-3.5 space-y-1.5"><div class="flex items-start justify-between gap-2"><div><span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#F8F3EA] text-[#8A5E1B]">${r.domain} • ${r.category}</span><h4 class="text-sm font-bold mt-1">${r.name}</h4><div class="text-[11px] font-semibold text-[#231F1D]">Store: ${r.bestStore || "Any"} ${r.alsoAt ? `• Also: ${r.alsoAt}` : ""}</div></div><div class="text-sm font-extrabold text-[#2E6F40] shrink-0">${r.price || ""}</div></div><p class="text-xs text-[#594E47]">${r.whyItFits}</p><div class="pt-1 flex justify-end"><button type="button" onclick="addRecToStash(${idx})" class="text-xs font-semibold px-3 py-1 rounded-lg bg-[#FAF8F5] border border-[#DDD4C8]">+ Add to Stash</button></div></div>`).join("");
+ }
 
-    function exportBackupJSON() {
-      persistTextFields();
-      const payload = JSON.stringify(state);
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(payload).then(() => {
-          alert("Copied your full profile & stash backup to clipboard. Paste it anywhere to save a copy.");
-        }).catch(() => {
-          prompt("Copy your backup code below:", payload);
-        });
-      } else {
-        prompt("Copy your backup code below:", payload);
-      }
-    }
+ function exportBackupJSON() {
+ persistTextFields();
+ const payload = JSON.stringify(state);
+ if (navigator.clipboard && navigator.clipboard.writeText) {
+ navigator.clipboard.writeText(payload).then(() => {
+ alert("Copied your full profile & stash backup to clipboard. Paste it anywhere to save a copy.");
+ }).catch(() => {
+ prompt("Copy your backup code below:", payload);
+ });
+ } else {
+ prompt("Copy your backup code below:", payload);
+ }
+ }
 
-    function importBackupJSON() {
-      const raw = prompt("Paste a previously copied AuraCare backup code:");
-      if (!raw) return;
-      try {
-        state = normalizeState(JSON.parse(raw.trim()));
-        saveState();
-        init();
-        alert("Backup restored!");
-      } catch (_) {
-        alert("That backup code wasn't valid JSON.");
-      }
-    }
+ function importBackupJSON() {
+ const raw = prompt("Paste a previously copied AuraCare backup code:");
+ if (!raw) return;
+ try {
+ state = normalizeState(JSON.parse(raw.trim()));
+ saveState();
+ init();
+ alert("Backup restored!");
+ } catch (_) {
+ alert("That backup code wasn't valid JSON.");
+ }
+ }
 
-    function init() {
-      syncInputsFromState();
-      renderAllProfileChips();
-      setBuilderStep(state.currentStep || 1);
-      renderEnergyButton();
-      renderHairModeChips();
-      renderProfileSummary();
-      renderTriggers();
-      renderStash();
-      updateBudgetSetting(state.shoppingPrefs.maxPrice || 30);
-      renderStoreChips();
-      renderShopResults(state.shopRecommendations || []);
-      if (state.lastAIRoutine) renderAIRoutine(state.lastAIRoutine);
-      fetchLocalClimate();
-      if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register("/sw.js").catch(() => {});
-      }
-    }
+ function init() {
+ syncInputsFromState();
+ renderAllProfileChips();
+ setBuilderStep(state.currentStep || 1);
+ renderEnergyButton();
+ renderHairModeChips();
+ renderProfileSummary();
+ renderTriggers();
+ renderStash();
+ updateBudgetSetting(state.shoppingPrefs.maxPrice || 30);
+ renderStoreChips();
+ renderShopResults(state.shopRecommendations || []);
+ if (state.lastAIRoutine) renderAIRoutine(state.lastAIRoutine);
+ fetchLocalClimate();
+ if ("serviceWorker" in navigator) {
+ navigator.serviceWorker.register("/sw.js").catch(() => {});
+ }
+ }
 
-    init();
-  </script>
+ init();
+ </script>
 </body>
 </html>

@@ -106,6 +106,63 @@ function parseJsonLoose(rawText) {
   return JSON.parse(sanitizeJsonString(rawText));
 }
 
+const SERVER_CATALOG = [
+  {
+    name: 'Olaplex No. 3 Hair Perfector',
+    domain: 'hair',
+    category: 'Bond Repair',
+    priceNum: 28,
+    stores: ['Ulta Beauty', 'Amazon', 'Target'],
+    tags: ['breakage', 'color', 'dye', 'bleached', 'relaxed', 'bond', 'repair'],
+    whyItFits: 'Rebuilds bonds in chemically treated or color-processed hair.'
+  },
+  {
+    name: "Aunt Jackie's Knot On My Watch Instant Detangling Therapy",
+    domain: 'hair',
+    category: 'Leave-In / Mist',
+    priceNum: 9,
+    stores: ['Sally Beauty', 'Target', 'Walmart', 'Ulta Beauty', 'Amazon'],
+    tags: ['breakage', 'tangle', 'moisture', 'relaxed', 'edge', 'temple'],
+    whyItFits: 'Helps detangle and reduce breakage on relaxed or styled hair.'
+  },
+  {
+    name: 'Mizani Miracle Milk Leave-In Conditioner',
+    domain: 'hair',
+    category: 'Leave-In / Mist',
+    priceNum: 22,
+    stores: ['Ulta Beauty', 'Sally Beauty', 'Amazon'],
+    tags: ['moisture', 'heat', 'roller', 'curling', 'breakage', 'color'],
+    whyItFits: 'Adds moisture, slip, and heat protection before styling.'
+  },
+  {
+    name: 'ORS Olive Oil Sheen Spray',
+    domain: 'hair',
+    category: 'Oil Sheen',
+    priceNum: 8,
+    stores: ['Sally Beauty', 'Walmart', 'CVS', 'Walgreens', 'Amazon'],
+    tags: ['sheen', 'shine', 'dull', 'dry', 'roller', 'curling', 'wig', 'braid'],
+    whyItFits: 'Adds lightweight shine without heavy buildup.'
+  },
+  {
+    name: 'CeraVe Hydrating Facial Cleanser',
+    domain: 'skin',
+    category: 'Face Cleanser',
+    priceNum: 16,
+    stores: ['Target', 'Walmart', 'CVS', 'Walgreens', 'Ulta Beauty', 'Amazon'],
+    tags: ['dry', 'sensitive', 'barrier', 'face', 'cleanser'],
+    whyItFits: 'Gentle non-foaming cleanser with ceramides for barrier care.'
+  },
+  {
+    name: 'AmLactin Daily Moisturizing Body Lotion',
+    domain: 'body',
+    category: 'Body Lotion / Cream',
+    priceNum: 18,
+    stores: ['Target', 'Walmart', 'CVS', 'Walgreens', 'Amazon'],
+    tags: ['rough', 'kp', 'bumps', 'ingrown', 'body', 'dry'],
+    whyItFits: 'Smooths rough or bumpy body skin and supports hydration.'
+  }
+];
+
 function buildFallbackRoutine({ currentHairState, selectedStylingMethod, weather, activeTriggers }) {
   const wStr = weather && weather.tempF != null
     ? `${weather.tempF}°F, ${weather.humidity ?? '--'}% hum, AQI ${weather.aqi ?? '--'}`
@@ -139,35 +196,49 @@ function buildFallbackRoutine({ currentHairState, selectedStylingMethod, weather
   };
 }
 
-function buildFallbackShopRecs({ shoppingPrefs }) {
+function buildFallbackShopRecs({ shoppingPrefs, profile, activeTriggers, inventory }) {
   const maxPrice = Number(shoppingPrefs?.maxPrice) || 30;
-  const store = Array.isArray(shoppingPrefs?.stores) && shoppingPrefs.stores.length
-    ? shoppingPrefs.stores[0]
-    : 'Target';
-  return {
-    recommendations: [
-      {
-        name: 'SheaMoisture Raw Shea Butter Conditioner',
-        domain: 'hair',
-        category: 'Conditioner',
-        price: `$${Math.min(13.99, maxPrice).toFixed(2)}`,
-        numericPrice: Math.min(13.99, maxPrice),
-        bestStore: store,
-        alsoAt: 'Walmart, Ulta Beauty',
-        whyItFits: 'Hydrates dry or styled hair within budget.'
-      },
-      {
-        name: 'CeraVe Daily Moisturizing Lotion',
-        domain: 'body',
-        category: 'Body Lotion / Cream',
-        price: `$${Math.min(16.99, maxPrice).toFixed(2)}`,
-        numericPrice: Math.min(16.99, maxPrice),
-        bestStore: store,
-        alsoAt: 'CVS, Walgreens',
-        whyItFits: 'Supports skin barrier hydration.'
-      }
-    ]
-  };
+  const stores = Array.isArray(shoppingPrefs?.stores) ? shoppingPrefs.stores : [];
+  const focusLower = String(shoppingPrefs?.focusArea || '').toLowerCase();
+  const invNames = new Set((inventory || []).map(x => String(x || '').toLowerCase()));
+  const ctx = JSON.stringify({ profile, activeTriggers, focusLower }).toLowerCase();
+
+  let targetDomain = 'all';
+  if (focusLower.includes('face') || focusLower.includes('skin')) targetDomain = 'skin';
+  else if (focusLower.includes('body')) targetDomain = 'body';
+  else if (focusLower.includes('hair') || focusLower.includes('wig') || focusLower.includes('braid') || focusLower.includes('curling') || focusLower.includes('roller')) targetDomain = 'hair';
+
+  const matches = SERVER_CATALOG
+    .filter(item => {
+      if (item.priceNum > maxPrice) return false;
+      if (invNames.has(item.name.toLowerCase())) return false;
+      if (targetDomain !== 'all' && item.domain !== targetDomain) return false;
+      return true;
+    })
+    .map(item => {
+      let score = 0;
+      if (stores.some(s => item.stores.map(x => x.toLowerCase()).includes(s.toLowerCase()))) score += 3;
+      item.tags.forEach(t => { if (ctx.includes(t)) score += 2; });
+      return { item, score };
+    })
+    .sort((a, b) => b.score - a.score || a.item.priceNum - b.item.priceNum)
+    .slice(0, 4)
+    .map(({ item }) => {
+      const bestStore = stores.find(s => item.stores.map(x => x.toLowerCase()).includes(s.toLowerCase())) || item.stores[0] || 'Target';
+      const alsoAt = item.stores.filter(s => s.toLowerCase() !== bestStore.toLowerCase()).slice(0, 2).join(', ');
+      return {
+        name: item.name,
+        domain: item.domain,
+        category: item.category,
+        price: `$${item.priceNum.toFixed(2)}`,
+        numericPrice: item.priceNum,
+        bestStore,
+        alsoAt,
+        whyItFits: item.whyItFits
+      };
+    });
+
+  return { recommendations: matches };
 }
 
 export default async function handler(req, res) {
@@ -241,7 +312,7 @@ JSON only:
           const rawText = await callGroqChat(apiKey, 'qwen/qwen3.8-27b', [{ role: 'user', content: shopPrompt }], 0.25, 650, true);
           return res.status(200).json({ result: parseJsonLoose(rawText) });
         } catch (__) {
-          return res.status(200).json({ result: buildFallbackShopRecs({ shoppingPrefs }) });
+          return res.status(200).json({ result: buildFallbackShopRecs({ shoppingPrefs, profile, activeTriggers, inventory }) });
         }
       }
     }
@@ -251,7 +322,7 @@ JSON only:
       ? shoppingPrefs.stores.join(', ')
       : 'Any';
 
-    const systemInstructions = `Concise care plan pulling from stash first, recommending items <=$${maxPrice} at [${stores}]. ${lowEnergyMode ? '2 short steps max per routine.' : 'Short steps.'} Single-line JSON only:
+    const systemInstructions = `Step-by-step care plan optimizing product usage (thin-to-thick order, measured amounts, damp-skin prep) and avoiding clashing/competing products; pull from stash first, recommend compatible items <=${maxPrice} at [${stores}]. ${lowEnergyMode ? '2 short steps max per routine.' : 'Short steps.'} Single-line JSON only:
 {"climateImpact":"1 sentence","rootCauseInsights":[{"cause":"C","fix":"F"}],"hairAssessment":"1 sentence","skinAssessment":"1 sentence","hairRoutine":[{"step":"S","detail":"D","productUsed":"Stash item","essential":true}],"stylingGuide":{"method":"${selectedStylingMethod}","prepAndProtection":"Prep","recommendedProducts":[{"productType":"T","suggestion":"Item","howToUse":"Use"}],"techniqueAndTakedown":"Tip"},"skinRoutine":[{"step":"S","detail":"D","productUsed":"Stash item","essential":true}],"bodyRoutine":[{"step":"S","detail":"D","productUsed":"Stash item","essential":true}],"proTreatments":[{"provider":"Salon|Dermatologist|Esthetician","treatment":"T","why":"W","cadence":"C"}],"missingProducts":[{"name":"N","domain":"hair|skin|body","store":"S","reason":"R","estimatedPrice":"$12.99"}]}`;
 
     const userPrompt = `Note:${description || 'None'} Mode:${currentHairState} Style:${selectedStylingMethod} Triggers:${(activeTriggers || []).join(',') || 'None'} Profile:${JSON.stringify(profile || {})} Weather:${JSON.stringify(weather || {})} Stash:${JSON.stringify((inventory || []).slice(0, 15))}`;
