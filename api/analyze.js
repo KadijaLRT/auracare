@@ -1,5 +1,5 @@
 async function callGroqChat(apiKey, model, messages, temperature = 0.2, max_tokens = 650, jsonMode = true) {
-  const safeMaxTokens = Math.min(Number(max_tokens) || 650, 950);
+  const safeMaxTokens = Math.min(Number(max_tokens) || 550, 650);
   const baseBody = {
     model,
     temperature,
@@ -378,11 +378,11 @@ JSON only:
     };
 
     try {
-      const rawText = await callGroqChat(apiKey, primaryModel, messages, 0.25, 850, true);
+      const rawText = await callGroqChat(apiKey, primaryModel, messages, 0.25, 650, true);
       return res.status(200).json({ result: normalizeRoutinePayload(parseJsonLoose(rawText)) });
     } catch (_) {
       try {
-        const rawText = await callGroqChat(apiKey, fallbackModel, messages, 0.25, 850, true);
+        const rawText = await callGroqChat(apiKey, fallbackModel, messages, 0.25, 650, true);
         return res.status(200).json({ result: normalizeRoutinePayload(parseJsonLoose(rawText)) });
       } catch (__) {
         return res.status(200).json({

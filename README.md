@@ -1,6 +1,3 @@
-# AuraCare — Black Hair Chemistry, Face & Body Studio (v2.34)
+# AuraCare — Black Hair Chemistry, Face & Body Studio (v2.36)
 
-- Adds **Deodorant** and **Perfume / Scents** to Body Care across:
-  - **My Stash** categories and manual add selector
-  - **Guided Profile Builder** (Step 4 body care & scent preferences)
-  - **Routines & Store Picks** (`buildLocalCheckinFallback`, `CATALOG_CANDIDATES`, and `api/analyze.js`)
+- Adds **Scan** button (`triggerUpdateStashItemPhoto`) on stash items so manually entered products can be scanned by label photo and updated in place with name, brand, domain, category, and ingredient/safety notes.

@@ -671,6 +671,7 @@
  let pendingCheckinImage = null;
  let currentStashFilter = "all";
  let editingStashId = null;
+ let updatingStashId = null;
 
  function saveState() {
  state = normalizeState(state);
@@ -2160,26 +2161,59 @@
       `;
     }
 
+ function triggerUpdateStashItemPhoto(id) {
+ updatingStashId = id;
+ const inputEl = document.getElementById("productPhotoInput");
+ if (inputEl) inputEl.click();
+ }
+
  async function analyzeBase64ProductImage(imageBase64) {
  const status = document.getElementById("scanStatusMsg");
- status.textContent = "Reading product label with AI...";
+ const targetId = updatingStashId;
+ updatingStashId = null;
+ status.textContent = targetId
+ ? "Scanning label to update your stash item..."
+ : "Reading product label with AI...";
  status.classList.remove("hidden");
  try {
  const res = await fetch("/api/analyze", {
  method: "POST",
  headers: { "Content-Type": "application/json" },
- body: JSON.stringify({ mode: "product_photo", imageBase64, profile: state.profile })
+ body: JSON.stringify({ mode: "product_photo", imageBase64, profile: compactProfileForApi(state.profile) })
  });
  const data = await res.json().catch(() => ({}));
  if (!res.ok || !data.result) throw new Error(data.error || "Scan failed");
  const item = data.result;
+ const nextDomain = ["hair", "skin", "body"].includes(item.domain) ? item.domain : "hair";
+ const nextCategory = item.category || "Other";
+ const nextNotes = `${item.safetyNote || ""} ${(item.keyIngredients || []).join(", ")}`.trim();
+
+ if (targetId) {
+ const existingIdx = (state.inventory || []).findIndex(x => x.id === targetId);
+ if (existingIdx !== -1) {
+ const prevItem = state.inventory[existingIdx];
+ state.inventory[existingIdx] = {
+ ...prevItem,
+ name: item.name || prevItem.name,
+ brand: item.brand || prevItem.brand || "",
+ domain: nextDomain || prevItem.domain,
+ category: nextCategory || prevItem.category,
+ notes: nextNotes || prevItem.notes || ""
+ };
+ saveState();
+ renderStash();
+ status.textContent = `✓ Updated "${state.inventory[existingIdx].name}" with scanned label details!`;
+ return;
+ }
+ }
+
  state.inventory.unshift({
  id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
  name: item.name || "Scanned Product",
  brand: item.brand || "",
- domain: ["hair", "skin", "body"].includes(item.domain) ? item.domain : "hair",
- category: item.category || "Other",
- notes: `${item.safetyNote || ""} ${(item.keyIngredients || []).join(", ")}`.trim()
+ domain: nextDomain,
+ category: nextCategory,
+ notes: nextNotes
  });
  saveState();
  renderStash();
@@ -2351,6 +2385,7 @@
  ${i.notes ? `<div class="text-[11px] text-[#726862] mt-0.5 break-words">${escapeAttr(i.notes)}</div>` : ""}
  </div>
  <div class="flex items-center gap-1 shrink-0">
+ <button type="button" onclick="triggerUpdateStashItemPhoto('${i.id}')" class="text-[11px] font-semibold px-2 py-1 rounded-lg border border-[#A9772B]/50 bg-[#F8F3EA] text-[#8A5E1B]">Scan</button>
  <button type="button" onclick="startEditProduct('${i.id}')" class="text-[11px] font-semibold px-2 py-1 rounded-lg border border-[#DDD4C8] bg-[#FAF8F5] text-[#231F1D]">Edit</button>
  <button type="button" onclick="removeProduct('${i.id}')" aria-label="Delete item" class="text-[11px] font-semibold px-2 py-1 rounded-lg border border-red-200 bg-red-50 text-red-700">Delete</button>
  </div>
