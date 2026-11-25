@@ -37,7 +37,6 @@
   </style>
 </head>
 <body>
-  <!-- Sticky Header -->
   <header class="sticky top-0 z-30 bg-[#FAF8F5]/95 backdrop-blur-md border-b border-[#EAE3D9] px-4 py-3 flex items-center justify-between gap-2">
     <div class="min-w-0">
       <div class="flex items-center gap-2">
@@ -58,17 +57,13 @@
   </header>
 
   <main class="max-w-lg mx-auto px-4 pt-4 space-y-4">
-
-    <!-- TAB 1: GUIDED PROFILE BUILDER -->
     <section id="tab-builder" class="space-y-4">
       <div class="card p-4 space-y-2 bg-gradient-to-br from-white to-[#F8F3EA]">
         <div class="flex items-center justify-between">
           <h1 class="text-base font-bold">Guided Profile Builder</h1>
           <span class="text-xs font-bold text-[#A9772B]">Step <span id="stepNumLabel">1</span> of 5</span>
         </div>
-        <p class="text-xs text-[#726862]">
-          Selections and text fields auto-save immediately to your device as you tap or type.
-        </p>
+        <p class="text-xs text-[#726862]">Selections and text fields auto-save immediately to your device as you tap or type.</p>
         <div class="w-full bg-[#ECE5DC] h-2 rounded-full overflow-hidden">
           <div id="builderProgressBar" class="bg-[#A9772B] h-full transition-all" style="width: 20%"></div>
         </div>
@@ -81,7 +76,6 @@
         </div>
       </div>
 
-      <!-- STEP 1 -->
       <div id="step-1" class="card p-4 space-y-3">
         <h2 class="text-sm font-bold">1. Basics, Location &amp; Daily Environment</h2>
         <div>
@@ -116,7 +110,6 @@
         </div>
       </div>
 
-      <!-- STEP 2 -->
       <div id="step-2" class="card p-4 space-y-3 hidden">
         <h2 class="text-sm font-bold">2. Hair Type, Chemical/Color History &amp; Styling Tools</h2>
         <div>
@@ -158,7 +151,6 @@
         </div>
       </div>
 
-      <!-- STEP 3 -->
       <div id="step-3" class="card p-4 space-y-3 hidden">
         <h2 class="text-sm font-bold">3. Face Skin Type, Concerns &amp; Routine Style</h2>
         <div>
@@ -179,7 +171,6 @@
         </div>
       </div>
 
-      <!-- STEP 4 -->
       <div id="step-4" class="card p-4 space-y-3 hidden">
         <h2 class="text-sm font-bold">4. Body Care (Washes, Bar Soaps, Lotions, Butters, Oils &amp; Powders)</h2>
         <div>
@@ -201,7 +192,6 @@
         </div>
       </div>
 
-      <!-- STEP 5 -->
       <div id="step-5" class="card p-4 space-y-3 hidden">
         <h2 class="text-sm font-bold">5. Budget, Preferred Stores &amp; Pro Treatments</h2>
         <div>
@@ -239,7 +229,6 @@
       </div>
     </section>
 
-    <!-- TAB 2: CHECK-IN & AI ROUTINES -->
     <section id="tab-checkin" class="hidden space-y-4">
       <div class="card p-4 bg-gradient-to-br from-white to-[#F8F3EA]">
         <div class="flex items-center justify-between mb-2">
@@ -267,9 +256,7 @@
             <div id="wAQI" class="text-sm font-bold">--</div>
           </div>
         </div>
-        <p id="climateAdviceText" class="text-xs text-[#594E47]">
-          Select or enter your city in the <strong>Profile</strong> tab to pull live weather, humidity, UV, and AQI.
-        </p>
+        <p id="climateAdviceText" class="text-xs text-[#594E47]">Select or enter your city in the <strong>Profile</strong> tab to pull live weather, humidity, UV, and AQI.</p>
       </div>
 
       <div class="card p-4 space-y-3">
@@ -315,7 +302,6 @@
       <div id="aiResultContainer" class="space-y-4"></div>
     </section>
 
-    <!-- TAB 3: BLANK PRODUCT STASH (RELIABLE IOS SAFARI VIDEO + BARCODE/PHOTO SCANNER) -->
     <section id="tab-stash" class="hidden space-y-4">
       <div class="card p-4 space-y-3">
         <div>
@@ -342,10 +328,12 @@
             <select id="manCategory" class="text-xs border border-[#DDD4C8] rounded-lg p-2 bg-white">
               <option value="Bond Repair">Bond Repair</option>
               <option value="Shampoo">Shampoo</option>
+              <option value="Conditioner">Conditioner</option>
               <option value="Clarifying / Chelating Shampoo">Clarifying / Chelating Shampoo</option>
               <option value="Deep Conditioner">Deep Conditioner</option>
               <option value="Protein Treatment">Protein Treatment</option>
               <option value="Hair Relaxer">Hair Relaxer</option>
+              <option value="Moisturizer">Moisturizer</option>
               <option value="Leave-In / Mist">Leave-In / Mist</option>
               <option value="Hair Oil / Sealant">Hair Oil / Sealant</option>
               <option value="Oil Sheen">Oil Sheen</option>
@@ -383,7 +371,6 @@
       </div>
     </section>
 
-    <!-- TAB 4: SHOP BY STORE & PRICE -->
     <section id="tab-shop" class="hidden space-y-4">
       <div class="card p-4 space-y-3">
         <div class="flex items-center justify-between">
@@ -422,7 +409,6 @@
       <div id="shopResultsList" class="space-y-2.5"></div>
     </section>
 
-    <!-- TAB 5: STYLING & PROTECTIVE GUIDE + ROOT CAUSES + PRO TREATMENTS -->
     <section id="tab-triggers" class="hidden space-y-4">
       <div class="card p-4 space-y-2">
         <h2 class="text-base font-bold">Relaxed Hair, Wigs, Braids, Rollers &amp; Body Powder Rules</h2>
@@ -437,7 +423,6 @@
         <div id="rootCauseCardsBox" class="space-y-2 pt-1"></div>
       </div>
     </section>
-
   </main>
 
   <nav class="fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-md border-t border-[#EAE3D9] px-1 pt-2 pb-[calc(8px+env(safe-area-inset-bottom))]">
@@ -527,6 +512,16 @@
       { provider: "Salon", focus: "Bond building, color gloss/toning, steam hydration, silk press/roller sets, tension-free braid installs, and trims." },
       { provider: "Dermatologist", focus: "Medical scalp/hairline evaluation (traction vs. shedding), stubborn acne/eczema, or hyperpigmentation prescriptions." },
       { provider: "Esthetician", focus: "Barrier-supporting facials, gentle chemical/enzyme exfoliation, LED light therapy, and body treatments." }
+    ];
+
+    const STASH_CATEGORIES = [
+      "Bond Repair", "Shampoo", "Conditioner", "Clarifying / Chelating Shampoo", "Deep Conditioner",
+      "Protein Treatment", "Hair Relaxer", "Moisturizer", "Leave-In / Mist", "Hair Oil / Sealant",
+      "Oil Sheen", "Heat Protectant", "Setting Mousse / Foam / Lotion",
+      "Edge Control / Wax", "Wig / Braid Scalp & Edge Care",
+      "Face Cleanser", "Face Treatment", "Face Moisturizer", "Sunscreen",
+      "Body Wash / Bar Soap", "Body Scrub / Exfoliant", "Body Lotion / Cream",
+      "Body Butter", "Body Oil", "Body Powder / Dusting Powder", "Other"
     ];
 
     function createBlankState() {
@@ -639,7 +634,8 @@
 
     let state = loadInitialState();
     let pendingCheckinImage = null;
-
+    let currentStashFilter = "all";
+    let editingStashId = null;
 
     function saveState() {
       state = normalizeState(state);
@@ -972,7 +968,7 @@
       }).join("");
     }
 
-    function compressImageToDataURL(file, maxDim = 900) {
+    function compressImageToDataURL(file, maxDim = 768) {
       return new Promise((resolve) => {
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -1001,7 +997,7 @@
     async function handleCheckinPhoto(e) {
       const file = e.target.files?.[0];
       if (!file) return;
-      pendingCheckinImage = await compressImageToDataURL(file);
+      pendingCheckinImage = await compressImageToDataURL(file, 900);
       document.getElementById("checkinPhotoPreview").src = pendingCheckinImage;
       document.getElementById("checkinPhotoPreviewBox").classList.remove("hidden");
       document.getElementById("clearPhotoBtn").classList.remove("hidden");
@@ -1109,7 +1105,7 @@
         if (!res.ok || !data.result) throw new Error(data.error || "Scan failed");
         const item = data.result;
         state.inventory.unshift({
-          id: Date.now().toString(),
+          id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
           name: item.name || "Scanned Product",
           brand: item.brand || "",
           domain: ["hair", "skin", "body"].includes(item.domain) ? item.domain : "hair",
@@ -1177,19 +1173,6 @@
       saveState();
       renderStash();
     }
-
-    const STASH_CATEGORIES = [
-      "Bond Repair", "Shampoo", "Clarifying / Chelating Shampoo", "Deep Conditioner",
-      "Protein Treatment", "Hair Relaxer", "Leave-In / Mist", "Hair Oil / Sealant",
-      "Oil Sheen", "Heat Protectant", "Setting Mousse / Foam / Lotion",
-      "Edge Control / Wax", "Wig / Braid Scalp & Edge Care",
-      "Face Cleanser", "Face Treatment", "Face Moisturizer", "Sunscreen",
-      "Body Wash / Bar Soap", "Body Scrub / Exfoliant", "Body Lotion / Cream",
-      "Body Butter", "Body Oil", "Body Powder / Dusting Powder", "Other"
-    ];
-
-    let currentStashFilter = "all";
-    let editingStashId = null;
 
     function filterStash(f) {
       currentStashFilter = f;
@@ -1385,7 +1368,7 @@
       const item = (state.shopRecommendations || [])[idx];
       if (!item) return;
       state.inventory.unshift({
-        id: Date.now().toString(),
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
         name: item.name,
         brand: "",
         domain: ["hair", "skin", "body"].includes(item.domain) ? item.domain : "hair",

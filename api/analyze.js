@@ -79,7 +79,7 @@ export default async function handler(req, res) {
       }
 
       const visionPrompt = `Read this product label/barcode photo and return ONLY compact JSON (no <think>, no markdown):
-{"name":"Brand & Product Name","brand":"Brand","domain":"hair|skin|body","category":"Bond Repair|Shampoo|Clarifying / Chelating Shampoo|Deep Conditioner|Protein Treatment|Leave-In / Mist|Hair Oil / Sealant|Heat Protectant|Setting Mousse / Foam / Lotion|Wig / Braid Scalp & Edge Care|Face Cleanser|Face Treatment|Face Moisturizer|Sunscreen|Body Wash / Bar Soap|Body Scrub / Exfoliant|Body Lotion / Cream|Body Butter|Body Oil|Body Powder / Dusting Powder|Other","keyIngredients":["ing1","ing2"],"safetyNote":"1 short note for profile"}`;
+{"name":"Brand & Product Name","brand":"Brand","domain":"hair|skin|body","category":"Bond Repair|Shampoo|Conditioner|Clarifying / Chelating Shampoo|Deep Conditioner|Protein Treatment|Hair Relaxer|Moisturizer|Leave-In / Mist|Hair Oil / Sealant|Oil Sheen|Heat Protectant|Setting Mousse / Foam / Lotion|Edge Control / Wax|Wig / Braid Scalp & Edge Care|Face Cleanser|Face Treatment|Face Moisturizer|Sunscreen|Body Wash / Bar Soap|Body Scrub / Exfoliant|Body Lotion / Cream|Body Butter|Body Oil|Body Powder / Dusting Powder|Other","keyIngredients":["ing1","ing2"],"safetyNote":"1 short note for profile"}`;
 
       const rawText = await callGroqChat(
         apiKey,
