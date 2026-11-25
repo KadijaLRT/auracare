@@ -204,6 +204,8 @@
  <option value="Body Powder / Dusting Powder">Body — Body Powder / Dusting Powder</option>
  <option value="Body Scrub / Exfoliant">Body — Body Scrub / Exfoliant</option>
  <option value="Body Wash / Bar Soap">Body — Body Wash / Bar Soap</option>
+ <option value="Deodorant">Body — Deodorant</option>
+ <option value="Perfume / Scents">Body — Perfume / Scents</option>
  <option value="Other">Other</option>
  </select>
  </div>
@@ -502,7 +504,7 @@
  faceRoutinePref: ["Minimal (2–3 Steps: Cleanse, Moisturize, SPF)", "Moderate (4–5 Steps + Targeted Serum)", "Full Multi-Step Routine"],
  bodyConcerns: ["Dry / Ashy Skin", "Rough Elbows, Knees & Heels", "Chafing / Sweat & Friction Zones", "Body Bumps / Keratosis Pilaris (KP)", "Ingrown Hairs / Razor Bumps", "Body Dark Marks / Uneven Tone", "Back / Chest Breakouts", "Sensitive / Eczema-Prone"],
  bodyCleansePref: ["Moisturizing Bar Soap", "Creamy / Hydrating Body Wash", "Exfoliating Body Scrub", "Shower Oil", "Antibacterial / Deodorant Bar"],
- bodyMoisturePref: ["Lightweight Body Lotion", "Rich Body Cream", "Whipped Body Butter", "Body Oil (Damp Skin Seal)", "Homemade / DIY Body Powder", "Dusting / Talc-Free Body Powder", "Lotion + Butter/Oil + Body Powder Layering", "Fragrance-Free Only", "Scent Layering / Warm / Gourmand Scents"],
+ bodyMoisturePref: ["Lightweight Body Lotion", "Rich Body Cream", "Whipped Body Butter", "Body Oil (Damp Skin Seal)", "Homemade / DIY Body Powder", "Dusting / Talc-Free Body Powder", "Lotion + Butter/Oil + Body Powder Layering", "Deodorant (Aluminum-Free / Clinical / Stick)", "Perfume / Scents (Eau de Parfum / Body Mist / Fragrance Oils)", "Fragrance-Free Only", "Scent Layering / Warm / Gourmand Scents"],
  maxPrice: ["Under $15", "Under $20", "Under $30", "Under $45", "Under $60"],
  proPrefs: ["Hair Salon (Bond Repair / Gloss / Trim)", "Hair Salon (Tension-Free Braids / Silk Press)", "Dermatologist (Scalp / Hairline Evaluation)", "Dermatologist (Dark Spots / Acne / KP Rx)", "Esthetician (Hydrating / Barrier Facials)", "Esthetician (Mandelic/Lactic Peels or Body Care)", "At-Home Care Only Right Now"]
  };
@@ -553,7 +555,7 @@
  // Face (A-Z)
  "Face Cleanser", "Face Moisturizer", "Face Treatment", "Sunscreen",
  // Body (A-Z)
- "Body Butter", "Body Lotion / Cream", "Body Oil", "Body Powder / Dusting Powder", "Body Scrub / Exfoliant", "Body Wash / Bar Soap",
+ "Body Butter", "Body Lotion / Cream", "Body Oil", "Body Powder / Dusting Powder", "Body Scrub / Exfoliant", "Body Wash / Bar Soap", "Deodorant", "Perfume / Scents",
  "Other"
  ];
 
@@ -1559,6 +1561,24 @@
         stores: ["Target", "Walmart", "CVS", "Walgreens", "Amazon"],
         tags: ["body powder", "powder", "chafing", "sweat", "friction", "body"],
         why: "Absorbs excess moisture and reduces friction in sweat-prone or chafing areas."
+      },
+      {
+        name: "Native Coconut & Vanilla Deodorant",
+        domain: "body",
+        category: "Deodorant",
+        priceNum: 13,
+        stores: ["Target", "Walmart", "Ulta Beauty", "CVS", "Walgreens", "Amazon"],
+        tags: ["deodorant", "odor", "sweat", "underarm", "body", "scent"],
+        why: "Smooth-gliding deodorant for everyday odor control without heavy residue."
+      },
+      {
+        name: "Sol de Janeiro Brazilian Crush Cheirosa '62 Perfume Mist",
+        domain: "body",
+        category: "Perfume / Scents",
+        priceNum: 24,
+        stores: ["Ulta Beauty", "Target", "Amazon"],
+        tags: ["perfume", "scent", "fragrance", "mist", "vanilla", "warm", "body"],
+        why: "Warm pistachio and salted caramel scent mist that layers over body lotion and oil."
       }
     ];
 
@@ -1798,8 +1818,8 @@
       });
       const hairStylePick = resolveStepProduct({
         domain: "hair",
-        roleHint: "seal",
-        keywordsRegex: /oil sheen|sheen|gel|edge|wax|oil|heat/i,
+        roleHint: "style",
+        keywordsRegex: /oil sheen|sheen|gel|edge|wax|oil|heat|custard|mousse/i,
         fallbackCategory: "Oil Sheen",
         maxPrice: maxP,
         stores,
@@ -1851,6 +1871,29 @@
         roleHint: "moisturize",
         keywordsRegex: /lotion|butter|oil|powder/i,
         fallbackCategory: "Body Lotion / Cream",
+        maxPrice: maxP,
+        stores,
+        inventory: inv,
+        triggers: state.activeTriggers,
+        profile: state.profile,
+        additionsCollector: additions
+      });
+
+      const bodyDeoPick = resolveStepProduct({
+        domain: "body",
+        keywordsRegex: /deodorant|antiperspirant/i,
+        fallbackCategory: "Deodorant",
+        maxPrice: maxP,
+        stores,
+        inventory: inv,
+        triggers: state.activeTriggers,
+        profile: state.profile,
+        additionsCollector: additions
+      });
+      const bodyScentPick = resolveStepProduct({
+        domain: "body",
+        keywordsRegex: /perfume|scent|fragrance|cologne|body mist/i,
+        fallbackCategory: "Perfume / Scents",
         maxPrice: maxP,
         stores,
         inventory: inv,
@@ -1927,6 +1970,12 @@
             detail: `Apply ${bodyMoistPick.label} in thin layers, dusting powder lightly over friction/sweat areas if needed.`,
             productUsed: bodyMoistPick.label,
             essential: true
+          },
+          {
+            step: "Step 3: Deodorant & Perfume / Scents",
+            detail: `Apply ${bodyDeoPick.label} on clean dry underarms, then layer ${bodyScentPick.label} on pulse points or clothing away from irritated skin.`,
+            productUsed: `${bodyDeoPick.label} + ${bodyScentPick.label}`,
+            essential: false
           }
         ],
         proTreatments: [],

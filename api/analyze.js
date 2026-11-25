@@ -275,7 +275,7 @@ export default async function handler(req, res) {
       if (!imageBase64) return res.status(400).json({ error: 'No product photo provided.' });
 
       const visionPrompt = `Read product label and return compact JSON (no newlines in strings):
-{"name":"Brand & Name","brand":"Brand","domain":"hair|skin|body","category":"Bond Repair|Clarifying / Chelating Shampoo|Conditioner|Deep Conditioner|Edge Control / Wax|Hair Dye|Hair Gel|Hair Oil / Sealant|Hair Relaxer|Heat Protectant|Leave-In / Mist|Moisturizer|Oil Sheen|Protein Treatment|Setting Mousse / Foam / Lotion|Shampoo|Wig / Braid Scalp & Edge Care|Face Cleanser|Face Moisturizer|Face Treatment|Sunscreen|Body Butter|Body Lotion / Cream|Body Oil|Body Powder / Dusting Powder|Body Scrub / Exfoliant|Body Wash / Bar Soap|Other","keyIngredients":["ing1","ing2"],"safetyNote":"short note"}`;
+{"name":"Brand & Name","brand":"Brand","domain":"hair|skin|body","category":"Bond Repair|Clarifying / Chelating Shampoo|Conditioner|Deep Conditioner|Edge Control / Wax|Hair Dye|Hair Gel|Hair Oil / Sealant|Hair Relaxer|Heat Protectant|Leave-In / Mist|Moisturizer|Oil Sheen|Protein Treatment|Setting Mousse / Foam / Lotion|Shampoo|Wig / Braid Scalp & Edge Care|Face Cleanser|Face Moisturizer|Face Treatment|Sunscreen|Body Butter|Body Lotion / Cream|Body Oil|Body Powder / Dusting Powder|Body Scrub / Exfoliant|Body Wash / Bar Soap|Deodorant|Perfume / Scents|Other","keyIngredients":["ing1","ing2"],"safetyNote":"short note"}`;
 
       const rawText = await callGroqChat(
         apiKey,
@@ -350,13 +350,40 @@ JSON only:
     const primaryModel = imageBase64 ? 'qwen/qwen3.8-27b' : 'openai/gpt-oss-120b';
     const fallbackModel = imageBase64 ? 'openai/gpt-oss-120b' : 'qwen/qwen3.8-27b';
 
+    const normalizeRoutinePayload = (parsed) => {
+      const fb = buildFallbackRoutine({ currentHairState, selectedStylingMethod, weather, activeTriggers });
+      if (!parsed || typeof parsed !== 'object') return fb;
+      const cleanSteps = (arr, fbArr) => {
+        const list = Array.isArray(arr) ? arr.filter(x => x && (x.step || x.detail)) : [];
+        if (!list.length) return fbArr;
+        return list.map((item, idx) => {
+          const def = fbArr[idx] || fbArr[0];
+          const prod = String(item.productUsed || '').trim();
+          return {
+            step: String(item.step || def.step).trim(),
+            detail: String(item.detail || def.detail).trim(),
+            productUsed: (!prod || /^none\b/i.test(prod)) ? def.productUsed : prod,
+            essential: Boolean(item.essential !== undefined ? item.essential : def.essential)
+          };
+        });
+      };
+      return {
+        ...fb,
+        ...parsed,
+        hairRoutine: cleanSteps(parsed.hairRoutine, fb.hairRoutine),
+        skinRoutine: cleanSteps(parsed.skinRoutine, fb.skinRoutine),
+        bodyRoutine: cleanSteps(parsed.bodyRoutine, fb.bodyRoutine),
+        missingProducts: Array.isArray(parsed.missingProducts) ? parsed.missingProducts : fb.missingProducts
+      };
+    };
+
     try {
       const rawText = await callGroqChat(apiKey, primaryModel, messages, 0.25, 850, true);
-      return res.status(200).json({ result: parseJsonLoose(rawText) });
+      return res.status(200).json({ result: normalizeRoutinePayload(parseJsonLoose(rawText)) });
     } catch (_) {
       try {
         const rawText = await callGroqChat(apiKey, fallbackModel, messages, 0.25, 850, true);
-        return res.status(200).json({ result: parseJsonLoose(rawText) });
+        return res.status(200).json({ result: normalizeRoutinePayload(parseJsonLoose(rawText)) });
       } catch (__) {
         return res.status(200).json({
           result: buildFallbackRoutine({ currentHairState, selectedStylingMethod, weather, activeTriggers })
