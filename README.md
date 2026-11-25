@@ -1,3 +1,3 @@
-# AuraCare — Black Hair Chemistry, Face & Body Studio (v2.42)
+# AuraCare — Black Hair Chemistry, Face & Body Studio (v2.45)
 
-- Removes the duplicate **Weather & AQI** line inside `renderAIRoutine()` since live weather and AQI are already displayed in the top card.
+- Enhances the Check-In weather card (`fetchLocalClimate()` & `renderWeatherUI()`) with live condition description (`Clear`, etc.), `Feels Like` (`apparent_temperature`), `Dew Point`, `Temp`, `Humidity`, `UV`, and `AQI`.

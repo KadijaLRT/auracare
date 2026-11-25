@@ -50,9 +50,6 @@
  <span id="energyIcon">🔋</span>
  <span id="energyLabel">Full</span>
  </button>
- <button type="button" onclick="wipeAllToBlank()" title="Wipe everything back to blank" class="px-2.5 py-1.5 rounded-full text-xs font-semibold border border-red-200 bg-red-50 text-red-700">
- Reset Blank
- </button>
  </div>
  </header>
 
@@ -65,6 +62,10 @@
  <h2 class="text-sm font-bold" id="locationHeading">No Location Set</h2>
  </div>
  <button type="button" onclick="fetchLocalClimate()" class="text-xs font-semibold text-[#A9772B] underline">Refresh Weather/AQI</button>
+ </div>
+ <div class="flex items-center justify-between text-xs text-[#594E47] bg-white/80 rounded-xl px-3 py-1.5 border border-[#EAE3D9] my-1.5">
+ <span id="wCondition" class="font-semibold text-[#231F1D]">--</span>
+ <span id="wFeelsDew" class="text-[11px] text-[#726862]">Feels -- • Dew --</span>
  </div>
  <div class="grid grid-cols-4 gap-2 text-center my-2">
  <div class="bg-white rounded-xl p-2 border border-[#EAE3D9]">
@@ -86,15 +87,9 @@
  </div>
  <p id="climateAdviceText" class="text-xs text-[#594E47]">Select or enter your city in the <strong>Profile &amp; Pro</strong> tab to pull live weather, humidity, UV, and AQI.</p>
  </div>
-
-      <div class="card p-2.5 flex gap-1.5 text-xs font-semibold">
-        <button type="button" onclick="setCheckinSubView('log')" id="csub-log" class="flex-1 py-2 rounded-xl bg-[#231F1D] text-white">1. Check-In</button>
-        <button type="button" onclick="setCheckinSubView('routines')" id="csub-routines" class="flex-1 py-2 rounded-xl bg-[#FAF8F5] border border-[#DDD4C8] text-[#594E47]">2. Routines</button>
-      </div>
-
-      <div id="checkin-subview-log" class="space-y-4">
+ <div id="checkin-subview-log" class="space-y-4">
       <div class="card p-4 space-y-3">
-        <h2 class="text-base font-bold">State Check-In (Selectable + Optional Photo/Note)</h2>
+        <h2 class="text-base font-bold">State Check-In</h2>
  <div class="space-y-1.5">
  <label class="block text-[11px] font-bold uppercase tracking-wider text-[#726862]">1. Current Hair / Protective Style State</label>
  <div id="hairModeChipsBox" class="flex flex-wrap gap-1.5"></div>
@@ -143,17 +138,17 @@
  </div>
 
       </div>
-
-      <div id="checkin-subview-routines" class="space-y-4 hidden">
-        <div class="card p-3 flex items-center justify-between text-xs bg-[#FAF8F5]">
-          <span class="font-semibold text-[#594E47]">Step-by-step routines from your check-in &amp; stash</span>
-          <button type="button" onclick="setCheckinSubView('log')" class="font-bold text-[#A9772B] underline">← Back to Check-In</button>
-        </div>
-        <div id="aiResultContainer" class="space-y-4"></div>
-      </div>
  </section>
 
-<section id="tab-stash" class="hidden space-y-4">
+<section id="tab-routines" class="hidden space-y-4">
+ <div class="card p-3 flex items-center justify-between text-xs bg-[#FAF8F5]">
+ <span class="font-semibold text-[#594E47]">Step-by-step routines from your check-in &amp; stash</span>
+ <button type="button" onclick="switchTab('checkin')" class="font-bold text-[#A9772B] underline">← Back to Check-In</button>
+ </div>
+ <div id="aiResultContainer" class="space-y-4"></div>
+ </section>
+
+ <section id="tab-stash" class="hidden space-y-4">
  <div class="card p-4 space-y-3">
  <div>
  <h2 class="text-base font-bold">My Product Stash</h2>
@@ -465,10 +460,14 @@
  </main>
 
  <nav class="fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-md border-t border-[#EAE3D9] px-2 pt-2 pb-[calc(8px+env(safe-area-inset-bottom))]">
- <div class="max-w-lg mx-auto grid grid-cols-4 items-center justify-items-center text-center text-[10px]">
+ <div class="max-w-lg mx-auto grid grid-cols-5 items-center justify-items-center text-center text-[10px]">
  <button type="button" onclick="switchTab('checkin')" id="nav-checkin" class="tab-active flex flex-col items-center justify-center gap-0.5 py-1 w-full">
  <span class="text-base leading-none">✨</span>
  <span>Check-In</span>
+ </button>
+ <button type="button" onclick="switchTab('routines')" id="nav-routines" class="text-[#726862] flex flex-col items-center justify-center gap-0.5 py-1 w-full">
+ <span class="text-base leading-none">📋</span>
+ <span>Routines</span>
  </button>
  <button type="button" onclick="switchTab('stash')" id="nav-stash" class="text-[#726862] flex flex-col items-center justify-center gap-0.5 py-1 w-full">
  <span class="text-base leading-none">🧴</span>
@@ -718,7 +717,7 @@
 
  function switchTab(tab) {
  persistTextFields();
- ["checkin", "stash", "shop", "profile"].forEach(t => {
+ ["checkin", "routines", "stash", "shop", "profile"].forEach(t => {
  const el = document.getElementById(`tab-${t}`);
  if (el) el.classList.toggle("hidden", t !== tab);
  const nav = document.getElementById(`nav-${t}`);
@@ -809,7 +808,7 @@
  const storeBox = document.getElementById("chips_stores");
  storeBox.innerHTML = ALL_STORES.map(store => {
  const active = (state.shoppingPrefs.stores || []).includes(store);
- return `<button type="button" onclick="toggleStorePref('${encodeURIComponent(store)}').replace(/\\/g, \"\\\\\").replace(/'/g, \"\\'\")\}')" class="text-[11px] px-2.5 py-1.5 rounded-full border font-semibold transition ${active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#594E47] border-[#DDD4C8]"}">${active ? "✓ " : "+ "}${store}</button>`;
+ return `<button type="button" onclick="toggleStorePref('${encodeURIComponent(store)}')"\\\\\").replace(/'/g, \"\\'\")\}')" class="text-[11px] px-2.5 py-1.5 rounded-full border font-semibold transition ${active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#594E47] border-[#DDD4C8]"}">${active ? "✓ " : "+ "}${store}</button>`;
  }).join("");
 
  renderChipGroup("chips_proPrefs", PROFILE_OPTIONS.proPrefs, p.proPrefs, true, "toggleMultiOption", "proPrefs");
@@ -826,7 +825,7 @@
  const box = document.getElementById("hairModeChipsBox");
  box.innerHTML = HAIR_PROTECTIVE_MODES.map(m => {
  const active = state.currentHairState === m;
- return `<button type="button" onclick="setHairState('${encodeURIComponent(m)}').replace(/\\/g, \"\\\\\").replace(/'/g, \"\\'\")\}')" class="text-[11px] px-2.5 py-1 rounded-full border font-semibold ${active ? "bg-[#A9772B] text-white border-[#A9772B]" : "bg-white text-[#594E47] border-[#DDD4C8]"}">${active ? "✓ " : ""}${m}</button>`;
+ return `<button type="button" onclick="setHairState('${encodeURIComponent(m)}')"\\\\\").replace(/'/g, \"\\'\")\}')" class="text-[11px] px-2.5 py-1 rounded-full border font-semibold ${active ? "bg-[#A9772B] text-white border-[#A9772B]" : "bg-white text-[#594E47] border-[#DDD4C8]"}">${active ? "✓ " : ""}${m}</button>`;
  }).join("");
  }
 
@@ -965,17 +964,51 @@
  }, () => alert("Location permission denied."));
  }
 
+ function describeWeatherCode(code) {
+ const c = Number(code);
+ if (c === 0) return "Clear";
+ if (c === 1) return "Mainly Clear";
+ if (c === 2) return "Partly Cloudy";
+ if (c === 3) return "Overcast";
+ if (c === 45 || c === 48) return "Fog";
+ if (c >= 51 && c <= 57) return "Drizzle";
+ if (c >= 61 && c <= 67) return "Rain";
+ if (c >= 71 && c <= 77) return "Snow";
+ if (c >= 80 && c <= 82) return "Rain Showers";
+ if (c >= 85 && c <= 86) return "Snow Showers";
+ if (c >= 95) return "Thunderstorm";
+ return "Current Conditions";
+ }
+
+ function renderWeatherUI(wObj, labelCity) {
+ if (!wObj || wObj.tempF == null) return;
+ const condStr = wObj.condition || describeWeatherCode(wObj.weatherCode);
+ const feelsStr = wObj.feelsLikeF != null ? `${wObj.feelsLikeF}°F` : "--";
+ const dewStr = wObj.dewPointF != null ? `${wObj.dewPointF}°F` : "--";
+ const humStr = wObj.humidity != null ? `${wObj.humidity}%` : "--";
+ const uvStr = wObj.uv != null ? wObj.uv : "--";
+ const aqiStr = wObj.aqi != null ? wObj.aqi : "--";
+
+ document.getElementById("wTemp").textContent = `${wObj.tempF}°F`;
+ document.getElementById("wHumidity").textContent = humStr;
+ document.getElementById("wUV").textContent = uvStr;
+ document.getElementById("wAQI").textContent = aqiStr;
+ const condEl = document.getElementById("wCondition");
+ if (condEl) condEl.textContent = condStr;
+ const fdEl = document.getElementById("wFeelsDew");
+ if (fdEl) fdEl.textContent = `Feels ${feelsStr} • Dew ${dewStr}`;
+ if (labelCity) {
+ document.getElementById("climateSummaryBar").textContent = `${labelCity} • ${wObj.tempF}°F ${condStr} • ${humStr} Hum • AQI ${aqiStr}`;
+ }
+ }
+
  async function fetchLocalClimate() {
  const { lat, lon, city } = state.profile;
  if (city) {
  document.getElementById("locationHeading").textContent = city;
  }
  if (state.weather && state.weather.tempF != null) {
- document.getElementById("wTemp").textContent = `${state.weather.tempF}°F`;
- if (state.weather.humidity != null) document.getElementById("wHumidity").textContent = `${state.weather.humidity}%`;
- if (state.weather.uv != null) document.getElementById("wUV").textContent = state.weather.uv;
- if (state.weather.aqi != null) document.getElementById("wAQI").textContent = state.weather.aqi;
- if (city) document.getElementById("climateSummaryBar").textContent = `${city} • ${state.weather.tempF}°F • ${state.weather.humidity ?? "--"}% Hum • AQI ${state.weather.aqi ?? "--"}`;
+ renderWeatherUI(state.weather, city);
  }
  if (!city && (lat === null || lon === null)) {
  document.getElementById("locationHeading").textContent = "No Location Set";
@@ -986,51 +1019,40 @@
  await geocodeCity(city);
  return;
  }
- document.getElementById("locationHeading").textContent = state.profile.city || "Local Climate";
+ const activeCity = state.profile.city || "Local Climate";
+ document.getElementById("locationHeading").textContent = activeCity;
  try {
- const wUrl = `https://api.open-meteo.com/v1/forecast?latitude=${state.profile.lat}&longitude=${state.profile.lon}&current=temperature_2m,relative_humidity_2m,dew_point_2m,uv_index&temperature_unit=fahrenheit`;
+ const wUrl = `https://api.open-meteo.com/v1/forecast?latitude=${state.profile.lat}&longitude=${state.profile.lon}&current=temperature_2m,apparent_temperature,relative_humidity_2m,dew_point_2m,uv_index,weather_code&temperature_unit=fahrenheit`;
  const aUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${state.profile.lat}&longitude=${state.profile.lon}&current=us_aqi`;
  const [wRes, aRes] = await Promise.all([fetch(wUrl), fetch(aUrl)]);
  const wData = await wRes.json();
  const aData = await aRes.json();
 
  const temp = Math.round(wData.current?.temperature_2m ?? 0);
+ const feels = Math.round(wData.current?.apparent_temperature ?? temp);
  const hum = Math.round(wData.current?.relative_humidity_2m ?? 0);
  const dew = Math.round(wData.current?.dew_point_2m ?? 0);
  const uv = (wData.current?.uv_index ?? 0).toFixed(1);
+ const weatherCode = wData.current?.weather_code ?? 0;
+ const condition = describeWeatherCode(weatherCode);
  const aqi = Math.round(aData.current?.us_aqi ?? 0);
 
- state.weather = { tempF: temp, humidity: hum, dewPointF: dew, uv, aqi };
+ state.weather = { tempF: temp, feelsLikeF: feels, humidity: hum, dewPointF: dew, uv, weatherCode, condition, aqi };
  saveState();
 
- document.getElementById("wTemp").textContent = `${temp}°F`;
- document.getElementById("wHumidity").textContent = `${hum}%`;
- document.getElementById("wUV").textContent = uv;
- document.getElementById("wAQI").textContent = aqi;
- document.getElementById("climateSummaryBar").textContent = `${state.profile.city} • ${temp}°F • ${hum}% Hum • AQI ${aqi}`;
+ renderWeatherUI(state.weather, activeCity);
  document.getElementById("climateAdviceText").textContent =
- `Dew point is ${dew}°F with ${hum}% humidity, UV ${uv}, and US AQI ${aqi}. Low dew points increase moisture loss from hair, face, and body skin; higher humidity impacts curl hold and frizz.`;
+ `${condition} at ${temp}°F (feels like ${feels}°F), dew point ${dew}°F, ${hum}% humidity, UV ${uv}, and US AQI ${aqi}. Low dew points increase moisture loss from hair, face, and body skin; higher humidity impacts curl hold and frizz.`;
  } catch (e) {
  document.getElementById("climateAdviceText").textContent = "Unable to load weather/AQI right now.";
  }
  }
 
     function setCheckinSubView(view) {
-      const logEl = document.getElementById("checkin-subview-log");
-      const rotEl = document.getElementById("checkin-subview-routines");
-      const logBtn = document.getElementById("csub-log");
-      const rotBtn = document.getElementById("csub-routines");
-      if (logEl && rotEl) {
-        logEl.classList.toggle("hidden", view !== "log");
-        rotEl.classList.toggle("hidden", view !== "routines");
-      }
-      if (logBtn && rotBtn) {
-        logBtn.className = view === "log"
-          ? "flex-1 py-2 rounded-xl bg-[#231F1D] text-white"
-          : "flex-1 py-2 rounded-xl bg-[#FAF8F5] border border-[#DDD4C8] text-[#594E47]";
-        rotBtn.className = view === "routines"
-          ? "flex-1 py-2 rounded-xl bg-[#231F1D] text-white"
-          : "flex-1 py-2 rounded-xl bg-[#FAF8F5] border border-[#DDD4C8] text-[#594E47]";
+      if (view === "routines") {
+        switchTab("routines");
+      } else {
+        switchTab("checkin");
       }
     }
 
@@ -1066,14 +1088,14 @@
  const box = document.getElementById("triggerChipsBox");
  box.innerHTML = TRIGGER_FACTORS.map(t => {
  const active = state.activeTriggers.includes(t.label);
- return `<button type="button" onclick="toggleTrigger('${encodeURIComponent(t.label)}').replace(/\\/g, \"\\\\\").replace(/'/g, \"\\'\")\}')" class="text-[11px] px-2.5 py-1 rounded-full border font-semibold ${active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#594E47] border-[#DDD4C8]"}">${active ? "✓ " : "+ "}${t.label}</button>`;
+ return `<button type="button" onclick="toggleTrigger('${encodeURIComponent(t.label)}')"\\\\\").replace(/'/g, \"\\'\")\}')" class="text-[11px] px-2.5 py-1 rounded-full border font-semibold ${active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#594E47] border-[#DDD4C8]"}">${active ? "✓ " : "+ "}${t.label}</button>`;
  }).join("");
  const chemBox = document.getElementById("hairChemistryBox"); if (chemBox) chemBox.innerHTML = BLACK_HAIR_CHEMISTRY_RULES.map(c => `<div class="p-3 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9]"><div class="font-bold text-[#8A5E1B]">${c.title}</div><div class="text-[#594E47] mt-0.5">${c.note}</div></div>`).join("");
  document.getElementById("stylingReferenceBox").innerHTML = STYLING_REFERENCE_GUIDE.map(sg => `<div class="p-3 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9]"><div class="font-bold text-[#231F1D]">${sg.title}</div><div class="text-[#594E47] mt-0.5">${sg.note}</div></div>`).join("");
  document.getElementById("proGuidanceBox").innerHTML = PRO_CATEGORIES.map(pc => `<div class="p-3 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9]"><div class="font-bold text-[#A9772B]">${pc.provider}</div><div class="text-[#594E47] mt-0.5">${pc.focus}</div></div>`).join("");
  document.getElementById("rootCauseCardsBox").innerHTML = TRIGGER_FACTORS.map(t => {
  const active = state.activeTriggers.includes(t.label);
- return `<div class="p-3 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] flex items-start justify-between gap-2"><div><div class="text-xs font-bold">${t.label} <span class="text-[10px] uppercase text-[#726862]">(${t.domain})</span></div><div class="text-xs text-[#594E47] mt-0.5">${t.note}</div></div><button type="button" onclick="toggleTrigger('${encodeURIComponent(t.label)}').replace(/\\/g, \"\\\\\").replace(/'/g, \"\\'\")\}')" class="text-[11px] font-semibold px-2 py-1 rounded-lg border shrink-0 ${active ? "bg-[#231F1D] text-white" : "bg-white"}">${active ? "Active" : "Track"}</button></div>`;
+ return `<div class="p-3 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] flex items-start justify-between gap-2"><div><div class="text-xs font-bold">${t.label} <span class="text-[10px] uppercase text-[#726862]">(${t.domain})</span></div><div class="text-xs text-[#594E47] mt-0.5">${t.note}</div></div><button type="button" onclick="toggleTrigger('${encodeURIComponent(t.label)}')"\\\\\").replace(/'/g, \"\\'\")\}')" class="text-[11px] font-semibold px-2 py-1 rounded-lg border shrink-0 ${active ? "bg-[#231F1D] text-white" : "bg-white"}">${active ? "Active" : "Track"}</button></div>`;
  }).join("");
  }
 
@@ -2127,12 +2149,6 @@
             <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#F8F3EA] text-[#8A5E1B]">${escapeAttr(state.currentHairState)}</span>
           </div>
 
-          ${allPulled.length
-              ? `<div class="flex flex-wrap gap-1.5 pt-0.5">${allPulled.map(item => `<span class="text-[11px] px-2 py-0.5 rounded-full bg-white border border-[#DDD4C8] font-medium">${escapeAttr(item.name)} <span class="text-[#726862]">(${escapeAttr(item.category)})</span></span>`).join("")}</div>`
-              : `<p class="text-xs text-[#594E47]">No owned items in that section yet—check the store recommendations below to add items.</p>`
-            }
-          </div>
-
           ${(sourceR.rootCauseInsights && sourceR.rootCauseInsights.length) ? `<div class="space-y-1.5"><h4 class="text-xs font-bold uppercase text-[#726862]">Root Causes &amp; Fixes</h4>${sourceR.rootCauseInsights.map(rc => `<div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs"><div class="font-bold">${escapeAttr(cleanFalseStashLackNote(rc.cause))}</div><div class="text-[#594E47] mt-0.5">${escapeAttr(cleanFalseStashLackNote(rc.fix))}</div></div>`).join("")}</div>` : ""}
 
           <div class="space-y-2">
@@ -2525,7 +2541,7 @@
  const box = document.getElementById("storeChipsContainer");
  box.innerHTML = ALL_STORES.map(store => {
  const active = (state.shoppingPrefs.stores || []).includes(store);
- return `<button type="button" onclick="toggleStorePref('${encodeURIComponent(store)}').replace(/\\/g, \"\\\\\").replace(/'/g, \"\\'\")\}')" class="px-2.5 py-1 rounded-full text-xs font-semibold border ${active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#726862] border-[#DDD4C8]"}">${active ? "✓ " : "+ "}${store}</button>`;
+ return `<button type="button" onclick="toggleStorePref('${encodeURIComponent(store)}')"\\\\\").replace(/'/g, \"\\'\")\}')" class="px-2.5 py-1 rounded-full text-xs font-semibold border ${active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#726862] border-[#DDD4C8]"}">${active ? "✓ " : "+ "}${store}</button>`;
  }).join("");
  }
 
