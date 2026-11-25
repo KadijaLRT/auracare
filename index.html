@@ -9,7 +9,7 @@
  <meta name="theme-color" content="#FAF8F5" />
  <link rel="manifest" href="/manifest.json" />
  <link rel="apple-touch-icon" href="/icon.svg" />
- <title>AuraCare v2.50 — Concern-led Care Studio</title>
+ <title>AuraCare v2.57 — Collection-Learned Scent Profile</title>
  <script src="https://cdn.tailwindcss.com"></script>
  <style>
  :root {
@@ -245,6 +245,7 @@
  <option value="Hair care, bond repair, scalp & hydration">Core Hair Care Gaps</option>
  <option value="Face cleanser, treatment, moisturizer & SPF">Face Skincare Gaps</option>
  <option value="Body wash, bar soap, lotion, body butter, body oil & dusting powder essentials">Body Care Gaps</option>
+ <option value="Fragrance & Scent Profile">Fragrance &amp; Scent Profile</option>
  </select>
  <button id="findDealsBtn" type="button" onclick="fetchStoreRecommendations()" class="py-2.5 px-3 rounded-xl bg-[#231F1D] text-white text-xs font-semibold">
  🔍 Find Matches
@@ -390,6 +391,19 @@
  <div id="chips_bodyMoisturePref" class="flex flex-wrap gap-1.5"></div>
  <input id="q_customBodyPowderNotes" type="text" oninput="persistTextFields()" onchange="persistTextFields()" onblur="persistTextFields()" placeholder="Optional: homemade body powder recipe/ingredients..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2 bg-[#FAF8F5] mt-2" />
  </div>
+ <div class="rounded-2xl border border-[#EAE3D9] bg-[#FAF8F5] p-3 space-y-3">
+   <div><h3 class="text-sm font-bold">🌸 Personal Fragrance Profile</h3><p class="text-[11px] text-[#726862]">Choose the scent families and notes you enjoy. AuraCare will build a scent profile and use it to match fragrances from Burlington Coat Factory, Scentbird, Bath &amp; Body Works, and Amazon.</p></div>
+   <div><label class="block text-xs font-semibold mb-1.5">Scent families you gravitate toward</label><div id="chips_scentFamilies" class="flex flex-wrap gap-1.5"></div></div>
+   <div><label class="block text-xs font-semibold mb-1.5">Notes you love</label><div id="chips_scentNotes" class="flex flex-wrap gap-1.5"></div></div>
+   <div><label class="block text-xs font-semibold mb-1.5">When / how you wear fragrance</label><div id="chips_scentOccasions" class="flex flex-wrap gap-1.5"></div></div>
+   <div><label class="block text-xs font-semibold mb-1.5">Preferred strength / projection</label><select id="scentIntensitySelect" onchange="updateScentField('scentIntensity', this.value)" class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-white"><option value="">No preference</option><option>Skin scent / intimate</option><option>Soft / close to skin</option><option>Moderate / noticeable</option><option>Strong / long-lasting</option><option>Statement / room-filling</option></select></div>
+   <div class="grid grid-cols-2 gap-2"><div><label class="block text-xs font-semibold mb-1">Maximum price per fragrance</label><select id="scentBudgetSelect" onchange="updateScentField('scentBudget', this.value)" class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-white"><option value="15">Up to $15</option><option value="20">Up to $20</option><option value="30" selected>Up to $30</option><option value="40">Up to $40</option><option value="50">Up to $50</option><option value="75">Up to $75</option><option value="100">Up to $100</option><option value="150">Up to $150</option></select></div><div class="text-[11px] text-[#726862] self-end pb-2">Hard price cap: recommendations above this amount are excluded.</div></div>
+   <div><label class="block text-xs font-semibold mb-1">Favorite perfumes / scents / brands (optional)</label><input id="q_scentLikes" type="text" oninput="persistTextFields()" onchange="persistTextFields()" onblur="persistTextFields()" placeholder="Names of scents you already love..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-white" /></div>
+   <div><label class="block text-xs font-semibold mb-1">Notes or scent styles to avoid (optional)</label><input id="q_scentAvoid" type="text" oninput="persistTextFields()" onchange="persistTextFields()" onblur="persistTextFields()" placeholder="e.g., sharp rose, heavy patchouli, powdery musk..." class="w-full text-xs border border-[#DDD4C8] rounded-xl p-2.5 bg-white" /></div>
+   <div id="scentProfileSummary" class="rounded-xl bg-white border border-[#EAE3D9] p-2.5 text-xs text-[#594E47]">Add fragrances to My Stash and AuraCare will learn your scent preferences from them. You can also set preferences manually.</div>
+   <button type="button" onclick="refreshScentProfileFromStash(true)" class="w-full rounded-xl border border-[#A9772B]/50 bg-white text-[#8A5E1B] py-2.5 text-xs font-semibold">↻ Build / refresh profile from My Stash</button>
+   <button type="button" onclick="switchTab('shop');document.getElementById('shopFocusSelect').value='Fragrance & Scent Profile';fetchStoreRecommendations();" class="w-full rounded-xl bg-[#231F1D] text-white py-2.5 text-xs font-semibold">Find fragrances for my scent profile →</button>
+ </div>
  <div class="flex justify-between pt-1">
  <button type="button" onclick="setBuilderStep(3)" class="px-3 py-2 rounded-xl border border-[#DDD4C8] text-xs font-semibold">← Back</button>
  <button type="button" onclick="setBuilderStep(5)" class="px-4 py-2 rounded-xl bg-[#231F1D] text-white text-xs font-semibold">Next: Shopping &amp; Pro →</button>
@@ -496,6 +510,9 @@
  bodyConcerns: ["Dry / Ashy Skin", "Rough Elbows, Knees & Heels", "Chafing / Sweat & Friction Zones", "Body Bumps / Keratosis Pilaris (KP)", "Ingrown Hairs / Razor Bumps", "Body Dark Marks / Uneven Tone", "Back / Chest Breakouts", "Sensitive / Eczema-Prone"],
  bodyCleansePref: ["Moisturizing Bar Soap", "Creamy / Hydrating Body Wash", "Exfoliating Body Scrub", "Shower Oil", "Antibacterial / Deodorant Bar"],
  bodyMoisturePref: ["Lightweight Body Lotion", "Rich Body Cream", "Whipped Body Butter", "Body Oil (Damp Skin Seal)", "Homemade / DIY Body Powder", "Dusting / Talc-Free Body Powder", "Lotion + Butter/Oil + Body Powder Layering", "Deodorant (Aluminum-Free / Clinical / Stick)", "Perfume / Scents (Eau de Parfum / Body Mist / Fragrance Oils)", "Fragrance-Free Only", "Scent Layering / Warm / Gourmand Scents"],
+ scentFamilies: ["Gourmand", "Vanilla / Amber", "Warm & Spicy", "Woody", "Musky", "Floral", "Fruity", "Fresh / Citrus", "Clean / Soapy", "Aquatic", "Green / Herbal", "Powdery", "Sweet / Creamy"],
+ scentNotes: ["Vanilla", "Caramel", "Praline", "Coconut", "Cocoa / Chocolate", "Amber", "Sandalwood", "Oud", "White Musk", "Patchouli", "Rose", "Jasmine", "Orange Blossom", "Berries", "Pear", "Citrus", "Lavender", "Tonka Bean", "Peach", "Apple"],
+ scentOccasions: ["Everyday / Signature", "Work / School", "Date Night", "Evening / Going Out", "Special Occasions", "Warm Weather", "Cold Weather", "Body Mist / Layering"] ,
  maxPrice: ["Under $15", "Under $20", "Under $30", "Under $45", "Under $60"],
  proPrefs: ["Hair Salon (Bond Repair / Gloss / Trim)", "Hair Salon (Tension-Free Braids / Silk Press)", "Dermatologist (Scalp / Hairline Evaluation)", "Dermatologist (Dark Spots / Acne / KP Rx)", "Esthetician (Hydrating / Barrier Facials)", "Esthetician (Mandelic/Lactic Peels or Body Care)", "At-Home Care Only Right Now"]
  };
@@ -562,6 +579,7 @@
  hairGoals: [], protectiveStyles: [], stylingTools: [], customOilNotes: "",
  faceType: "", faceConcerns: [], faceRoutinePref: "",
  bodyConcerns: [], bodyCleansePref: [], bodyMoisturePref: [], customBodyPowderNotes: "",
+ scentFamilies: [], scentNotes: [], scentOccasions: [], scentIntensity: "", scentBudget: 30, scentLikes: "", scentAvoid: "", scentDerived: null, scentInventoryFingerprint: "",
  proPrefs: []
  },
  shoppingPrefs: { maxPrice: 30, stores: [], extraStores: "" },
@@ -577,12 +595,13 @@
  const base = createBlankState();
  if (!raw || typeof raw !== "object") return base;
  const mergedProfile = { ...base.profile, ...(raw.profile && typeof raw.profile === "object" ? raw.profile : {}) };
- ["skinTone", "envFactors", "hairTexture", "hairChemical", "hairIssues", "hairGoals", "protectiveStyles", "stylingTools", "faceConcerns", "bodyConcerns", "bodyCleansePref", "bodyMoisturePref", "proPrefs"].forEach(arrKey => {
+ ["skinTone", "envFactors", "hairTexture", "hairChemical", "hairIssues", "hairGoals", "protectiveStyles", "stylingTools", "faceConcerns", "bodyConcerns", "bodyCleansePref", "bodyMoisturePref", "scentFamilies", "scentNotes", "scentOccasions", "proPrefs"].forEach(arrKey => {
  if (!Array.isArray(mergedProfile[arrKey])) mergedProfile[arrKey] = [];
  });
  const mergedShop = { ...base.shoppingPrefs, ...(raw.shoppingPrefs && typeof raw.shoppingPrefs === "object" ? raw.shoppingPrefs : {}) };
  if (!Array.isArray(mergedShop.stores)) mergedShop.stores = [];
  mergedShop.maxPrice = Number(mergedShop.maxPrice) || 30;
+ mergedProfile.scentBudget = Math.max(1, Number(mergedProfile.scentBudget) || 30);
  return {
  ...base, ...raw,
  currentStep: Number(raw.currentStep) || 1,
@@ -758,6 +777,32 @@
  renderProfileSummary();
  }
 
+ function updateScentField(field, value) {
+   if (field === "scentBudget") state.profile.scentBudget = Math.max(1, Number(value) || 30);
+   else state.profile[field] = value;
+   saveState();
+   renderScentProfileSummary();
+ }
+ function renderScentProfileSummary() {
+   const box = document.getElementById("scentProfileSummary");
+   if (!box) return;
+   const p = state.profile || {};
+   const families = p.scentFamilies || [], notes = p.scentNotes || [], occasions = p.scentOccasions || [];
+   const parts = [];
+   if (families.length) parts.push(`Your selections: ${families.join(" + ")}`);
+   if (notes.length) parts.push(`Notes you selected: ${notes.join(", ")}`);
+   if (p.scentIntensity) parts.push(p.scentIntensity);
+   if (occasions.length) parts.push(`Wear: ${occasions.join(", ")}`);
+   if (p.scentLikes) parts.push(`Likes: ${p.scentLikes}`);
+   if (p.scentAvoid) parts.push(`Avoid: ${p.scentAvoid}`);
+   const derived = p.scentDerived && typeof p.scentDerived === "object" ? p.scentDerived : null;
+   const derivedParts = derived ? [...(derived.families || []), ...(derived.notes || []).map(n => `Note: ${n}`)] : [];
+   const derivedHtml = derived && Number(derived.fragranceCount) > 0
+     ? `<div class="mt-2 pt-2 border-t border-[#EAE3D9]"><strong class="block text-[10px] uppercase tracking-wide text-[#8A5E1B] mb-1">Learned from ${Number(derived.fragranceCount)} fragrance${Number(derived.fragranceCount) === 1 ? "" : "s"} in My Stash</strong>${derivedParts.length ? derivedParts.map(x => escapeAttr(x)).join(" · ") : "Not enough reliable scent-note information yet. Add product details or use Lookup."}<div class="mt-1 text-[10px] text-[#726862]">${escapeAttr(derived.summary || "Based on identifiable fragrance details. Uncertain matches are not treated as preferences.")}</div></div>`
+     : `<div class="mt-2 pt-2 border-t border-[#EAE3D9] text-[10px] text-[#726862]">Add items under Body → Perfume / Scents in My Stash. AuraCare will infer scent patterns from identifiable fragrances; it won't treat unknown notes as facts.</div>`;
+   box.innerHTML = `<strong class="block text-[10px] uppercase tracking-wide text-[#8A5E1B] mb-1">Your evolving scent profile</strong>${parts.length ? parts.map(x => escapeAttr(x)).join(" · ") : "No manual scent preferences selected yet."}${derivedHtml}<div class="mt-2 font-semibold">Fragrance budget: up to $${Number(p.scentBudget || 30)} per item</div>`;
+ }
+
  function selectPriceOption(label) {
  persistTextFields();
  const num = Number(label.replace(/[^0-9]/g, "")) || 30;
@@ -795,6 +840,10 @@
  renderChipGroup("chips_bodyConcerns", PROFILE_OPTIONS.bodyConcerns, p.bodyConcerns, true, "toggleMultiOption", "bodyConcerns");
  renderChipGroup("chips_bodyCleansePref", PROFILE_OPTIONS.bodyCleansePref, p.bodyCleansePref, true, "toggleMultiOption", "bodyCleansePref");
  renderChipGroup("chips_bodyMoisturePref", PROFILE_OPTIONS.bodyMoisturePref, p.bodyMoisturePref, true, "toggleMultiOption", "bodyMoisturePref");
+ renderChipGroup("chips_scentFamilies", PROFILE_OPTIONS.scentFamilies, p.scentFamilies, true, "toggleMultiOption", "scentFamilies");
+ renderChipGroup("chips_scentNotes", PROFILE_OPTIONS.scentNotes, p.scentNotes, true, "toggleMultiOption", "scentNotes");
+ renderChipGroup("chips_scentOccasions", PROFILE_OPTIONS.scentOccasions, p.scentOccasions, true, "toggleMultiOption", "scentOccasions");
+ renderScentProfileSummary();
 
  const storeBox = document.getElementById("chips_stores");
  storeBox.innerHTML = ALL_STORES.map(store => {
@@ -845,6 +894,10 @@
  document.getElementById("q_hairColorDetail").value = p.hairColorDetail || "";
  document.getElementById("q_customOilNotes").value = p.customOilNotes || "";
  document.getElementById("q_customBodyPowderNotes").value = p.customBodyPowderNotes || "";
+ document.getElementById("q_scentLikes").value = p.scentLikes || "";
+ document.getElementById("q_scentAvoid").value = p.scentAvoid || "";
+ document.getElementById("scentIntensitySelect").value = p.scentIntensity || "";
+ document.getElementById("scentBudgetSelect").value = String(p.scentBudget || 30);
  document.getElementById("q_extraStores").value = state.shoppingPrefs.extraStores || "";
  document.getElementById("stylingMethodSelect").value = state.selectedStylingMethod || "None / Air Dry / Protective Set";
  }
@@ -861,6 +914,8 @@
  state.profile.hairColorDetail = document.getElementById("q_hairColorDetail").value.trim();
  state.profile.customOilNotes = document.getElementById("q_customOilNotes").value.trim();
  state.profile.customBodyPowderNotes = document.getElementById("q_customBodyPowderNotes").value.trim();
+ state.profile.scentLikes = document.getElementById("q_scentLikes").value.trim();
+ state.profile.scentAvoid = document.getElementById("q_scentAvoid").value.trim();
  state.shoppingPrefs.extraStores = document.getElementById("q_extraStores").value.trim();
  saveState();
  renderProfileSummary();
@@ -1139,6 +1194,7 @@
  if (k === "lat" || k === "lon") return;
  if (Array.isArray(v) && v.length > 0) out[k] = v;
  else if (typeof v === "string" && v.trim() !== "") out[k] = v.trim();
+ else if (k === "scentDerived" && v && typeof v === "object") out[k] = v;
  });
  return out;
  }
@@ -1155,20 +1211,96 @@
  }));
  }
 
+ function getFragranceInventory() {
+   return (state.inventory || []).filter(item => {
+     const category = String(item.category || "").toLowerCase();
+     const name = `${item.name || ""} ${item.brand || ""}`.toLowerCase();
+     return category.includes("perfume") || category.includes("scents") || /\b(eau de parfum|eau de toilette|parfum|cologne|body mist|fragrance oil|perfume)\b/i.test(name);
+   }).slice(0, 30).map(item => ({
+     name: String(item.name || "").slice(0, 120),
+     brand: String(item.brand || "").slice(0, 80),
+     category: String(item.category || "Perfume / Scents").slice(0, 60),
+     notes: String(item.notes || "").slice(0, 300)
+   }));
+ }
+
+ let scentProfileRefreshInProgress = false;
+ async function refreshScentProfileFromStash(force = false) {
+   if (scentProfileRefreshInProgress) return;
+   const fragrances = getFragranceInventory();
+   const fingerprint = JSON.stringify(fragrances.map(x => [x.name, x.brand, x.notes]));
+   if (!fragrances.length) {
+     state.profile.scentDerived = null;
+     state.profile.scentInventoryFingerprint = fingerprint;
+     saveState();
+     renderScentProfileSummary();
+     return;
+   }
+   if (!force && fingerprint === (state.profile.scentInventoryFingerprint || "")) return;
+   scentProfileRefreshInProgress = true;
+   const summary = document.getElementById("scentProfileSummary");
+   if (summary) summary.insertAdjacentHTML("beforeend", `<div id="scentProfileBuildStatus" class="mt-2 text-[10px] text-[#8A5E1B]">Learning your scent preferences from My Stash…</div>`);
+   try {
+     const res = await fetch("/api/analyze", {
+       method: "POST", headers: { "Content-Type": "application/json" },
+       body: JSON.stringify({ mode: "scent_profile_from_stash", fragrances })
+     });
+     const data = await res.json().catch(() => ({}));
+     if (!res.ok) throw new Error(data.error || `Profile analysis returned ${res.status}.`);
+     const result = data.result || {};
+     state.profile.scentDerived = {
+       families: Array.isArray(result.families) ? result.families.slice(0, 8) : [],
+       notes: Array.isArray(result.notes) ? result.notes.slice(0, 12) : [],
+       summary: String(result.summary || "").slice(0, 400),
+       fragranceCount: fragrances.length,
+       analyzedAt: new Date().toISOString()
+     };
+     state.profile.scentInventoryFingerprint = fingerprint;
+     saveState();
+     renderScentProfileSummary();
+   } catch (err) {
+     const status = document.getElementById("scentProfileBuildStatus");
+     if (status) status.textContent = `Couldn't refresh from Stash: ${err.message || "Try again when connected."}`;
+   } finally {
+     scentProfileRefreshInProgress = false;
+     const latestFingerprint = JSON.stringify(getFragranceInventory().map(x => [x.name, x.brand, x.notes]));
+     if (latestFingerprint !== fingerprint) void refreshScentProfileFromStash(true);
+   }
+ }
+
  const clientApiCache = new Map();
+
+ function getCheckinContext() {
+ const typedNote = document.getElementById("checkinInput")?.value?.trim() || "";
+ const savedNote = state.lastCheckIn?.note || "";
+ const triggers = [...new Set([
+   ...(Array.isArray(state.activeTriggers) ? state.activeTriggers : []),
+   ...(Array.isArray(state.lastCheckIn?.triggers) ? state.lastCheckIn.triggers : [])
+ ])];
+ return {
+   note: typedNote || savedNote,
+   triggers,
+   hairState: state.currentHairState || state.lastCheckIn?.hairState || "",
+   stylingMethod: state.selectedStylingMethod || state.lastCheckIn?.stylingMethod || ""
+ };
+ }
 
  async function generateAIRoutine() {
  persistTextFields();
  const btn = document.getElementById("generateRoutineBtn");
  const status = document.getElementById("aiStatusMsg");
- const description = document.getElementById("checkinInput").value.trim();
+ const checkinContext = getCheckinContext();
+ const description = checkinContext.note;
 
  const payload = {
  mode: "routine",
- description: description.slice(0, 240),
- currentHairState: state.currentHairState,
- selectedStylingMethod: state.selectedStylingMethod,
- activeTriggers: (state.activeTriggers || []).slice(0, 6),
+ description: description.slice(0, 600),
+ checkInNote: description.slice(0, 600),
+ checkInTriggers: checkinContext.triggers.slice(0, 10),
+ lastCheckIn: state.lastCheckIn || null,
+ currentHairState: checkinContext.hairState,
+ selectedStylingMethod: checkinContext.stylingMethod,
+ activeTriggers: checkinContext.triggers.slice(0, 10),
  imageBase64: pendingCheckinImage,
  profile: compactProfileForApi(state.profile),
  weather: state.weather && state.weather.tempF != null ? {
@@ -1635,13 +1767,13 @@
         why: "Smooth-gliding deodorant for everyday odor control without heavy residue."
       },
       {
-        name: "Sol de Janeiro Brazilian Crush Cheirosa '62 Perfume Mist",
+        name: "Bath & Body Works Fine Fragrance Mist (choose a scent family)",
         domain: "body",
         category: "Perfume / Scents",
-        priceNum: 24,
-        stores: ["Ulta Beauty", "Target", "Amazon"],
-        tags: ["perfume", "scent", "fragrance", "mist", "vanilla", "warm", "body"],
-        why: "Warm pistachio and salted caramel scent mist that layers over body lotion and oil."
+        priceNum: 18,
+        stores: ["Bath & Body Works"],
+        tags: ["perfume", "scent", "fragrance", "mist", "body"],
+        why: "A body-mist option from one of the user's stated fragrance retailers; select the specific scent family to match their preferences and current availability."
       }
     ];
 
@@ -2060,10 +2192,11 @@
       const hairConcerns = [...(p.hairIssues || []), ...(p.hairGoals || [])];
       const faceConcerns = [...(p.faceConcerns || [])];
       const bodyConcerns = [...(p.bodyConcerns || [])];
-      const triggerText = (state.activeTriggers || []).join(' ').toLowerCase();
-      const hairSelected = hairConcerns.length > 0 || /edge|hair|scalp|braid|wig|breakage|heat|protein/.test(triggerText);
-      const faceSelected = faceConcerns.length > 0 || /skin|face|acne|pigment|barrier/.test(triggerText);
-      const bodySelected = bodyConcerns.length > 0 || /body|chaf|friction|kp|ingrown/.test(triggerText);
+      const checkinContext = getCheckinContext();
+      const triggerText = [...checkinContext.triggers, checkinContext.note].join(' ').toLowerCase();
+      const hairSelected = hairConcerns.length > 0 || /edge|hair|scalp|braid|wig|breakage|heat|protein|thinning|shed|brittle/.test(triggerText);
+      const faceSelected = faceConcerns.length > 0 || /skin|face|acne|break.?out|pimple|blemish|pigment|barrier|forehead|cheek|complexion|dark spot|dry patch/.test(triggerText);
+      const bodySelected = bodyConcerns.length > 0 || /body|chaf|friction|kp|ingrown|arms|legs|rough skin|body bump/.test(triggerText);
       const owned = (domain, pattern) => {
         const item = inv.find(x => x && x.name && x.domain === domain && pattern.test(`${x.category || ''} ${x.name || ''}`));
         return item ? item.name : 'Not in your stash — recommendation needed';
@@ -2202,14 +2335,75 @@
       return sanitizeRoutineStepAssignments(steps, domain, fallbackSteps);
     }
 
+    function buildPersonalizedStylingGuide() {
+      const p = state.profile || {};
+      const ctx = getCheckinContext();
+      const mode = String(ctx.hairState || state.currentHairState || 'Relaxed Hair (Out / Styled)');
+      const method = String(ctx.stylingMethod || state.selectedStylingMethod || 'None / Air Dry');
+      const texture = (p.hairTexture || []).join(', ');
+      const chemistry = (p.hairChemical || []).join(', ');
+      const issues = (p.hairIssues || []).join(', ');
+      const goals = (p.hairGoals || []).join(', ');
+      const signals = `${issues} ${goals} ${(ctx.triggers || []).join(' ')} ${ctx.note || ''}`.toLowerCase();
+      const fragile = /breakage|brittle|demarcation|thinning|shedding|temple|edge|damage|bleach|lighten/.test(`${signals} ${chemistry}`.toLowerCase());
+      const heatSensitive = fragile || /fine strands|relaxed|colored|dyed|bleached|highlighted/i.test(`${texture} ${chemistry}`);
+      let styles = [];
+      let prep = '';
+      let technique = '';
+      let roller = '';
+
+      if (/Wearing a Wig/.test(mode)) {
+        styles = ['A glueless, low-tension wig with a satin/velvet grip', 'A loose side or middle part on the unit, without pulling the natural hairline', 'A low-friction satin-lined style for off-duty wear'];
+        prep = 'Keep the hair underneath clean and fully dry before covering it. Use a breathable cap and avoid adhesive or tight bands if the hairline is irritated.';
+        technique = 'Do not roller-set or tightly style the covered hair. Remove the unit regularly, cleanse the scalp as needed, and check the temples for friction or tenderness.';
+        roller = 'Roller styling applies to the wig unit only: use large, smooth rollers on the unit if its fiber type allows it. Follow the wig manufacturer’s heat limit; do not apply heat to synthetic fibers unless explicitly heat-safe.';
+      } else if (/Wig Prep/.test(mode)) {
+        styles = ['Large, loose cornrows with minimal tension', 'A few flat twists if they lie comfortably under the unit', 'A smooth, low-bulk braid pattern that does not pull at the temples'];
+        prep = 'Detangle gently, moisturize lightly, and let the hair dry completely before installing the wig. Avoid heavy creams that can cause buildup under the cap.';
+        technique = 'Keep braid size and tension comfortable; leave edges out of tight anchor points and use a satin-lined cap or grip.';
+        roller = 'Skip rollers while the hair is braided for wig prep. Choose a roller set after takedown, cleansing, and gentle detangling instead.';
+      } else if (/Braid Extensions Installed/.test(mode)) {
+        styles = ['A loose low ponytail or low bun using a soft scrunchie', 'A loose half-up style only if it does not pull at the braid roots', 'A scarf style that avoids tension at the edges'];
+        prep = 'Keep scalp care lightweight and targeted. Avoid layering heavy creams or oils at the braid base, where buildup can collect.';
+        technique = 'Do not add rollers or tight updos to installed extensions. Change the direction of ponytails, avoid prolonged tension, and take down any style that feels tight or causes soreness.';
+        roller = 'Rollers are not recommended on installed extensions or braid roots. Style the braids loosely; save roller setting for after takedown and recovery.';
+      } else if (/Braid Takedown/.test(mode)) {
+        styles = ['A loose, low-manipulation wash-and-condition recovery period', 'A gentle twist-out only after detangling and the hair feels strong', 'A loose braid-out after recovery, with ends protected'];
+        prep = 'Prioritize careful takedown, detangling in sections with slip, cleansing, and conditioning. Assess shedding versus breakage without forcing knots apart.';
+        technique = 'Avoid immediate tight styles, extensions, high-tension ponytails, and repeated roller manipulation. Give the hair a recovery window before a set.';
+        roller = 'Pause roller setting during takedown/recovery if there is tangling, tenderness, or breakage. Resume only when detangled and comfortable, using large rollers and low tension.';
+      } else if (/Natural/.test(mode)) {
+        styles = ['Two-strand twist-out or chunky twist-out', 'Braid-out or flat-twist-out for a stretched, defined finish', 'Large flexi-rod or perm-rod set for defined curls', 'Loose wash-and-go if the hair is healthy enough for the required detangling'];
+        prep = 'Work on clean, conditioned hair with a light leave-in if needed. Use a setting foam or gel suited to your texture; avoid stacking several stylers.';
+        technique = 'For twist-outs and braid-outs, use medium-to-large sections for less manipulation. Allow the set to dry fully, separate gently with lightly oiled fingertips if appropriate, and protect the style at night.';
+        roller = /Flexi Rods|Foam|Sponge|Magnetic/i.test(method) ? 'Use flexi rods, perm rods, or magnetic rollers on damp—not dripping—hair with a light setting product. Smooth ends carefully and let hair dry fully before removing.' : 'For a roller set, choose large magnetic rollers for a stretched finish or flexi/perm rods for more curl definition. Keep sections manageable and tension comfortable.';
+      } else {
+        styles = ['Large magnetic-roller set for a smooth, voluminous finish', 'A wrap or pin-curl set for a low-manipulation finish', 'Large flexi-rod set for soft curls without a curling iron'];
+        prep = 'Start with clean, conditioned hair and use a light leave-in only where needed. If using heat, apply a dedicated thermal protectant; leave-in or oil alone is not a substitute.';
+        technique = 'Use smooth, even sections and secure rollers without pulling at the hairline. Allow curls to cool or dry completely, remove gently, and avoid brushing aggressively.';
+        roller = /Hot Rollers|Curling Iron|Curling Wand/i.test(method) ? 'Use hot rollers only on fully dry hair with thermal protectant, moderate heat, and complete cooling before removal.' : 'For a lower-heat set, use magnetic rollers on damp hair with setting lotion/foam and dry completely. Use end papers if needed to protect ends.';
+      }
+
+      if (fragile) {
+        styles = styles.filter(x => !/high|tight|wash-and-go/i.test(x));
+        styles.unshift('A loose, low-manipulation style with ends tucked or protected');
+        prep += ' Your profile/check-in flags fragility or breakage: prioritize recovery and avoid tension, small tight rollers, and repeated manipulation.';
+        technique += ' Stop if you feel pulling, scalp pain, or see increased breakage; avoid tight roller clips around the temples.';
+      }
+      if (heatSensitive) {
+        roller += ' Because your profile/check-in indicates a more fragile or chemically/colour-treated state, prefer heatless rollers; if direct heat is unavoidable, use the lowest effective setting and a dedicated heat protectant.';
+      }
+      return { mode, method, texture, chemistry, issues, styles: [...new Set(styles)].slice(0, 4), prep, technique, roller };
+    }
+
     function renderAIRoutine(r) {
       const box = document.getElementById("aiResultContainer");
       const fallbackPlan = buildConcernRoutinePlan();
       const sourceR = r && typeof r === "object" ? r : fallbackPlan;
 
-      const fullHairSteps = fallbackPlan.hairRoutine;
-      const fullSkinSteps = fallbackPlan.skinRoutine;
-      const fullBodySteps = fallbackPlan.bodyRoutine;
+      const fullHairSteps = fallbackPlan.hairRoutine.length ? ensureNonEmptySteps(sourceR.hairRoutine, fallbackPlan.hairRoutine, "hair") : [];
+      const fullSkinSteps = fallbackPlan.skinRoutine.length ? ensureNonEmptySteps(sourceR.skinRoutine, fallbackPlan.skinRoutine, "skin") : [];
+      const fullBodySteps = fallbackPlan.bodyRoutine.length ? ensureNonEmptySteps(sourceR.bodyRoutine, fallbackPlan.bodyRoutine, "body") : [];
 
       const hairSteps = state.lowEnergyMode ? fullHairSteps.filter(s => s.essential) : fullHairSteps;
       const skinSteps = state.lowEnergyMode ? fullSkinSteps.filter(s => s.essential) : fullSkinSteps;
@@ -2219,19 +2413,17 @@
       const finalSkinSteps = skinSteps.length ? skinSteps : fullSkinSteps;
       const finalBodySteps = bodySteps.length ? bodySteps : fullBodySteps;
 
-      const stashHair = pickStashItemsForDomain("hair");
-      const stashSkin = pickStashItemsForDomain("skin");
-      const stashBody = pickStashItemsForDomain("body");
-
       const selectedDomains = new Set([
         ...((state.profile.hairIssues || []).length || (state.profile.hairGoals || []).length ? ["hair"] : []),
         ...((state.profile.faceConcerns || []).length ? ["skin"] : []),
         ...((state.profile.bodyConcerns || []).length ? ["body"] : []),
-        ...(state.activeTriggers || []).map(t => (TRIGGER_FACTORS.find(x => x.label === t) || {}).domain).filter(Boolean)
+        ...getCheckinContext().triggers.map(t => (TRIGGER_FACTORS.find(x => x.label === t) || {}).domain).filter(Boolean),
+        ...(/hair|scalp|edge|breakage|wig|braid|heat|thinning|shed|brittle/.test(getCheckinContext().note.toLowerCase()) ? ["hair"] : []),
+        ...(/face|skin|acne|break.?out|pimple|blemish|pigment|barrier|dark spot|forehead|cheek|complexion|dry patch/.test(getCheckinContext().note.toLowerCase()) ? ["skin"] : []),
+        ...(/body|chaf|friction|kp|ingrown|rough skin|arms|legs|body bump/.test(getCheckinContext().note.toLowerCase()) ? ["body"] : [])
       ]);
       const additionsList = (Array.isArray(sourceR.missingProducts) ? sourceR.missingProducts : fallbackPlan.missingProducts)
         .filter(m => m.domain && selectedDomains.has(m.domain));
-      const routineStash = [...stashHair, ...stashSkin, ...stashBody].filter(i => selectedDomains.has(i.domain));
       const recommendationForStep = (step, domain) => {
         const title = String(step.step || '').toLowerCase();
         const role = domain === 'hair'
@@ -2244,10 +2436,7 @@
         const rec = additionsList.find(m => (!m.domain || m.domain === domain) && role.test(`${m.category || ''} ${m.name || ''}`));
         return rec ? `<div class="mt-1 text-[11px] text-[#8A5E1B]"><strong>Recommended for this step:</strong> ${escapeAttr(rec.name)}${rec.reason ? ` — ${escapeAttr(rec.reason)}` : ''}</div>` : `<div class="mt-1 text-[11px] text-[#8A5E1B]">No matching product recommendation was returned for this step yet. Do not substitute an unrelated product.</div>`;
       };
-      const stashPanel = routineStash.length ? `<div class="card p-4 space-y-2"><h4 class="text-xs font-bold uppercase text-[#726862]">Your products considered for this routine</h4>${routineStash.map(i => `<div class="flex items-start justify-between gap-2 text-xs border-b border-[#EAE3D9] pb-2"><div><div class="font-semibold">${escapeAttr(i.name)}</div><div class="text-[#726862]">${escapeAttr(i.domain)} · ${escapeAttr(i.category || 'Uncategorized')}</div></div><span class="text-[10px] rounded-full px-2 py-1 bg-[#F8F3EA] text-[#8A5E1B]">${(i.entryMethods || (i.entryMethod ? [i.entryMethod] : [])).includes('phone-scan') ? 'Phone scanned' : (i.entryMethods || (i.entryMethod ? [i.entryMethod] : [])).includes('manual') ? 'Manual entry' : 'Saved in stash'}</span></div>`).join('')}</div>` : `<div class="card p-3 text-xs text-[#726862]">No products are saved in the stash for the concerns selected. Add or scan products in My Stash and rebuild the routine.</div>`;
-
       box.innerHTML = `
-        ${stashPanel}
         <div class="card p-4 space-y-3">
           <div class="flex items-center justify-between gap-2">
             <h3 class="text-sm font-bold">Tailored Care &amp; Styling Plan</h3>
@@ -2262,12 +2451,14 @@
             ${finalHairSteps.map(s => `<div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs"><div class="font-bold">${escapeAttr(s.step)}</div><div class="text-[#594E47] mt-0.5">${escapeAttr(s.detail)}</div><div class="text-[11px] text-[#8A5E1B] font-semibold mt-1">Stash / Store Pick: ${escapeAttr(s.productUsed)}</div>${recommendationForStep(s, "hair")}</div>`).join("")}
           </div>` : ""}
 
-          ${finalHairSteps.length ? `<div class="p-3 rounded-xl bg-[#F8F3EA]/70 border border-[#E5D7C1] space-y-2 text-xs">
-            <div class="font-bold text-[#8A5E1B]">🔥 Styling &amp; Roller Guide: ${escapeAttr((sourceR.stylingGuide && sourceR.stylingGuide.method) || state.selectedStylingMethod)}</div>
-            <div><strong>Prep &amp; Protection:</strong> ${escapeAttr(fallbackPlan.stylingGuide.prepAndProtection)}</div>
-            
-            <div><strong>Technique &amp; Takedown:</strong> ${escapeAttr(fallbackPlan.stylingGuide.techniqueAndTakedown)}</div>
-          </div>` : ""}
+          ${finalHairSteps.length ? (() => { const guide = buildPersonalizedStylingGuide(); return `<div class="p-3 rounded-xl bg-[#F8F3EA]/70 border border-[#E5D7C1] space-y-2 text-xs">
+            <div class="font-bold text-[#8A5E1B]">🔥 Styling &amp; Roller Guide — ${escapeAttr(guide.mode)}</div>
+            <div class="text-[11px] text-[#726862]">Matched to your current hair state${guide.texture ? `, ${escapeAttr(guide.texture)}` : ''}${guide.chemistry ? `, ${escapeAttr(guide.chemistry)}` : ''}${guide.issues ? `, and ${escapeAttr(guide.issues)}` : ''}.</div>
+            <div><strong>Hairstyles to try now:</strong><ul class="list-disc pl-5 mt-1 space-y-1">${guide.styles.map(x => `<li>${escapeAttr(x)}</li>`).join('')}</ul></div>
+            <div><strong>Prep &amp; Protection:</strong> ${escapeAttr(guide.prep)}</div>
+            <div><strong>Roller method (${escapeAttr(guide.method)}):</strong> ${escapeAttr(guide.roller)}</div>
+            <div><strong>Technique &amp; Takedown:</strong> ${escapeAttr(guide.technique)}</div>
+          </div>`; })() : ""}
 
           ${finalSkinSteps.length ? `<div class="space-y-2">
             <h4 class="text-xs font-bold uppercase text-[#355243]">Face Skin Routine</h4>
@@ -2287,127 +2478,140 @@
       `;
     }
 
+ const productLookupInProgress = new Set();
+
  function scoreProductNameMatch(queryName, candidateName, candidateBrand) {
- const stopWords = new Set(["the", "and", "for", "with", "of", "in", "no", "hair", "skin", "body", "care", "cream", "oil", "shampoo", "conditioner", "lotion", "spray", "gel", "mist", "serum"]);
- const tokenize = (str) => String(str || "")
- .toLowerCase()
- .replace(/[^a-z0-9]+/g, " ")
- .split(/\s+/)
- .filter(w => w.length >= 2 && !stopWords.has(w));
+   const normalize = (value) => String(value || '').toLowerCase()
+     .normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
+     .replace(/[^a-z0-9]+/g, ' ').trim();
+   const q = normalize(queryName);
+   const c = normalize(candidateName);
+   const b = normalize(candidateBrand);
+   if (!q || !c) return 0;
+   if (q === c || c.includes(q) || q.includes(c)) return 1;
+   const stopWords = new Set(['the','and','for','with','of','in','no','hair','skin','body','care','cream','oil','shampoo','conditioner','lotion','spray','gel','mist','serum','beauty']);
+   const tokens = (value) => value.split(/\s+/).filter(t => t.length >= 2 && !stopWords.has(t));
+   const qTokens = tokens(q);
+   const cTokens = new Set([...tokens(c), ...tokens(b)]);
+   if (!qTokens.length) return 0;
+   const overlap = qTokens.filter(t => cTokens.has(t)).length / qTokens.length;
+   const candidateTokens = tokens(c);
+   const precision = candidateTokens.length ? qTokens.filter(t => cTokens.has(t)).length / candidateTokens.length : 0;
+   return Math.min(1, overlap * 0.75 + precision * 0.25);
+ }
 
- const qTokens = tokenize(queryName);
- const cTokens = new Set([...tokenize(candidateName), ...tokenize(candidateBrand)]);
- if (!qTokens.length) return 0;
-
- let matched = 0;
- qTokens.forEach(t => {
- if (cTokens.has(t)) matched += 1;
- });
- return matched / qTokens.length;
+ function appendLookupNotes(existing, additions) {
+   const clean = [...new Set((additions || []).map(x => String(x || '').trim()).filter(Boolean))];
+   if (!clean.length) return String(existing || '');
+   const prior = String(existing || '').trim();
+   return [prior, ...clean.filter(x => !prior.toLowerCase().includes(x.toLowerCase()))].filter(Boolean).join(' • ').slice(0, 700);
  }
 
  async function enrichStashItemByName(id) {
- const idx = (state.inventory || []).findIndex(x => x.id === id);
- if (idx === -1) return;
- const currentItem = state.inventory[idx];
- const queryName = String(currentItem.name || "").trim();
- if (!queryName) return;
+   if (productLookupInProgress.has(id)) return;
+   const idx = (state.inventory || []).findIndex(x => String(x.id) === String(id));
+   if (idx === -1) return;
+   const currentItem = state.inventory[idx];
+   const queryName = String(currentItem.name || '').trim();
+   if (!queryName) return;
 
- const status = document.getElementById("scanStatusMsg");
- if (status) {
- status.textContent = `Verifying exact match for "${queryName}"...`;
- status.classList.remove("hidden");
- }
+   productLookupInProgress.add(id);
+   const status = document.getElementById('scanStatusMsg');
+   const button = document.getElementById(`lookup-${id}`);
+   const originalLabel = button?.textContent || 'Lookup';
+   if (button) { button.disabled = true; button.textContent = 'Looking up…'; button.classList.add('opacity-60'); }
+   if (status) {
+     status.textContent = `Looking for a reliable match for “${queryName}”…`;
+     status.classList.remove('hidden');
+     status.classList.remove('text-red-700');
+     status.classList.add('text-[#8A5E1B]');
+   }
 
- // 1. Try Open Beauty Facts with top-5 candidates and strict token-overlap verification
- try {
- const obfUrl = `https://world.openbeautyfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(queryName)}&search_simple=1&action=process&json=1&page_size=5`;
- const obfRes = await fetch(obfUrl);
- const obfData = await obfRes.json().catch(() => ({}));
- const candidates = Array.isArray(obfData.products) ? obfData.products : [];
+   const finish = (message, isError = false) => {
+     if (status) {
+       status.textContent = message;
+       status.classList.remove('hidden', 'text-red-700', 'text-[#8A5E1B]');
+       status.classList.add(isError ? 'text-red-700' : 'text-[#8A5E1B]');
+     }
+   };
 
- let bestHit = null;
- let bestScore = 0;
- for (const cand of candidates) {
- const cName = String(cand.product_name || cand.product_name_en || "").trim();
- const cBrand = String(cand.brands || "").split(",")[0].trim();
- if (!cName && !cBrand) continue;
- const s = scoreProductNameMatch(queryName, cName, cBrand);
- if (s > bestScore) {
- bestScore = s;
- bestHit = { cand, cName, cBrand };
- }
- }
+   try {
+     // Open Beauty Facts is the primary source. Search several results and only
+     // apply metadata when the product name match is strong enough.
+     let bestHit = null;
+     let bestScore = 0;
+     const obfUrl = `https://world.openbeautyfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(queryName)}&search_simple=1&action=process&json=1&page_size=20&fields=product_name,product_name_en,brands,ingredients_text,ingredients_text_en,categories,code`;
+     try {
+       const obfRes = await fetch(obfUrl, { headers: { Accept: 'application/json' } });
+       if (obfRes.ok) {
+         const obfData = await obfRes.json();
+         for (const cand of (Array.isArray(obfData.products) ? obfData.products : [])) {
+           const cName = String(cand.product_name_en || cand.product_name || '').trim();
+           const cBrand = String(cand.brands || '').split(',')[0].trim();
+           if (!cName) continue;
+           const score = scoreProductNameMatch(queryName, cName, cBrand);
+           if (score > bestScore) { bestScore = score; bestHit = { cand, cName, cBrand }; }
+         }
+       }
+     } catch (_) { /* Continue to the structured product-identification fallback. */ }
 
- // Require at least 0.5 token overlap so unrelated products are never applied
- if (bestHit && bestScore >= 0.5) {
- const brandVal = bestHit.cBrand || currentItem.brand || "";
- const ingVal = String(bestHit.cand.ingredients_text || "").replace(/\s+/g, " ").trim().slice(0, 160);
- const detailNote = ingVal ? `Key ingredients: ${ingVal}` : "";
- const nextNotes = detailNote
- ? (currentItem.notes && !currentItem.notes.includes(detailNote) ? `${currentItem.notes} • ${detailNote}` : detailNote)
- : (currentItem.notes || "");
+     if (bestHit && bestScore >= 0.78) {
+       const cand = bestHit.cand;
+       const brandVal = bestHit.cBrand || currentItem.brand || '';
+       const ingredients = String(cand.ingredients_text_en || cand.ingredients_text || '').replace(/\s+/g, ' ').trim().slice(0, 220);
+       const categoryText = String(cand.categories || '').toLowerCase();
+       let domain = currentItem.domain;
+       if (/hair|shampoo|conditioner|styling|scalp/i.test(categoryText)) domain = 'hair';
+       else if (/face|facial|skin care|sunscreen/i.test(categoryText)) domain = 'skin';
+       else if (/body|deodorant|perfume|soap/i.test(categoryText)) domain = 'body';
+       const notes = appendLookupNotes(currentItem.notes, [
+         `Open Beauty Facts match${cand.code ? ` · barcode ${cand.code}` : ''}`,
+         ingredients ? `Ingredients listed: ${ingredients}` : ''
+       ]);
+       state.inventory[idx] = { ...currentItem, brand: brandVal, domain, notes, lookupSource: 'Open Beauty Facts' };
+       saveState(); renderStash();
+       void refreshScentProfileFromStash();
+       finish(`✓ Verified likely match for “${queryName}”${brandVal ? ` by ${brandVal}` : ''}. Review the product label for the current ingredient list.`);
+       return;
+     }
 
- state.inventory[idx] = {
- ...currentItem,
- brand: brandVal,
- notes: nextNotes
- };
- saveState();
- renderStash();
- if (status) {
- status.textContent = `✓ Matched "${currentItem.name}" (${brandVal || "verified"}).`;
- status.classList.remove("hidden");
- }
- return;
- }
- } catch (_) {}
+     // Secondary identification can classify a known product, but must return
+     // a confidence score and may not invent a brand or ingredient list.
+     const res = await fetch('/api/analyze', {
+       method: 'POST', headers: { 'Content-Type': 'application/json' },
+       body: JSON.stringify({ mode: 'product_name', description: queryName, currentHairState: state.currentHairState, profile: compactProfileForApi(state.profile), existingDomain: currentItem.domain, existingCategory: currentItem.category })
+     });
+     const data = await res.json().catch(() => ({}));
+     if (!res.ok) throw new Error(data.error || `Lookup service returned ${res.status}.`);
+     const info = data.result || {};
+     const confidence = Number(info.confidence || 0);
+     const matched = info.matched === true && confidence >= 0.78;
+     if (!matched) {
+       finish(`No reliable product match found for “${queryName}”. Your Stash entry was left unchanged.`, true);
+       return;
+     }
 
- // 2. Text-only lookup via /api/analyze (mode: "product_name"), passing current domain & category
- try {
- const res = await fetch("/api/analyze", {
- method: "POST",
- headers: { "Content-Type": "application/json" },
- body: JSON.stringify({
- mode: "product_name",
- description: queryName,
- currentHairState: state.currentHairState,
- profile: compactProfileForApi(state.profile)
- })
- });
- const data = await res.json().catch(() => ({}));
- if (res.ok && data.result) {
- const info = data.result;
- const returnedName = String(info.name || queryName).trim();
- const sim = scoreProductNameMatch(queryName, returnedName, info.brand || "");
- const nextDomain = ["hair", "skin", "body"].includes(info.domain) ? info.domain : currentItem.domain;
- const nextCategory = (info.category && info.category !== "Other") ? info.category : currentItem.category;
- const ingList = Array.isArray(info.keyIngredients) ? info.keyIngredients.filter(Boolean).slice(0, 4).join(", ") : "";
- const noteParts = [info.safetyNote, ingList ? `Key ingredients: ${ingList}` : ""].filter(Boolean);
- const nextNotes = noteParts.length ? noteParts.join(" • ") : (currentItem.notes || "");
-
- state.inventory[idx] = {
- ...currentItem,
- name: sim >= 0.35 ? currentItem.name : currentItem.name,
- brand: info.brand || currentItem.brand || "",
- domain: nextDomain,
- category: nextCategory,
- notes: nextNotes
- };
- saveState();
- renderStash();
- if (status) {
- status.textContent = `✓ Updated "${currentItem.name}" (${nextCategory}).`;
- status.classList.remove("hidden");
- }
- return;
- }
- } catch (_) {}
-
- if (status) {
- status.textContent = `No verified match found for "${currentItem.name}"—kept your entry unchanged.`;
- status.classList.remove("hidden");
- }
+     const allowedDomains = ['hair', 'skin', 'body'];
+     const allowedCategories = STASH_CATEGORIES;
+     const domain = allowedDomains.includes(info.domain) ? info.domain : currentItem.domain;
+     const category = allowedCategories.includes(info.category) ? info.category : currentItem.category;
+     const ingredients = Array.isArray(info.keyIngredients) ? info.keyIngredients.filter(Boolean).slice(0, 5).join(', ') : '';
+     const notes = appendLookupNotes(currentItem.notes, [
+       info.safetyNote,
+       ingredients ? `Key ingredients (verify on label): ${ingredients}` : '',
+       'Product details identified by AI; verify against the packaging.'
+     ]);
+     state.inventory[idx] = { ...currentItem, brand: String(info.brand || currentItem.brand || '').trim(), domain, category, notes, lookupSource: 'AI identification' };
+     saveState(); renderStash();
+     void refreshScentProfileFromStash();
+     finish(`✓ Added likely product details for “${queryName}”. Please verify the brand and ingredients against the packaging.`);
+   } catch (err) {
+     finish(`Lookup couldn't complete: ${err.message || 'Please try again.'} Your Stash entry was not changed.`, true);
+   } finally {
+     productLookupInProgress.delete(id);
+     const restoredButton = document.getElementById(`lookup-${id}`);
+     if (restoredButton) { restoredButton.disabled = false; restoredButton.textContent = originalLabel; restoredButton.classList.remove('opacity-60'); }
+   }
  }
 
  async function analyzeBase64ProductImage(imageBase64) {
@@ -2446,6 +2650,7 @@
  };
  saveState();
  renderStash();
+ void refreshScentProfileFromStash();
  status.textContent = `✓ Updated "${state.inventory[existingIdx].name}" with scanned label details!`;
  return;
  }
@@ -2463,6 +2668,7 @@
  });
  saveState();
  renderStash();
+ void refreshScentProfileFromStash();
  status.textContent = `✓ Added "${item.name}" to your stash!`;
  } catch (err) {
  status.textContent = err.message;
@@ -2529,6 +2735,7 @@
  nameEl.value = "";
  saveState();
  renderStash();
+ void refreshScentProfileFromStash();
  const status = document.getElementById("scanStatusMsg");
  if (status) {
  status.textContent = `✓ Saved "${name}" to your stash.`;
@@ -2541,6 +2748,7 @@
  state.inventory = (state.inventory || []).filter(i => i.id !== id);
  saveState();
  renderStash();
+ void refreshScentProfileFromStash();
  }
 
  function filterStash(f) {
@@ -2599,6 +2807,7 @@
  editingStashId = null;
  saveState();
  renderStash();
+ void refreshScentProfileFromStash();
 
  const status = document.getElementById("scanStatusMsg");
  if (status) {
@@ -2652,7 +2861,7 @@
  ${i.notes ? `<div class="text-[11px] text-[#726862] mt-0.5 break-words">${escapeAttr(i.notes)}</div>` : ""}
  </div>
  <div class="flex items-center gap-1 shrink-0">
- <button type="button" onclick="enrichStashItemByName('${i.id}')" class="text-[11px] font-semibold px-2 py-1 rounded-lg border border-[#A9772B]/50 bg-[#F8F3EA] text-[#8A5E1B]">Lookup</button>
+ <button id="lookup-${escapeAttr(i.id)}" type="button" onclick="enrichStashItemByName('${escapeAttr(i.id)}')" class="text-[11px] font-semibold px-2 py-1 rounded-lg border border-[#A9772B]/50 bg-[#F8F3EA] text-[#8A5E1B] disabled:cursor-wait" aria-label="Look up product details for ${escapeAttr(i.name)}">Lookup</button>
  <button type="button" onclick="startEditProduct('${i.id}')" class="text-[11px] font-semibold px-2 py-1 rounded-lg border border-[#DDD4C8] bg-[#FAF8F5] text-[#231F1D]">Edit</button>
  <button type="button" onclick="removeProduct('${i.id}')" aria-label="Delete item" class="text-[11px] font-semibold px-2 py-1 rounded-lg border border-red-200 bg-red-50 text-red-700">Delete</button>
  </div>
@@ -2694,57 +2903,82 @@
  renderProfileSummary();
  }
 
+ let storeRecommendationsInProgress = false;
  async function fetchStoreRecommendations() {
- persistTextFields();
- const btn = document.getElementById("findDealsBtn");
- const status = document.getElementById("shopStatusMsg");
- const payload = {
- mode: "shop_recs",
- profile: compactProfileForApi(state.profile),
- currentHairState: state.currentHairState,
- selectedStylingMethod: state.selectedStylingMethod,
- activeTriggers: (state.activeTriggers || []).slice(0, 5),
- inventory: compactInventoryForApi(state.inventory),
- shoppingPrefs: {
- stores: getEffectiveStores().slice(0, 5),
- focusArea: document.getElementById("shopFocusSelect").value
- }
- };
- const cacheKey = JSON.stringify(payload);
- if (clientApiCache.has(cacheKey)) {
- const cachedRecs = clientApiCache.get(cacheKey);
- state.shopRecommendations = cachedRecs;
- saveState();
- renderShopResults(cachedRecs);
- status.classList.add("hidden");
- return;
- }
+   if (storeRecommendationsInProgress) return;
+   const btn = document.getElementById('findDealsBtn');
+   const status = document.getElementById('shopStatusMsg');
+   const results = document.getElementById('shopResultsList');
+   if (!btn || !status || !results) return;
 
- btn.disabled = true;
- btn.textContent = "Searching...";
- status.textContent = "Finding store & price matches...";
- status.classList.remove("hidden");
+   storeRecommendationsInProgress = true;
+   const originalLabel = '🔍 Find Matches';
+   btn.disabled = true;
+   btn.textContent = 'Searching…';
+   btn.classList.add('opacity-60', 'cursor-wait');
+   status.textContent = 'Checking your profile, latest Check-In, Stash gaps, and preferred stores…';
+   status.classList.remove('hidden', 'text-red-700');
+   status.classList.add('text-[#8A5E1B]');
 
- try {
- const res = await fetch("/api/analyze", {
- method: "POST",
- headers: { "Content-Type": "application/json" },
- body: JSON.stringify(payload)
- });
- const data = await res.json().catch(() => ({}));
- if (!res.ok || !data.result?.recommendations) throw new Error(data.error || "Failed to fetch recommendations");
- const completedRecommendations = completeRecommendedBrandSets(data.result.recommendations);
- clientApiCache.set(cacheKey, completedRecommendations);
- state.shopRecommendations = completedRecommendations;
- saveState();
- renderShopResults(state.shopRecommendations);
- status.classList.add("hidden");
- } catch (err) {
- status.textContent = err.message;
- } finally {
- btn.disabled = false;
- btn.textContent = "🔍 Find Matches";
- }
+   try {
+     persistTextFields();
+     const checkinContext = getCheckinContext();
+     const payload = {
+       mode: 'shop_recs',
+       profile: compactProfileForApi(state.profile),
+       checkInNote: checkinContext.note.slice(0, 600),
+       checkInTriggers: checkinContext.triggers.slice(0, 10),
+       lastCheckIn: state.lastCheckIn || null,
+       currentHairState: checkinContext.hairState,
+       selectedStylingMethod: checkinContext.stylingMethod,
+       activeTriggers: checkinContext.triggers.slice(0, 10),
+       inventory: compactInventoryForApi(state.inventory),
+       shoppingPrefs: {
+         stores: getEffectiveStores().slice(0, 5),
+         focusArea: document.getElementById('shopFocusSelect')?.value || 'All missing essentials',
+         scentBudget: Number(state.profile.scentBudget) || 30
+       }
+     };
+     const cacheKey = JSON.stringify(payload);
+     if (clientApiCache.has(cacheKey)) {
+       const cachedRecs = clientApiCache.get(cacheKey);
+       state.shopRecommendations = cachedRecs;
+       saveState();
+       renderShopResults(cachedRecs);
+       status.textContent = /perfume|scent|fragrance|cologne|body mist/i.test(payload.shoppingPrefs.focusArea) ? `Showing saved fragrance matches for your scent profile (up to $${payload.shoppingPrefs.scentBudget}; prices are estimates).` : 'Showing your latest matches for this profile and Stash.';
+       status.classList.remove('hidden');
+       return;
+     }
+
+     const res = await fetch('/api/analyze', {
+       method: 'POST',
+       headers: { 'Content-Type': 'application/json' },
+       body: JSON.stringify(payload)
+     });
+     const data = await res.json().catch(() => ({}));
+     if (!res.ok) throw new Error(data.error || `Recommendation service returned ${res.status}.`);
+     if (!Array.isArray(data.result?.recommendations)) throw new Error(data.error || 'The recommendation service returned an unexpected response. Please try again.');
+
+     const fragranceMode = /perfume|scent|fragrance|cologne|body mist/i.test(payload.shoppingPrefs.focusArea);
+     const completedRecommendations = fragranceMode ? data.result.recommendations : completeRecommendedBrandSets(data.result.recommendations);
+     clientApiCache.set(cacheKey, completedRecommendations);
+     state.shopRecommendations = completedRecommendations;
+     saveState();
+     renderShopResults(completedRecommendations);
+     status.textContent = fragranceMode
+       ? (completedRecommendations.length ? `Found ${completedRecommendations.length} fragrance matches for your scent profile, at or below $${payload.shoppingPrefs.scentBudget}. Prices are estimates; retailer stock is not live-verified.` : `No fragrance matches could be responsibly priced within your $${payload.shoppingPrefs.scentBudget} cap. Try a higher cap or adjust your scent preferences.`)
+       : (completedRecommendations.length ? `Found ${completedRecommendations.length} matches based on your profile, Check-In, and products already in Stash.` : 'No additional products are needed for the selected concerns based on your current Stash.');
+     status.classList.remove('hidden');
+   } catch (err) {
+     status.textContent = err.message || 'Could not load product matches. Please try again.';
+     status.classList.remove('hidden');
+     status.classList.add('text-red-700');
+   } finally {
+     storeRecommendationsInProgress = false;
+     btn.disabled = false;
+     btn.textContent = originalLabel;
+     btn.classList.remove('opacity-60', 'cursor-wait');
+   }
  }
 
  function addRecToStash(idx) {
@@ -2768,6 +3002,7 @@
  });
  saveState();
  renderStash();
+ void refreshScentProfileFromStash();
  alert(`Added "${item.name}" to your stash.`);
  }
 
@@ -2792,11 +3027,13 @@
  return;
  }
  list.innerHTML = recs.map((r, idx) => {
-   const concerns = getSelectedConcernsForDomain(r.domain);
+   const isScentRecommendation = /perfume|scent|fragrance|cologne|body mist/i.test(String(r.category || "") + " " + String(r.domain || ""));
+   const concerns = isScentRecommendation ? [] : getSelectedConcernsForDomain(r.domain);
    const reason = getProductReason(r);
+   const scentMarkup = /perfume|scent|fragrance|cologne|body mist/i.test(String(r.category || "") + " " + String(r.domain || "")) ? `<div class="text-[11px] text-[#594E47]">${r.scentFamily ? `<strong>Family:</strong> ${escapeAttr(r.scentFamily)} · ` : ""}${r.notes ? `<strong>Notes:</strong> ${escapeAttr(Array.isArray(r.notes) ? r.notes.join(", ") : r.notes)} · ` : ""}${r.concentration ? `<strong>Type:</strong> ${escapeAttr(r.concentration)} · ` : ""}${r.wearProfile ? `<strong>Best for:</strong> ${escapeAttr(r.wearProfile)}` : ""}</div>` : "";
    const concernMarkup = concerns.length
      ? `<div class="rounded-lg bg-[#FAF8F5] p-2.5 mt-2"><div class="text-[10px] font-bold uppercase tracking-wide text-[#8A5E1B]">Your selected ${escapeAttr(r.domain)} concerns</div><div class="text-[11px] text-[#594E47] mt-1">${concerns.map(escapeAttr).join(" · ")}</div><p class="text-[10px] text-[#726862] mt-1">This shows the concerns considered for this category; the product rationale above explains its intended role.</p></div>` : "";
-   return `<div class="card p-3.5 space-y-1.5"><div class="flex items-start justify-between gap-2"><div><span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#F8F3EA] text-[#8A5E1B]">${escapeAttr(r.domain)} • ${escapeAttr(r.category)}</span><h4 class="text-sm font-bold mt-1">${escapeAttr(r.name)}</h4><div class="text-[11px] font-semibold text-[#231F1D]">Store: ${escapeAttr(r.bestStore || r.store || "Any")} ${(r.alsoAt) ? `• Also: ${escapeAttr(r.alsoAt)}` : ""}</div></div><div class="text-sm font-extrabold text-[#2E6F40] shrink-0">${escapeAttr(r.price || r.estimatedPrice || "")}</div></div>${r.setName ? `<div class="text-[11px] font-bold text-[#8A5E1B]">Complete set: ${escapeAttr(r.setName)} · ${Number(r.setItemCount || 0)} missing item(s) · $${Number(r.setTotal || 0).toFixed(2)} set completion estimate</div>` : ""}${r.owned ? `<div class="text-[11px] font-semibold text-emerald-700">Already in your stash · included to show the complete system</div>` : ""}<div class="rounded-lg border border-[#EAE3D9] p-2.5 mt-2"><div class="text-[10px] font-bold uppercase tracking-wide text-[#8A5E1B]">Why this product was selected</div><p class="text-xs text-[#594E47] mt-1">${escapeAttr(reason)}</p></div>${concernMarkup}<div class="pt-1 flex justify-end">${r.owned ? "" : `<button type="button" onclick="addRecToStash(${idx})" class="text-xs font-semibold px-3 py-1 rounded-lg bg-[#FAF8F5] border border-[#DDD4C8]">+ Add to Stash</button>`}</div></div>`;
+   return `<div class="card p-3.5 space-y-1.5"><div class="flex items-start justify-between gap-2"><div><span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#F8F3EA] text-[#8A5E1B]">${escapeAttr(r.domain)} • ${escapeAttr(r.category)}</span><h4 class="text-sm font-bold mt-1">${escapeAttr(r.name)}</h4><div class="text-[11px] font-semibold text-[#231F1D]">Store: ${escapeAttr(r.bestStore || r.store || "Any")} ${(r.alsoAt) ? `• Also: ${escapeAttr(r.alsoAt)}` : ""}</div></div><div class="text-sm font-extrabold text-[#2E6F40] shrink-0">${escapeAttr(r.price || r.estimatedPrice || "")}</div></div>${r.setName ? `<div class="text-[11px] font-bold text-[#8A5E1B]">Complete set: ${escapeAttr(r.setName)} · ${Number(r.setItemCount || 0)} missing item(s) · $${Number(r.setTotal || 0).toFixed(2)} set completion estimate</div>` : ""}${r.owned ? `<div class="text-[11px] font-semibold text-emerald-700">Already in your stash · included to show the complete system</div>` : ""}<div class="rounded-lg border border-[#EAE3D9] p-2.5 mt-2"><div class="text-[10px] font-bold uppercase tracking-wide text-[#8A5E1B]">Why this product was selected</div><p class="text-xs text-[#594E47] mt-1">${escapeAttr(reason)}</p></div>${scentMarkup}${concernMarkup}<div class="pt-1 flex justify-end">${r.owned ? "" : `<button type="button" onclick="addRecToStash(${idx})" class="text-xs font-semibold px-3 py-1 rounded-lg bg-[#FAF8F5] border border-[#DDD4C8]">+ Add to Stash</button>`}</div></div>`;
  }).join("");
  }
 
@@ -2837,6 +3074,7 @@
  renderTriggers();
  renderStash();
  updateManualCategoryOptions();
+ void refreshScentProfileFromStash();
  updateBudgetSetting(state.shoppingPrefs.maxPrice || 30);
  renderStoreChips();
  renderShopResults(state.shopRecommendations || []);

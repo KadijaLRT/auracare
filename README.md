@@ -1,4 +1,4 @@
-# AuraCare — Black Hair Chemistry, Face & Body Studio (v2.50)
+# AuraCare — Black Hair Chemistry, Face & Body Studio (v2.57.0)
 
 ## Recommendation standards
 - Recommendations are tailored to textured/Black hair, scalp care, and melanin-rich skin using profile, routine, sensitivity, chemical/color history, styling, climate, and stash context.
@@ -36,8 +36,34 @@
 ## Version 2.50 routine and stash fixes
 - Rebuilt the displayed routine from the actual selected hair, face, and body concerns; unrelated domains are hidden rather than filled with generic steps.
 - Routine steps now use only stash items whose category matches the step. If no matching owned item exists, the UI says it is missing and attaches a returned recommendation only when its domain and product role match.
-- The routine screen now visibly lists all stash products relevant to the selected domains.
+- The routine screen uses relevant Stash products only within matching care steps; it does not render a separate owned-products inventory section.
 - Manual entries and phone-scanned entries both persist in the same inventory and display their source. Scanning an existing manual item preserves both entry methods.
 - Fixed inventory serialization sent to the routine API: product name, category, domain, brand, notes, and entry method are now included (previously the API received abbreviated keys and could not reliably match stash items).
 - Failed scans now report the scan error rather than redirecting to unrelated shopping recommendations.
 - Updated the service-worker cache version so deployed clients fetch the new app.
+
+
+## Version 2.51 routine / stash ownership behavior
+- My Stash is the single source of truth for products the user owns, whether added manually or scanned by phone.
+- Routines show care steps and usage guidance without a separate inventory list. The exact matching product may be identified within its relevant step.
+- Routine missing-product recommendations are filtered against Stash so an owned item is never recommended for purchase again.
+- Only genuinely missing products appear under Recommended Store Picks.
+
+
+## v2.52.0 updates
+- Permanently removed the “Your products considered for this routine” section from the routine renderer. Owned products remain in My Stash and are assigned only to relevant routine steps.
+- Routine rendering now uses the generated concern-specific routine steps, while enforcing that unselected domains stay hidden.
+- Routine generation and store recommendations now receive the saved profile plus the current/saved Check-In note, selected triggers, hair state, and styling method.
+- Fallback recommendations are limited to domains supported by selected profile concerns or Check-In signals, and exclude products already in Stash.
+
+
+## v2.57 personalized fragrance profile
+- Added a saved fragrance profile with scent families, preferred notes, wear occasions, projection preference, favorite fragrances, and scent dislikes.
+- Added a per-fragrance budget selector with a hard maximum-price filter for fragrance recommendations.
+- Fragrance matches prioritize Burlington Coat Factory, Scentbird, Bath & Body Works, and Amazon.
+- Recommendations display scent family, notes, fragrance format, and intended wear profile when returned by the recommendation service.
+- Prices are estimates and retailer availability is not live-verified; Amazon seller authenticity should be checked before purchase.
+- Fragrance recommendations are separate from hair/skin treatment routines and are not forced into brand-set completion logic.
+
+
+Version 2.57 builds a fragrance preference profile from the perfumes and body mists saved in My Stash. It refreshes after fragrance items are added, scanned, edited, looked up, or removed, and feeds the inferred scent families and notes into fragrance recommendations alongside manually selected preferences.
