@@ -168,43 +168,52 @@ const SERVER_CATALOG = [
   }
 ];
 
-function buildFallbackRoutine({ currentHairState, selectedStylingMethod, weather, activeTriggers }) {
+function buildFallbackRoutine({ currentHairState, selectedStylingMethod, weather, activeTriggers, profile = {}, inventory = [] }) {
+  const hairConcerns = [...(profile.hairIssues || []), ...(profile.hairGoals || [])];
+  const faceConcerns = [...(profile.faceConcerns || [])];
+  const bodyConcerns = [...(profile.bodyConcerns || [])];
+  const triggerText = (activeTriggers || []).join(' ').toLowerCase();
+  const hairSelected = hairConcerns.length || /hair|scalp|edge|breakage|wig|braid|heat/.test(triggerText);
+  const faceSelected = faceConcerns.length || /face|skin|acne|pigment|barrier/.test(triggerText);
+  const bodySelected = bodyConcerns.length || /body|chaf|friction|kp|ingrown/.test(triggerText);
+  const stash = Array.isArray(inventory) ? inventory : [];
+  const findOwned = (domain, pattern) => {
+    const item = stash.find(x => String(x.domain || '').toLowerCase() === domain && pattern.test(`${x.category || ''} ${x.name || ''}`));
+    return item ? item.name : 'No matching product in your stash yet';
+  };
   const wStr = weather && weather.tempF != null
     ? `${weather.tempF}°F, ${weather.humidity ?? '--'}% hum, AQI ${weather.aqi ?? '--'}`
     : 'current weather';
-  return {
-    climateImpact: `Conditions (${wStr}): keep moisture steady and avoid heavy buildup.`,
-    rootCauseInsights: (activeTriggers || []).slice(0, 2).map((t) => ({
-      cause: t,
-      fix: 'Use gentle moisture and low tension.'
-    })),
-    hairAssessment: `${currentHairState} — keep care focused and gentle.`,
-    skinAssessment: 'Keep face and body barrier moisture balanced.',
-    hairRoutine: [
-      { step: 'Cleanse & Hydrate', detail: 'Use stash cleanser/conditioner + leave-in.', productUsed: 'Stash hair items', essential: true },
-      { step: 'Seal & Protect', detail: `Style for ${selectedStylingMethod} with light oil/mist.`, productUsed: 'Stash oil/mist', essential: true }
-    ],
-    stylingGuide: {
-      method: selectedStylingMethod,
-      prepAndProtection: 'Prep clean/conditioned hair and protect edges/heat.',
-      recommendedProducts: [],
-      techniqueAndTakedown: 'Work in sections and release gently.'
-    },
-    skinRoutine: [
-      { step: 'Cleanse & Moisturize', detail: 'Gentle cleanse + barrier moisturizer.', productUsed: 'Stash face items', essential: true }
-    ],
-    bodyRoutine: [
-      { step: 'Wash, Moisturize & Powder', detail: 'Layer body care on damp skin; powder friction zones.', productUsed: 'Stash body items', essential: true }
-    ],
+  const result = {
+    climateImpact: `Conditions (${wStr}) are context only; product steps are based on your selected concerns.`,
+    rootCauseInsights: (activeTriggers || []).slice(0, 3).map(t => ({ cause: t, fix: 'Use the concern-specific steps below; avoid adding unrelated treatments.' })),
+    hairAssessment: hairSelected ? `${currentHairState}: routine limited to your selected hair/scalp concerns (${hairConcerns.join(', ') || 'check-in trigger'}).` : '',
+    skinAssessment: faceSelected ? `Face routine limited to your selected concerns (${faceConcerns.join(', ') || 'check-in trigger'}).` : '',
+    hairRoutine: hairSelected ? [
+      { step: 'Wash day — cleanse only when due', detail: 'Use a gentle shampoo appropriate to your scalp and chemical/color history. Do not add a clarifying or protein treatment unless buildup or damage is one of the selected concerns.', productUsed: findOwned('hair', /shampoo|cleanser/i), essential: true },
+      { step: 'Condition and detangle', detail: 'Condition after cleansing, detangle in sections with slip, and avoid pulling at fragile edges or the line of demarcation.', productUsed: findOwned('hair', /conditioner|deep conditioner/i), essential: true },
+      { step: 'Finish for your selected style', detail: `Use a leave-in or styling product only if it suits ${selectedStylingMethod}; use heat protectant before any direct heat.`, productUsed: findOwned('hair', /leave.?in|heat protectant|mousse|foam|gel/i), essential: false }
+    ] : [],
+    stylingGuide: { method: selectedStylingMethod, prepAndProtection: 'Do not apply heat without a dedicated heat protectant. Keep tension low around the hairline.', recommendedProducts: [], techniqueAndTakedown: 'Work in sections and remove styles gently; stop any style that causes pain or persistent tension.' },
+    skinRoutine: faceSelected ? [
+      { step: 'AM — cleanse gently (or rinse)', detail: 'Use a gentle cleanser only if needed; avoid scrubbing or stacking exfoliants.', productUsed: findOwned('skin', /cleanser|wash/i), essential: true },
+      { step: 'AM — moisturize and protect', detail: 'Apply a non-irritating moisturizer, then broad-spectrum SPF 30+ every morning. SPF is especially important when treating dark marks.', productUsed: `${findOwned('skin', /moisturizer|cream|lotion/i)}; sunscreen: ${findOwned('skin', /sunscreen|spf/i)}`, essential: true },
+      { step: 'PM — targeted treatment only if selected', detail: 'Introduce one targeted active at a time, follow its label, and do not combine multiple exfoliating or irritating actives in the same routine.', productUsed: findOwned('skin', /treatment|serum|retinoid|azelaic|niacinamide|benzoyl/i), essential: false }
+    ] : [],
+    bodyRoutine: bodySelected ? [
+      { step: 'Shower — gentle cleanse', detail: 'Use a mild body cleanser; avoid aggressive scrubbing, especially over irritated or inflamed areas.', productUsed: findOwned('body', /body wash|soap|cleanser/i), essential: true },
+      { step: 'After shower — moisturize', detail: 'Apply moisturizer to slightly damp skin. Use a targeted exfoliating lotion only for concerns it is designed to address and according to its label.', productUsed: findOwned('body', /lotion|cream|butter|moisturizer/i), essential: true }
+    ] : [],
     proTreatments: [],
     missingProducts: []
   };
+  return result;
 }
 
 function buildFallbackShopRecs({ shoppingPrefs, profile, activeTriggers, inventory }) {
   const stores = Array.isArray(shoppingPrefs?.stores) ? shoppingPrefs.stores : [];
   const focusLower = String(shoppingPrefs?.focusArea || '').toLowerCase();
-  const invNames = new Set((inventory || []).map(x => String(x || '').toLowerCase()));
+  const invNames = new Set((inventory || []).map(x => String((x && typeof x === 'object' ? x.name : x) || '').toLowerCase()));
   const ctx = JSON.stringify({ profile, activeTriggers, focusLower }).toLowerCase();
 
   let targetDomain = 'all';
@@ -348,7 +357,7 @@ Return JSON only:
       ? shoppingPrefs.stores.join(', ')
       : 'Any';
 
-    const systemInstructions = `Act as a cosmetology-informed textured-hair specialist, esthetician, and dermatologist-informed skincare educator with expertise in Black women's hair and melanin-rich skin. Do not claim to diagnose. Apply evidence-aware hair/scalp care: porosity and product buildup, relaxed/color-treated hair fragility, bond repair vs protein vs moisture, heat protection, traction prevention, and protective-style scalp hygiene. For melanin-rich skin prioritize barrier support, gentle hyperpigmentation care, and daily broad-spectrum SPF 30+. Address the user-selected concerns directly and only add steps/products that serve those concerns or are necessary supporting basics. For every selected issue, name the product(s), explain why they fit, and give an actionable AM/PM or wash-day routine. Pull from stash first. Avoid ingredient conflicts and unnecessary duplicate actives; give AM/PM or alternating-day schedules for potentially irritating combinations. Never promise skin bleaching/lightening. Recommend the most suitable products for the user's selected concerns at [${stores}]. Price is secondary and must not act as a hard filter; prioritize suitability, evidence-informed performance, compatibility, and the user's hair/skin profile over the cheapest option. When comparable options exist, mention a good-value choice. CRITICAL: if recommending any member of a named brand set, include every other member of that set in the same plan, including owned products clearly marked as from stash; never return a partial set. ${lowEnergyMode ? '2 short steps max per routine, but do not omit set members.' : 'Concise steps.'} Single-line JSON only:
+    const systemInstructions = `Act as a cosmetology-informed textured-hair specialist, esthetician, and dermatologist-informed skincare educator with expertise in Black women's hair and melanin-rich skin. Do not claim to diagnose. Apply evidence-aware hair/scalp care: porosity and product buildup, relaxed/color-treated hair fragility, bond repair vs protein vs moisture, heat protection, traction prevention, and protective-style scalp hygiene. For melanin-rich skin prioritize barrier support, gentle hyperpigmentation care, and daily broad-spectrum SPF 30+. STRICT ROUTINE CONTRACT: first read profile.hairIssues + profile.hairGoals, profile.faceConcerns, and profile.bodyConcerns. Build a routine ONLY for domains with at least one selected concern (or a directly relevant active check-in trigger). Never create a generic hair, face, or body routine just to fill a section. For each selected concern, map each step to a specific need and explain the product's role, order, amount/application area, and frequency. Do not put shampoo in a conditioning step, moisturizer in an SPF step, perfume/deodorant in treatment steps, or one generic product into unrelated steps. If stash has no suitable item, say 'not in stash' and recommend a suitable product in missingProducts; do not pretend an unrelated stash item is suitable. Separate AM/PM and wash-day/styling routines. State which days to use actives and which products must not be layered in the same routine. Do not invent exact ingredient lists, clinical outcomes, or diagnoses. Pull from stash first only when category and purpose genuinely match. Avoid ingredient conflicts and unnecessary duplicate actives; give AM/PM or alternating-day schedules for potentially irritating combinations. Never promise skin bleaching/lightening. Recommend the most suitable products for the user's selected concerns at [${stores}]. Price is secondary and must not act as a hard filter; prioritize suitability, evidence-informed performance, compatibility, and the user's hair/skin profile over the cheapest option. When comparable options exist, mention a good-value choice. CRITICAL: if recommending any member of a named brand set, include every other member of that set in the same plan, including owned products clearly marked as from stash; never return a partial set. ${lowEnergyMode ? 'Use a simplified version of the same relevant routine, not unrelated steps.' : 'Be specific and concise.'} Single-line JSON only:
 {"climateImpact":"1 sentence","rootCauseInsights":[{"cause":"C","fix":"F"}],"hairAssessment":"1 sentence","skinAssessment":"1 sentence","hairRoutine":[{"step":"S","detail":"D","productUsed":"Stash item","essential":true}],"stylingGuide":{"method":"${selectedStylingMethod}","prepAndProtection":"Prep","recommendedProducts":[{"productType":"T","suggestion":"Item","howToUse":"Use"}],"techniqueAndTakedown":"Tip"},"skinRoutine":[{"step":"S","detail":"D","productUsed":"Stash item","essential":true}],"bodyRoutine":[{"step":"S","detail":"D","productUsed":"Stash item","essential":true}],"proTreatments":[{"provider":"Salon|Dermatologist|Esthetician","treatment":"T","why":"W","cadence":"C"}],"missingProducts":[{"name":"N","brand":"B","domain":"hair|skin|body","store":"S","reason":"R","estimatedPrice":"$12.99","priority":"essential|optional","forConcern":"selected concern","compatibilityNotes":"safe layering/use notes"}]}`;
 
     const userPrompt = `Note:${description || 'None'} Mode:${currentHairState} Style:${selectedStylingMethod} Triggers:${(activeTriggers || []).join(',') || 'None'} Profile:${JSON.stringify(profile || {})} Weather:${JSON.stringify(weather || {})} Stash:${JSON.stringify((inventory || []).slice(0, 15))}`;
@@ -372,7 +381,7 @@ Return JSON only:
     const fallbackModel = imageBase64 ? 'openai/gpt-oss-120b' : 'qwen/qwen3.8-27b';
 
     const normalizeRoutinePayload = (parsed) => {
-      const fb = buildFallbackRoutine({ currentHairState, selectedStylingMethod, weather, activeTriggers });
+      const fb = buildFallbackRoutine({ currentHairState, selectedStylingMethod, weather, activeTriggers, profile, inventory });
       if (!parsed || typeof parsed !== 'object') return fb;
       const cleanSteps = (arr, fbArr) => {
         const list = Array.isArray(arr) ? arr.filter(x => x && (x.step || x.detail)) : [];
@@ -407,7 +416,7 @@ Return JSON only:
         return res.status(200).json({ result: normalizeRoutinePayload(parseJsonLoose(rawText)) });
       } catch (__) {
         return res.status(200).json({
-          result: buildFallbackRoutine({ currentHairState, selectedStylingMethod, weather, activeTriggers })
+          result: buildFallbackRoutine({ currentHairState, selectedStylingMethod, weather, activeTriggers, profile, inventory })
         });
       }
     }

@@ -1,4 +1,4 @@
-# AuraCare — Black Hair Chemistry, Face & Body Studio (v2.48)
+# AuraCare — Black Hair Chemistry, Face & Body Studio (v2.50)
 
 ## Recommendation standards
 - Recommendations are tailored to textured/Black hair, scalp care, and melanin-rich skin using profile, routine, sensitivity, chemical/color history, styling, climate, and stash context.
@@ -31,3 +31,13 @@
 - Each product recommendation now has a dedicated “Why this product was selected” explanation using the recommendation's product-fit rationale.
 - Recommendation cards also show the profile concerns selected for that product's domain (hair, face skin, or body), making the personalization visible.
 - If a recommendation has no explicit rationale, the interface uses a transparent fallback rather than inventing ingredient or clinical benefits.
+
+
+## Version 2.50 routine and stash fixes
+- Rebuilt the displayed routine from the actual selected hair, face, and body concerns; unrelated domains are hidden rather than filled with generic steps.
+- Routine steps now use only stash items whose category matches the step. If no matching owned item exists, the UI says it is missing and attaches a returned recommendation only when its domain and product role match.
+- The routine screen now visibly lists all stash products relevant to the selected domains.
+- Manual entries and phone-scanned entries both persist in the same inventory and display their source. Scanning an existing manual item preserves both entry methods.
+- Fixed inventory serialization sent to the routine API: product name, category, domain, brand, notes, and entry method are now included (previously the API received abbreviated keys and could not reliably match stash items).
+- Failed scans now report the scan error rather than redirecting to unrelated shopping recommendations.
+- Updated the service-worker cache version so deployed clients fetch the new app.

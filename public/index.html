@@ -9,7 +9,7 @@
  <meta name="theme-color" content="#FAF8F5" />
  <link rel="manifest" href="/manifest.json" />
  <link rel="apple-touch-icon" href="/icon.svg" />
- <title>AuraCare — Blank Profile &amp; Care Studio</title>
+ <title>AuraCare v2.50 — Concern-led Care Studio</title>
  <script src="https://cdn.tailwindcss.com"></script>
  <style>
  :root {
@@ -166,7 +166,7 @@
  <div class="text-xs font-semibold">Add Product or Homemade Mix Manually</div>
  <input id="manName" type="text" onkeydown="if(event.key==='Enter'){event.preventDefault();addManualProduct();}" placeholder="Product name..." class="w-full text-xs border border-[#DDD4C8] rounded-lg p-2 bg-[#FAF8F5]" />
  <div class="grid grid-cols-2 gap-2">
- <select id="manDomain" class="text-xs border border-[#DDD4C8] rounded-lg p-2 bg-white">
+ <select id="manDomain" onchange="updateManualCategoryOptions()" class="text-xs border border-[#DDD4C8] rounded-lg p-2 bg-white">
  <option value="hair">Hair &amp; Styling</option>
  <option value="skin">Face Skin Care</option>
  <option value="body">Body Care</option>
@@ -591,7 +591,7 @@
  profile: mergedProfile,
  shoppingPrefs: mergedShop,
  activeTriggers: Array.isArray(raw.activeTriggers) ? raw.activeTriggers : [],
- inventory: Array.isArray(raw.inventory) ? raw.inventory : [],
+ inventory: Array.isArray(raw.inventory) ? raw.inventory.map(item => ({ ...item, entryMethods: Array.isArray(item.entryMethods) ? item.entryMethods : (item.entryMethod ? [item.entryMethod] : []) })) : [],
  weather: { ...base.weather, ...(raw.weather && typeof raw.weather === "object" ? raw.weather : {}) },
  shopRecommendations: Array.isArray(raw.shopRecommendations) ? raw.shopRecommendations : []
  };
@@ -1145,9 +1145,13 @@
 
  function compactInventoryForApi(inv) {
  if (!Array.isArray(inv) || !inv.length) return [];
- return inv.slice(0, 20).map(i => ({
- n: String(i.name || "").slice(0, 60),
- c: String(i.category || "").slice(0, 35)
+ return inv.slice(0, 50).map(i => ({
+ name: String(i.name || "").slice(0, 100),
+ category: String(i.category || "").slice(0, 60),
+ domain: String(i.domain || "").slice(0, 12),
+ brand: String(i.brand || "").slice(0, 60),
+ notes: String(i.notes || "").slice(0, 180),
+ entryMethods: Array.isArray(i.entryMethods) ? i.entryMethods : (i.entryMethod ? [i.entryMethod] : [])
  }));
  }
 
@@ -1228,7 +1232,7 @@
  if (!item || !item.name) return false;
  if (domain === "all") return true;
  return item.domain === domain;
- }).slice(0, 4);
+ });
  }
 
     const BLACK_HAIR_CHEMISTRY_RULES = [
@@ -2050,6 +2054,56 @@
       };
     }
 
+    function buildConcernRoutinePlan() {
+      const inv = Array.isArray(state.inventory) ? state.inventory : [];
+      const p = state.profile || {};
+      const hairConcerns = [...(p.hairIssues || []), ...(p.hairGoals || [])];
+      const faceConcerns = [...(p.faceConcerns || [])];
+      const bodyConcerns = [...(p.bodyConcerns || [])];
+      const triggerText = (state.activeTriggers || []).join(' ').toLowerCase();
+      const hairSelected = hairConcerns.length > 0 || /edge|hair|scalp|braid|wig|breakage|heat|protein/.test(triggerText);
+      const faceSelected = faceConcerns.length > 0 || /skin|face|acne|pigment|barrier/.test(triggerText);
+      const bodySelected = bodyConcerns.length > 0 || /body|chaf|friction|kp|ingrown/.test(triggerText);
+      const owned = (domain, pattern) => {
+        const item = inv.find(x => x && x.name && x.domain === domain && pattern.test(`${x.category || ''} ${x.name || ''}`));
+        return item ? item.name : 'Not in your stash — recommendation needed';
+      };
+      const step = (title, detail, product, essential=true) => ({ step:title, detail, productUsed:product, essential });
+      const hairText = hairConcerns.join(', ').toLowerCase();
+      const skinText = faceConcerns.join(', ').toLowerCase();
+      const bodyText = bodyConcerns.join(', ').toLowerCase();
+      const hairRoutine = [];
+      if (hairSelected) {
+        const scalp = /scalp|flaky|buildup/.test(hairText + ' ' + triggerText);
+        const damage = /breakage|brittle|demarcation|bond|shedding|thinning/.test(hairText);
+        const moisture = /dry|moisture|elasticity/.test(hairText);
+        hairRoutine.push(step('Wash day — cleanse when due', scalp ? 'Cleanse the scalp gently and rinse thoroughly. If flakes are persistent, inflamed, or itchy, avoid layering oils over the scalp and seek a scalp assessment.' : 'Cleanse according to your wash schedule and style. Focus shampoo on the scalp; let suds rinse through the lengths rather than roughing up the hair.', owned('hair', /shampoo|clarifying|chelating/i)));
+        hairRoutine.push(step('Condition and detangle', damage ? 'Apply conditioner with slip, detangle in sections from ends upward, and avoid pulling at the hairline or line of demarcation.' : 'Condition the lengths after cleansing and detangle gently in sections. Rinse according to the label.', owned('hair', /conditioner|deep conditioner/i)));
+        if (moisture || damage || /wig|braid|protective/i.test(String(state.currentHairState))) hairRoutine.push(step('After washing — leave-in and protect ends', 'On damp lengths, apply a leave-in only if needed for slip and manageability. Use a small amount; keep heavy products off the scalp and avoid layering multiple leave-ins.', owned('hair', /leave-in|mist|moisturizer/i), false));
+        if (/heat|curling|roller|direct heat/i.test(String(state.selectedStylingMethod) + ' ' + triggerText)) hairRoutine.push(step('Before heat styling', 'Apply a dedicated heat protectant evenly to the sections before any blow-dryer, curling iron, or heated roller. Do not substitute oil or regular leave-in for a heat protectant.', owned('hair', /heat protectant/i), true));
+        else if (/color|brassiness|fade|shine/i.test(hairText)) hairRoutine.push(step('Style and maintain color', 'Use a style product only as needed for the chosen set. Keep heat moderate and avoid frequent clarifying unless buildup or mineral deposits are present.', owned('hair', /mousse|foam|setting|gel|oil sheen|hair oil/i), false));
+      }
+      const skinRoutine = [];
+      if (faceSelected) {
+        skinRoutine.push(step('AM — gentle cleanse or rinse', 'Use a gentle cleanser if needed; otherwise a lukewarm water rinse may be enough. Do not scrub.', owned('skin', /face cleanser|cleanser/i)));
+        skinRoutine.push(step('AM — moisturize', 'Apply a comfortable, non-irritating moisturizer to support the skin barrier.', owned('skin', /face moisturizer|moisturizer/i)));
+        skinRoutine.push(step('AM — sunscreen', 'Finish with broad-spectrum SPF 30 or higher every morning. This is especially important when managing dark marks and uneven tone.', owned('skin', /sunscreen|spf/i)));
+        const acne = /acne|breakout|pore|shine/.test(skinText);
+        const pigment = /dark spot|hyperpigmentation|uneven tone|dullness/.test(skinText);
+        const sensitive = /redness|barrier|sensitive|reactive/.test(skinText) || /sensitive|reactive/i.test(p.faceType || '');
+        if (!sensitive && (acne || pigment)) skinRoutine.push(step('PM — one targeted treatment', acne ? 'Use one acne-focused active at the label frequency. Start slowly and do not add a second exfoliant or retinoid on the same night until tolerance is established.' : 'Use one dark-mark treatment at night as directed. Introduce it gradually; avoid combining multiple exfoliating or irritating actives in one routine.', owned('skin', /face treatment|serum|azelaic|niacinamide|benzoyl|retinoid|adapalene/i), false));
+        skinRoutine.push(step('PM — moisturize and recover', 'Moisturize after cleansing and treatment. If skin stings, burns, or becomes persistently irritated, pause actives and return to gentle cleansing, moisturizer, and sunscreen.', owned('skin', /face moisturizer|moisturizer/i), true));
+      }
+      const bodyRoutine = [];
+      if (bodySelected) {
+        bodyRoutine.push(step('Shower — gentle cleanse', 'Use a mild body cleanser and avoid aggressive scrubbing, especially on irritated or freshly shaved skin.', owned('body', /body wash|bar soap|cleanser/i)));
+        bodyRoutine.push(step('After shower — moisturize', 'Apply a body lotion or cream to slightly damp skin. Use richer products only where needed.', owned('body', /body lotion|cream|butter|moisturizer/i)));
+        if (/kp|rough|ingrown|razor|dark mark|uneven|breakout/.test(bodyText)) bodyRoutine.push(step('Targeted body care — selected concern only', 'Use one suitable body treatment for the specific bumps, ingrowns, or dark marks, following its label. Do not apply acids to freshly shaved, broken, or irritated skin; avoid stacking multiple exfoliants.', owned('body', /body scrub|exfoliant|treatment|lotion.*acid/i), false));
+        if (/chaf|sweat|friction/.test(bodyText)) bodyRoutine.push(step('Friction zones — reduce rubbing', 'Apply a simple friction barrier to intact skin where clothing rubs. Keep powders away from inhalation and broken or irritated skin.', owned('body', /body powder|body butter|body oil|body lotion/i), false));
+      }
+      return { climateImpact:'Routine steps are based on the concerns you selected; climate is only a secondary adjustment.', rootCauseInsights:[], hairAssessment:hairSelected ? `Hair routine focus: ${hairConcerns.join(', ') || 'your relevant check-in trigger'}.` : '', skinAssessment:faceSelected ? `Face routine focus: ${faceConcerns.join(', ') || 'your relevant check-in trigger'}.` : '', selectedConcerns:{hair:hairConcerns,face:faceConcerns,body:bodyConcerns}, hairRoutine,skinRoutine,bodyRoutine, stylingGuide:{method:state.selectedStylingMethod,prepAndProtection:'Use a dedicated heat protectant before direct heat; keep tension gentle around the hairline.',recommendedProducts:[],techniqueAndTakedown:'Work in sections, avoid painful tension, and remove styles gently.'},proTreatments:[],missingProducts:[] };
+    }
+
     function cleanFalseStashLackNote(text) {
       if (!text) return "";
       return String(text)
@@ -2150,12 +2204,12 @@
 
     function renderAIRoutine(r) {
       const box = document.getElementById("aiResultContainer");
-      const fallbackPlan = buildLocalCheckinFallback();
+      const fallbackPlan = buildConcernRoutinePlan();
       const sourceR = r && typeof r === "object" ? r : fallbackPlan;
 
-      const fullHairSteps = ensureNonEmptySteps(sourceR.hairRoutine, fallbackPlan.hairRoutine, "hair");
-      const fullSkinSteps = ensureNonEmptySteps(sourceR.skinRoutine, fallbackPlan.skinRoutine, "skin");
-      const fullBodySteps = ensureNonEmptySteps(sourceR.bodyRoutine, fallbackPlan.bodyRoutine, "body");
+      const fullHairSteps = fallbackPlan.hairRoutine;
+      const fullSkinSteps = fallbackPlan.skinRoutine;
+      const fullBodySteps = fallbackPlan.bodyRoutine;
 
       const hairSteps = state.lowEnergyMode ? fullHairSteps.filter(s => s.essential) : fullHairSteps;
       const skinSteps = state.lowEnergyMode ? fullSkinSteps.filter(s => s.essential) : fullSkinSteps;
@@ -2168,13 +2222,32 @@
       const stashHair = pickStashItemsForDomain("hair");
       const stashSkin = pickStashItemsForDomain("skin");
       const stashBody = pickStashItemsForDomain("body");
-      const allPulled = [...stashHair, ...stashSkin, ...stashBody].slice(0, 8);
 
-      const additionsList = (Array.isArray(sourceR.missingProducts) && sourceR.missingProducts.length)
-        ? sourceR.missingProducts
-        : fallbackPlan.missingProducts;
+      const selectedDomains = new Set([
+        ...((state.profile.hairIssues || []).length || (state.profile.hairGoals || []).length ? ["hair"] : []),
+        ...((state.profile.faceConcerns || []).length ? ["skin"] : []),
+        ...((state.profile.bodyConcerns || []).length ? ["body"] : []),
+        ...(state.activeTriggers || []).map(t => (TRIGGER_FACTORS.find(x => x.label === t) || {}).domain).filter(Boolean)
+      ]);
+      const additionsList = (Array.isArray(sourceR.missingProducts) ? sourceR.missingProducts : fallbackPlan.missingProducts)
+        .filter(m => m.domain && selectedDomains.has(m.domain));
+      const routineStash = [...stashHair, ...stashSkin, ...stashBody].filter(i => selectedDomains.has(i.domain));
+      const recommendationForStep = (step, domain) => {
+        const title = String(step.step || '').toLowerCase();
+        const role = domain === 'hair'
+          ? (/cleanse|wash/.test(title) ? /shampoo|cleanser|clarifying|chelating/ : /condition/.test(title) ? /conditioner|mask|masque/ : /heat/.test(title) ? /heat protectant/ : /leave-in|moisturizer|mist/.test(title) ? /leave.?in|moisturizer|mist/ : /style|color/.test(title) ? /mousse|foam|setting|gel|styling/ : /$a/)
+          : domain === 'skin'
+            ? (/cleanse/.test(title) ? /cleanser/ : /sunscreen/.test(title) ? /sunscreen|spf/ : /moistur/.test(title) ? /moisturizer|cream/ : /treatment/.test(title) ? /treatment|serum|azelaic|benzoyl|retinoid/ : /$a/)
+            : (/cleanse/.test(title) ? /body wash|soap|cleanser/ : /moistur/.test(title) ? /lotion|cream|butter/ : /friction/.test(title) ? /powder|barrier|butter/ : /treatment/.test(title) ? /exfoliant|treatment|acid/ : /$a/);
+        const missing = /not in your stash/i.test(String(step.productUsed || ''));
+        if (!missing) return '';
+        const rec = additionsList.find(m => (!m.domain || m.domain === domain) && role.test(`${m.category || ''} ${m.name || ''}`));
+        return rec ? `<div class="mt-1 text-[11px] text-[#8A5E1B]"><strong>Recommended for this step:</strong> ${escapeAttr(rec.name)}${rec.reason ? ` — ${escapeAttr(rec.reason)}` : ''}</div>` : `<div class="mt-1 text-[11px] text-[#8A5E1B]">No matching product recommendation was returned for this step yet. Do not substitute an unrelated product.</div>`;
+      };
+      const stashPanel = routineStash.length ? `<div class="card p-4 space-y-2"><h4 class="text-xs font-bold uppercase text-[#726862]">Your products considered for this routine</h4>${routineStash.map(i => `<div class="flex items-start justify-between gap-2 text-xs border-b border-[#EAE3D9] pb-2"><div><div class="font-semibold">${escapeAttr(i.name)}</div><div class="text-[#726862]">${escapeAttr(i.domain)} · ${escapeAttr(i.category || 'Uncategorized')}</div></div><span class="text-[10px] rounded-full px-2 py-1 bg-[#F8F3EA] text-[#8A5E1B]">${(i.entryMethods || (i.entryMethod ? [i.entryMethod] : [])).includes('phone-scan') ? 'Phone scanned' : (i.entryMethods || (i.entryMethod ? [i.entryMethod] : [])).includes('manual') ? 'Manual entry' : 'Saved in stash'}</span></div>`).join('')}</div>` : `<div class="card p-3 text-xs text-[#726862]">No products are saved in the stash for the concerns selected. Add or scan products in My Stash and rebuild the routine.</div>`;
 
       box.innerHTML = `
+        ${stashPanel}
         <div class="card p-4 space-y-3">
           <div class="flex items-center justify-between gap-2">
             <h3 class="text-sm font-bold">Tailored Care &amp; Styling Plan</h3>
@@ -2183,29 +2256,29 @@
 
           ${(sourceR.rootCauseInsights && sourceR.rootCauseInsights.length) ? `<div class="space-y-1.5"><h4 class="text-xs font-bold uppercase text-[#726862]">Root Causes &amp; Fixes</h4>${sourceR.rootCauseInsights.map(rc => `<div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs"><div class="font-bold">${escapeAttr(cleanFalseStashLackNote(rc.cause))}</div><div class="text-[#594E47] mt-0.5">${escapeAttr(cleanFalseStashLackNote(rc.fix))}</div></div>`).join("")}</div>` : ""}
 
-          <div class="space-y-2">
+          ${finalHairSteps.length ? `<div class="space-y-2">
             <h4 class="text-xs font-bold uppercase text-[#8A5E1B]">Hair, Scalp &amp; Protective Style Routine</h4>
             <p class="text-xs text-[#726862]">${escapeAttr(cleanFalseStashLackNote(sourceR.hairAssessment) || fallbackPlan.hairAssessment)}</p>
-            ${finalHairSteps.map(s => `<div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs"><div class="font-bold">${escapeAttr(s.step)}</div><div class="text-[#594E47] mt-0.5">${escapeAttr(s.detail)}</div><div class="text-[11px] text-[#8A5E1B] font-semibold mt-1">Stash / Store Pick: ${escapeAttr(s.productUsed)}</div></div>`).join("")}
-          </div>
+            ${finalHairSteps.map(s => `<div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs"><div class="font-bold">${escapeAttr(s.step)}</div><div class="text-[#594E47] mt-0.5">${escapeAttr(s.detail)}</div><div class="text-[11px] text-[#8A5E1B] font-semibold mt-1">Stash / Store Pick: ${escapeAttr(s.productUsed)}</div>${recommendationForStep(s, "hair")}</div>`).join("")}
+          </div>` : ""}
 
-          <div class="p-3 rounded-xl bg-[#F8F3EA]/70 border border-[#E5D7C1] space-y-2 text-xs">
+          ${finalHairSteps.length ? `<div class="p-3 rounded-xl bg-[#F8F3EA]/70 border border-[#E5D7C1] space-y-2 text-xs">
             <div class="font-bold text-[#8A5E1B]">🔥 Styling &amp; Roller Guide: ${escapeAttr((sourceR.stylingGuide && sourceR.stylingGuide.method) || state.selectedStylingMethod)}</div>
-            <div><strong>Prep &amp; Protection:</strong> ${escapeAttr(cleanFalseStashLackNote(sourceR.stylingGuide && sourceR.stylingGuide.prepAndProtection) || fallbackPlan.stylingGuide.prepAndProtection)}</div>
-            ${((sourceR.stylingGuide && sourceR.stylingGuide.recommendedProducts && sourceR.stylingGuide.recommendedProducts.length) ? sourceR.stylingGuide.recommendedProducts : fallbackPlan.stylingGuide.recommendedProducts).map(p => `<div class="p-2 rounded-lg bg-white border border-[#EAE3D9]"><div class="font-bold">${escapeAttr(p.productType)}: <span class="text-[#8A5E1B]">${escapeAttr(p.suggestion)}</span></div><div class="text-[#594E47] mt-0.5">${escapeAttr(cleanFalseStashLackNote(p.howToUse))}</div></div>`).join("")}
-            <div><strong>Technique &amp; Takedown:</strong> ${escapeAttr(cleanFalseStashLackNote(sourceR.stylingGuide && sourceR.stylingGuide.techniqueAndTakedown) || fallbackPlan.stylingGuide.techniqueAndTakedown)}</div>
-          </div>
+            <div><strong>Prep &amp; Protection:</strong> ${escapeAttr(fallbackPlan.stylingGuide.prepAndProtection)}</div>
+            
+            <div><strong>Technique &amp; Takedown:</strong> ${escapeAttr(fallbackPlan.stylingGuide.techniqueAndTakedown)}</div>
+          </div>` : ""}
 
-          <div class="space-y-2">
+          ${finalSkinSteps.length ? `<div class="space-y-2">
             <h4 class="text-xs font-bold uppercase text-[#355243]">Face Skin Routine</h4>
             <p class="text-xs text-[#726862]">${escapeAttr(cleanFalseStashLackNote(sourceR.skinAssessment) || fallbackPlan.skinAssessment)}</p>
-            ${finalSkinSteps.map(s => `<div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs"><div class="font-bold">${escapeAttr(s.step)}</div><div class="text-[#594E47] mt-0.5">${escapeAttr(s.detail)}</div><div class="text-[11px] text-[#355243] font-semibold mt-1">Stash / Store Pick: ${escapeAttr(s.productUsed)}</div></div>`).join("")}
-          </div>
+            ${finalSkinSteps.map(s => `<div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs"><div class="font-bold">${escapeAttr(s.step)}</div><div class="text-[#594E47] mt-0.5">${escapeAttr(s.detail)}</div><div class="text-[11px] text-[#355243] font-semibold mt-1">Stash / Store Pick: ${escapeAttr(s.productUsed)}</div>${recommendationForStep(s, "skin")}</div>`).join("")}
+          </div>` : ""}
 
-          <div class="space-y-2">
+          ${finalBodySteps.length ? `<div class="space-y-2">
             <h4 class="text-xs font-bold uppercase text-[#5B2C6F]">Body Care &amp; Body Powder Layering Routine</h4>
-            ${finalBodySteps.map(s => `<div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs"><div class="font-bold">${escapeAttr(s.step)}</div><div class="text-[#594E47] mt-0.5">${escapeAttr(s.detail)}</div><div class="text-[11px] text-[#5B2C6F] font-semibold mt-1">Stash / Store Pick: ${escapeAttr(s.productUsed)}</div></div>`).join("")}
-          </div>
+            ${finalBodySteps.map(s => `<div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs"><div class="font-bold">${escapeAttr(s.step)}</div><div class="text-[#594E47] mt-0.5">${escapeAttr(s.detail)}</div><div class="text-[11px] text-[#5B2C6F] font-semibold mt-1">Stash / Store Pick: ${escapeAttr(s.productUsed)}</div>${recommendationForStep(s, "body")}</div>`).join("")}
+          </div>` : ""}
 
           ${(sourceR.proTreatments && sourceR.proTreatments.length) ? `<div class="space-y-1.5 pt-2 border-t border-[#EAE3D9]"><h4 class="text-xs font-bold uppercase text-[#231F1D]">Salon, Dermatologist &amp; Esthetician Suggestions</h4>${sourceR.proTreatments.map(pt => `<div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs"><div class="flex justify-between font-bold"><span class="text-[#A9772B]">${escapeAttr(pt.provider)}: ${escapeAttr(pt.treatment)}</span><span class="text-[10px] text-[#726862]">${escapeAttr(pt.cadence || "")}</span></div><div class="text-[#594E47] mt-0.5">${escapeAttr(cleanFalseStashLackNote(pt.why))}</div></div>`).join("")}</div>` : ""}
 
@@ -2368,7 +2441,8 @@
  brand: item.brand || prevItem.brand || "",
  domain: nextDomain || prevItem.domain,
  category: nextCategory || prevItem.category,
- notes: nextNotes || prevItem.notes || ""
+ notes: nextNotes || prevItem.notes || "",
+ entryMethods: [...new Set([...(prevItem.entryMethods || (prevItem.entryMethod ? [prevItem.entryMethod] : [])), "phone-scan"])]
  };
  saveState();
  renderStash();
@@ -2383,7 +2457,9 @@
  brand: item.brand || "",
  domain: nextDomain,
  category: nextCategory,
- notes: nextNotes
+ notes: nextNotes,
+ entryMethod: "phone-scan",
+ entryMethods: ["phone-scan"]
  });
  saveState();
  renderStash();
@@ -2403,14 +2479,27 @@
  const imageBase64 = await compressImageToDataURL(file, 512);
  await analyzeBase64ProductImage(imageBase64);
  } catch (err) {
- const localRecs = getMissingStashRecommendations();
- state.shopRecommendations = localRecs;
- saveState();
- renderShopResults(localRecs);
- status.textContent = "Groq limit reached—showing tailored store picks from your stash & profile.";
+ status.textContent = `Could not read that product label: ${err.message || "Please try a clearer photo or enter it manually."}`;
+ status.classList.remove("hidden");
  } finally {
  e.target.value = "";
  }
+ }
+
+ function updateManualCategoryOptions() {
+ const domainEl = document.getElementById("manDomain");
+ const catEl = document.getElementById("manCategory");
+ if (!domainEl || !catEl) return;
+ const domain = domainEl.value;
+ const groups = {
+ hair: STASH_CATEGORIES.filter(c => !/^(Face |Sunscreen|Body |Deodorant|Perfume)/i.test(c)),
+ skin: STASH_CATEGORIES.filter(c => /^(Face |Sunscreen)/i.test(c)),
+ body: STASH_CATEGORIES.filter(c => /^(Body |Deodorant|Perfume)/i.test(c))
+ };
+ const options = groups[domain] || ["Other"];
+ const previous = catEl.value;
+ catEl.innerHTML = options.map(c => `<option value="${escapeAttr(c)}">${escapeAttr(c)}</option>`).join("") + `<option value="Other">Other / Not Sure</option>`;
+ catEl.value = options.includes(previous) ? previous : (options[0] || "Other");
  }
 
  function addManualProduct() {
@@ -2433,7 +2522,9 @@
  brand: "",
  domain: domainEl ? domainEl.value : "hair",
  category: catEl ? catEl.value : "Other",
- notes: ""
+ notes: "",
+ entryMethod: "manual",
+ entryMethods: ["manual"]
  });
  nameEl.value = "";
  saveState();
@@ -2557,6 +2648,7 @@
  <div class="min-w-0">
  <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#F8F3EA] text-[#8A5E1B]">${escapeAttr(i.domain)} • ${escapeAttr(i.category)}</span>
  <div class="text-xs font-bold mt-1 break-words">${escapeAttr(i.name)}</div>
+ <div class="text-[10px] text-[#8A5E1B] mt-0.5">${(i.entryMethods || (i.entryMethod ? [i.entryMethod] : [])).includes('phone-scan') ? '📷 Scanned with phone' : (i.entryMethods || (i.entryMethod ? [i.entryMethod] : [])).includes('manual') ? '✍️ Entered manually' : 'Saved product'}</div>
  ${i.notes ? `<div class="text-[11px] text-[#726862] mt-0.5 break-words">${escapeAttr(i.notes)}</div>` : ""}
  </div>
  <div class="flex items-center gap-1 shrink-0">
@@ -2612,7 +2704,7 @@
  currentHairState: state.currentHairState,
  selectedStylingMethod: state.selectedStylingMethod,
  activeTriggers: (state.activeTriggers || []).slice(0, 5),
- inventory: compactInventoryForApi(state.inventory).map(i => i.n),
+ inventory: compactInventoryForApi(state.inventory),
  shoppingPrefs: {
  stores: getEffectiveStores().slice(0, 5),
  focusArea: document.getElementById("shopFocusSelect").value
@@ -2679,13 +2771,33 @@
  alert(`Added "${item.name}" to your stash.`);
  }
 
+ function getSelectedConcernsForDomain(domain) {
+   const p = state.profile || {};
+   const keys = domain === "hair" ? ["hairIssues", "hairGoals"]
+     : domain === "skin" ? ["faceConcerns"]
+     : domain === "body" ? ["bodyConcerns"] : [];
+   return [...new Set(keys.flatMap(key => Array.isArray(p[key]) ? p[key] : []))];
+ }
+
+ function getProductReason(rec) {
+   const explicit = String(rec.whyItFits || rec.reason || "").trim();
+   if (explicit) return explicit;
+   return `This ${rec.category || "product"} was selected as a routine step for your ${rec.domain || "care"} profile. Check the ingredient list and directions before use.`;
+ }
+
  function renderShopResults(recs) {
  const list = document.getElementById("shopResultsList");
  if (!recs || !recs.length) {
  list.innerHTML = `<div class="card p-4 text-xs text-[#726862]">No recommendations generated yet. Select your profile options or click <strong>Find Matches</strong>.</div>`;
  return;
  }
- list.innerHTML = recs.map((r, idx) => `<div class="card p-3.5 space-y-1.5"><div class="flex items-start justify-between gap-2"><div><span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#F8F3EA] text-[#8A5E1B]">${escapeAttr(r.domain)} • ${escapeAttr(r.category)}</span><h4 class="text-sm font-bold mt-1">${escapeAttr(r.name)}</h4><div class="text-[11px] font-semibold text-[#231F1D]">Store: ${escapeAttr(r.bestStore || r.store || "Any")} ${(r.alsoAt) ? `• Also: ${escapeAttr(r.alsoAt)}` : ""}</div></div><div class="text-sm font-extrabold text-[#2E6F40] shrink-0">${escapeAttr(r.price || r.estimatedPrice || "")}</div></div>${r.setName ? `<div class="text-[11px] font-bold text-[#8A5E1B]">Complete set: ${escapeAttr(r.setName)} · ${Number(r.setItemCount || 0)} missing item(s) · $${Number(r.setTotal || 0).toFixed(2)} set completion estimate</div>` : ""}${r.owned ? `<div class="text-[11px] font-semibold text-emerald-700">Already in your stash · included to show the complete system</div>` : ""}<p class="text-xs text-[#594E47]">${escapeAttr(r.whyItFits || r.reason || "")}</p><div class="pt-1 flex justify-end">${r.owned ? "" : `<button type="button" onclick="addRecToStash(${idx})" class="text-xs font-semibold px-3 py-1 rounded-lg bg-[#FAF8F5] border border-[#DDD4C8]">+ Add to Stash</button>`}</div></div>`).join("");
+ list.innerHTML = recs.map((r, idx) => {
+   const concerns = getSelectedConcernsForDomain(r.domain);
+   const reason = getProductReason(r);
+   const concernMarkup = concerns.length
+     ? `<div class="rounded-lg bg-[#FAF8F5] p-2.5 mt-2"><div class="text-[10px] font-bold uppercase tracking-wide text-[#8A5E1B]">Your selected ${escapeAttr(r.domain)} concerns</div><div class="text-[11px] text-[#594E47] mt-1">${concerns.map(escapeAttr).join(" · ")}</div><p class="text-[10px] text-[#726862] mt-1">This shows the concerns considered for this category; the product rationale above explains its intended role.</p></div>` : "";
+   return `<div class="card p-3.5 space-y-1.5"><div class="flex items-start justify-between gap-2"><div><span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#F8F3EA] text-[#8A5E1B]">${escapeAttr(r.domain)} • ${escapeAttr(r.category)}</span><h4 class="text-sm font-bold mt-1">${escapeAttr(r.name)}</h4><div class="text-[11px] font-semibold text-[#231F1D]">Store: ${escapeAttr(r.bestStore || r.store || "Any")} ${(r.alsoAt) ? `• Also: ${escapeAttr(r.alsoAt)}` : ""}</div></div><div class="text-sm font-extrabold text-[#2E6F40] shrink-0">${escapeAttr(r.price || r.estimatedPrice || "")}</div></div>${r.setName ? `<div class="text-[11px] font-bold text-[#8A5E1B]">Complete set: ${escapeAttr(r.setName)} · ${Number(r.setItemCount || 0)} missing item(s) · $${Number(r.setTotal || 0).toFixed(2)} set completion estimate</div>` : ""}${r.owned ? `<div class="text-[11px] font-semibold text-emerald-700">Already in your stash · included to show the complete system</div>` : ""}<div class="rounded-lg border border-[#EAE3D9] p-2.5 mt-2"><div class="text-[10px] font-bold uppercase tracking-wide text-[#8A5E1B]">Why this product was selected</div><p class="text-xs text-[#594E47] mt-1">${escapeAttr(reason)}</p></div>${concernMarkup}<div class="pt-1 flex justify-end">${r.owned ? "" : `<button type="button" onclick="addRecToStash(${idx})" class="text-xs font-semibold px-3 py-1 rounded-lg bg-[#FAF8F5] border border-[#DDD4C8]">+ Add to Stash</button>`}</div></div>`;
+ }).join("");
  }
 
  function exportBackupJSON() {
@@ -2724,6 +2836,7 @@
  renderProfileSummary();
  renderTriggers();
  renderStash();
+ updateManualCategoryOptions();
  updateBudgetSetting(state.shoppingPrefs.maxPrice || 30);
  renderStoreChips();
  renderShopResults(state.shopRecommendations || []);
