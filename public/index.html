@@ -563,7 +563,7 @@
  // Face (A-Z)
  "Face Cleanser", "Face Moisturizer", "Face Treatment", "Sunscreen",
  // Body (A-Z)
- "Body Butter", "Body Lotion / Cream", "Body Oil", "Body Powder / Dusting Powder", "Body Scrub / Exfoliant", "Body Wash / Bar Soap", "Deodorant", "Perfume / Scents",
+ "Body Butter", "Body Lotion / Cream", "Body Oil", "Body Powder / Dusting Powder", "Body Scrub / Exfoliant", "Body Treatment", "Body Sunscreen", "Body Wash / Bar Soap", "Deodorant", "Perfume / Scents",
  "Other"
  ];
 
@@ -571,7 +571,7 @@
     const CATEGORY_DOMAIN = Object.freeze({
       "Bond Repair":"hair", "Clarifying / Chelating Shampoo":"hair", "Conditioner":"hair", "Deep Conditioner":"hair", "Edge Control / Wax":"hair", "Hair Dye":"hair", "Hair Gel":"hair", "Hair Oil / Sealant":"hair", "Hair Relaxer":"hair", "Heat Protectant":"hair", "Leave-In / Mist":"hair", "Hair Moisturizer":"hair", "Moisturizer":"hair", "Oil Sheen":"hair", "Protein Treatment":"hair", "Setting Mousse / Foam / Lotion":"hair", "Shampoo":"hair", "Wig / Braid Scalp & Edge Care":"hair",
       "Face Cleanser":"skin", "Face Moisturizer":"skin", "Face Treatment":"skin", "Sunscreen":"skin",
-      "Body Butter":"body", "Body Lotion / Cream":"body", "Body Oil":"body", "Body Powder / Dusting Powder":"body", "Body Scrub / Exfoliant":"body", "Body Wash / Bar Soap":"body", "Deodorant":"body", "Perfume / Scents":"body"
+      "Body Butter":"body", "Body Lotion / Cream":"body", "Body Oil":"body", "Body Powder / Dusting Powder":"body", "Body Scrub / Exfoliant":"body", "Body Treatment":"body", "Body Sunscreen":"body", "Body Wash / Bar Soap":"body", "Deodorant":"body", "Perfume / Scents":"body"
     });
     const ROUTINE_ROLE_CATEGORIES = Object.freeze({
       hair: {
@@ -581,7 +581,7 @@
         treat:["Bond Repair","Protein Treatment"], seal:["Hair Oil / Sealant","Oil Sheen","Wig / Braid Scalp & Edge Care"]
       },
       skin: { cleanse:["Face Cleanser"], moisturize:["Face Moisturizer"], treatment:["Face Treatment"], protect:["Sunscreen"] },
-      body: { cleanse:["Body Wash / Bar Soap"], moisturize:["Body Butter","Body Lotion / Cream","Body Oil"], treatment:["Body Scrub / Exfoliant"], friction:["Body Powder / Dusting Powder","Body Butter","Body Lotion / Cream","Body Oil"], deodorize:["Deodorant"], fragrance:["Perfume / Scents"] }
+      body: { cleanse:["Body Wash / Bar Soap"], moisturize:["Body Butter","Body Lotion / Cream"], treatment:["Body Treatment","Body Scrub / Exfoliant"], protect:["Body Sunscreen"], friction:["Body Powder / Dusting Powder","Body Butter","Body Lotion / Cream"], deodorize:["Deodorant"], fragrance:["Perfume / Scents"] }
     });
     function canonicalProductDomain(item) {
       if (!item || !item.category) return null;
@@ -1252,6 +1252,8 @@
  domain: String(i.domain || "").slice(0, 12),
  brand: String(i.brand || "").slice(0, 60),
  notes: String(i.notes || "").slice(0, 180),
+ ingredients: Array.isArray(i.ingredients) ? i.ingredients.slice(0, 100).map(x => String(x).slice(0, 100)) : [],
+ ingredientsVerified: i.ingredientsVerified === true,
  entryMethods: Array.isArray(i.entryMethods) ? i.entryMethods : (i.entryMethod ? [i.entryMethod] : [])
  }));
  }
@@ -1413,30 +1415,12 @@
  }
 
     const BLACK_HAIR_CHEMISTRY_RULES = [
-      {
-        title: "Relaxer Chemistry (Lye Sodium Hydroxide vs. No-Lye Calcium/Guanidine Hydroxide)",
-        note: "Relaxers permanently cleave disulfide bonds (lanthionization) and raise hair pH to 12–14. Always follow with an acidic neutralizing shampoo (with pH color indicator) to restore hair's natural 4.5–5.5 pH, then replenish hydrolyzed protein and moisture. Never overlap relaxer onto previously relaxed hair or apply close to bleaching/lightening."
-      },
-      {
-        title: "Relaxed + Bleached / Honey-Blonde Dyed Hair (Dual-Process Care)",
-        note: "Lightening oxidizes melanin and weakens disulfide bonds; combining relaxer + dye/bleach creates high porosity and fragile temple/line-of-demarcation zones. Alternate bond builders (bis-aminopropyl diglycol dimaleate, citric/maleic acid), mild hydrolyzed protein (keratin/silk amino acids), and rich emollient conditioners; avoid high-heat passes without silicone/polymer thermal shields."
-      },
-      {
-        title: "Protein vs. Moisture Balance & Porosity Chemistry",
-        note: "High-porosity or chemically processed strands absorb water fast and lose it fast—layer water-based leave-in (humectant/amino acids) -> creamy moisturizer -> light oil/butter sealant (LCO/LOC) to slow cuticle water loss. Low-porosity coily strands resist water due to tight cuticles—use warm water, steam, and lightweight humectants while avoiding heavy raw butters that sit on top and block hydration."
-      },
-      {
-        title: "Chelating vs. Clarifying Surfactant Chemistry",
-        note: "Hard water calcium/magnesium ions bind to negatively charged damaged cuticles, causing brassiness, dryness, and relaxer/color interference. Use a chelating shampoo (EDTA, phytic acid, sodium gluconate) monthly, and sulfate-free gentle surfactants (cocamidopropyl betaine, sodium cocoyl isethionate, decyl glucoside) for regular washes so sebum isn't stripped from naturally drier elliptical Type 4 shafts."
-      },
-      {
-        title: "Sebum Transport, Scalp Microbiome & Protective Styles (Wigs & Braids)",
-        note: "Tightly coiled hair's elliptical cross-section and twists slow natural scalp sebum from traveling down the hair shaft, making ends dry while product/sweat accumulates at the scalp under wigs or braids. Keep scalp pH balanced (4.5–5.5) with diluted micellar/salicylic or witch-hazel cleansers, avoid heavy petrolatum/mineral oil on scalp pores, and protect fragile vellus temple hairs with satin/velvet wig grips."
-      },
-      {
-        title: "Humectants, Dew Point & Anti-Frizz Polymer Chemistry",
-        note: "In very low dew points (<35°F), high-glycerin leave-ins can pull moisture out of the hair shaft; in very high humidity (>70%), simple humectants draw excess water and swell the cuticle (reversion/frizz). Match dew point with film-forming humectants (flaxseed, aloe, marshmallow root, polyquaterniums) and humidity-blocking silicones/light oils."
-      }
+      { title: "Relaxer Chemistry and Neutralization", note: "Hydroxide relaxers permanently alter hair structure through lanthionization and high-pH processing. Follow the exact manufacturer's timing, application, and neutralizing-shampoo directions; do not rely on a generic home pH test. Never overlap relaxer onto previously relaxed lengths. Chemical services on hair that is also bleached or heavily lightened carry elevated breakage risk and should be assessed by an experienced licensed stylist before proceeding." },
+      { title: "Relaxed, Bleached, and Color-Treated Hair", note: "Relaxing and oxidative lightening both stress the hair fiber through different chemical mechanisms. Avoid combining services or overlapping chemicals without an in-person strand and scalp assessment by a qualified professional. Bond-building products may improve manageability or reduce some damage but do not restore hair to an unprocessed state." },
+      { title: "Protein, Conditioning, and Moisture", note: "Hair needs conditioning, lubrication, and reduced mechanical stress; no single protein-versus-moisture schedule fits everyone. Adjust based on feel, breakage, product directions, and chemical history. Avoid layering many heavy products when buildup or stiffness is already present." },
+      { title: "Clarifying and Chelating", note: "Use a clarifying shampoo when styling-product buildup is present and a chelating product when hard-water mineral deposits are a concern. Frequency depends on water, products, scalp condition, and hair response; monthly use is not a universal rule. Follow with conditioner, especially on chemically treated lengths." },
+      { title: "Scalp Care Under Wigs and Braids", note: "Keep the scalp clean and monitor for itching, tenderness, bumps, odor, or scaling. Avoid tight installation, persistent friction, and heavy product buildup. Oils do not treat every scalp condition; persistent inflammation, pain, sores, or patchy loss warrant assessment by a dermatologist." },
+      { title: "Humidity, Humectants, and Styling", note: "Humidity and weather can affect style hold and frizz, but there is no universal dew-point threshold at which glycerin damages hair. Choose products by observed performance, hair condition, and label directions rather than rigid weather cutoffs." }
     ];
 
     const BRAND_SYSTEM_SETS = [
@@ -2082,7 +2066,8 @@
       if (bodySelected) {
         bodyRoutine.push(step('Shower — gentle cleanse', 'Use a mild body cleanser and avoid aggressive scrubbing, especially on irritated or freshly shaved skin.', owned('body', /body wash|bar soap|cleanser/i)));
         bodyRoutine.push(step('After shower — moisturize', 'Apply a body lotion or cream to slightly damp skin. Use richer products only where needed.', owned('body', /body lotion|cream|butter|moisturizer/i)));
-        if (/kp|rough|ingrown|razor|dark mark|uneven|breakout/.test(bodyText)) bodyRoutine.push(step('Targeted body care — selected concern only', 'Use one suitable body treatment for the specific bumps, ingrowns, or dark marks, following its label. Do not apply acids to freshly shaved, broken, or irritated skin; avoid stacking multiple exfoliants.', owned('body', /body scrub|exfoliant|treatment|lotion.*acid/i), false));
+        if (/kp|rough|ingrown|razor|dark mark|uneven|breakout|acne/.test(bodyText)) bodyRoutine.push(step('Targeted body treatment — selected concern only', 'Choose one treatment formulated for the actual concern: a keratolytic leave-on for rough follicular bumps, an acne-directed wash or leave-on for body acne, or an ingrown-hair product for shaving-related bumps. Follow the label; do not apply acids to freshly shaved, broken, or irritated skin, and do not stack exfoliants.', owned('body', /body treatment|body scrub|exfoliant/i), false));
+        if (/dark mark|hyperpigmentation|uneven/.test(bodyText)) bodyRoutine.push(step('Daytime — protect exposed areas', 'Apply broad-spectrum SPF 30+ to exposed areas where dark marks are being treated and reapply as directed outdoors.', owned('body', /body sunscreen/i), false));
         if (/chaf|sweat|friction/.test(bodyText)) bodyRoutine.push(step('Friction zones — reduce rubbing', 'Apply a simple friction barrier to intact skin where clothing rubs. Keep powders away from inhalation and broken or irritated skin.', owned('body', /body powder|body butter|body oil|body lotion/i), false));
       }
       return { climateImpact:'Routine steps are based on the concerns you selected; climate is only a secondary adjustment.', rootCauseInsights:[], hairAssessment:hairSelected ? `Hair routine focus: ${hairConcerns.join(', ') || 'your relevant check-in trigger'}.` : '', skinAssessment:faceSelected ? `Face routine focus: ${faceConcerns.join(', ') || 'your relevant check-in trigger'}.` : '', selectedConcerns:{hair:hairConcerns,face:faceConcerns,body:bodyConcerns}, hairRoutine,skinRoutine,bodyRoutine, stylingGuide:{method:state.selectedStylingMethod,prepAndProtection:'Use a dedicated heat protectant before direct heat; keep tension gentle around the hairline.',recommendedProducts:[],techniqueAndTakedown:'Work in sections, avoid painful tension, and remove styles gently.'},proTreatments:[],missingProducts:[] };
@@ -2116,6 +2101,7 @@
           if (/moistur|cream|barrier|recover/.test(t)) return 'moisturize';
         } else if (domain === 'body') {
           if (/cleanse|shower|wash|soap/.test(t)) return 'cleanse';
+          if (/sunscreen|spf|protect exposed/.test(t)) return 'protect';
           if (/friction|powder/.test(t)) return 'friction';
           if (/deodorant|underarm/.test(t)) return 'deodorize';
           if (/perfume|fragrance|scent/.test(t)) return 'fragrance';
@@ -2215,6 +2201,10 @@
       const box = document.getElementById("aiResultContainer");
       const fallbackPlan = buildConcernRoutinePlan();
       const sourceR = r && typeof r === "object" ? r : fallbackPlan;
+      const review = sourceR.compatibilityReview || {};
+      const compatibilityMarkup = (review.warnings || []).length || (review.unverifiedProducts || []).length
+        ? `<div class="p-3 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] space-y-1.5"><div class="text-xs font-bold">Ingredient compatibility check</div>${(review.warnings || []).map(w => `<div class="text-xs text-[#8A5E1B]"><strong>Use caution:</strong> ${escapeAttr((w.products || []).join(" + "))}. ${escapeAttr(w.message || "")}</div>`).join("")}${(review.unverifiedProducts || []).length ? `<div class="text-[11px] text-[#726862]">Full ingredient lists are not verified for: ${escapeAttr(review.unverifiedProducts.join(", "))}. Formula compatibility for these products cannot be confirmed from the product name alone.</div>` : ""}</div>`
+        : (review.status === "reviewed_no_flagged_pair" ? `<div class="text-[11px] text-[#726862]">Ingredient check: no flagged pair was identified in the verified ingredient lists. This does not guarantee compatibility or rule out irritation.</div>` : `<div class="text-[11px] text-[#726862]">Ingredient compatibility has not been verified; complete ingredient lists are needed before confirming formula pairings.</div>`);
 
       const fullHairSteps = fallbackPlan.hairRoutine.length ? ensureNonEmptySteps(sourceR.hairRoutine, fallbackPlan.hairRoutine, "hair") : [];
       const fullSkinSteps = fallbackPlan.skinRoutine.length ? ensureNonEmptySteps(sourceR.skinRoutine, fallbackPlan.skinRoutine, "skin") : [];
@@ -2257,6 +2247,7 @@
           else if (/moistur|recover/.test(title)) role = 'moisturize';
         } else if (domain === 'body') {
           if (/cleanse|shower/.test(title)) role = 'cleanse';
+          else if (/sunscreen|spf|protect exposed/.test(title)) role = 'protect';
           else if (/friction|powder/.test(title)) role = 'friction';
           else if (/deodorant/.test(title)) role = 'deodorize';
           else if (/fragrance|perfume|scent/.test(title)) role = 'fragrance';
@@ -2274,6 +2265,8 @@
             <h3 class="text-sm font-bold">Tailored Care &amp; Styling Plan</h3>
             <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#F8F3EA] text-[#8A5E1B]">${escapeAttr(state.currentHairState)}</span>
           </div>
+
+          ${compatibilityMarkup}
 
           ${(sourceR.rootCauseInsights && sourceR.rootCauseInsights.length) ? `<div class="space-y-1.5"><h4 class="text-xs font-bold uppercase text-[#726862]">Root Causes &amp; Fixes</h4>${sourceR.rootCauseInsights.map(rc => `<div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs"><div class="font-bold">${escapeAttr(cleanFalseStashLackNote(rc.cause))}</div><div class="text-[#594E47] mt-0.5">${escapeAttr(cleanFalseStashLackNote(rc.fix))}</div></div>`).join("")}</div>` : ""}
 
@@ -2537,9 +2530,11 @@
  ...prevItem,
  name: item.name || prevItem.name,
  brand: item.brand || prevItem.brand || "",
- domain: nextDomain === "unclassified" ? (prevItem.domain || "unclassified") : nextDomain,
- category: nextCategory === "Other" ? (prevItem.category || "Other") : nextCategory,
+ domain: nextDomain,
+ category: nextCategory,
  notes: nextNotes || prevItem.notes || "",
+ ingredients: Array.isArray(item.ingredients) ? item.ingredients.slice(0, 100) : [],
+ ingredientsVerified: item.ingredientsVerified === true && Array.isArray(item.ingredients) && item.ingredients.length >= 3,
  entryMethods: [...new Set([...(prevItem.entryMethods || (prevItem.entryMethod ? [prevItem.entryMethod] : [])), "phone-scan"])]
  };
  saveState();
@@ -2557,6 +2552,8 @@
  domain: nextDomain,
  category: nextCategory,
  notes: nextNotes,
+ ingredients: Array.isArray(item.ingredients) ? item.ingredients.slice(0, 100) : [],
+ ingredientsVerified: item.ingredientsVerified === true && Array.isArray(item.ingredients) && item.ingredients.length >= 3,
  entryMethod: "phone-scan",
  entryMethods: ["phone-scan"]
  });
@@ -2623,6 +2620,8 @@
  domain: normalizeProductClassification(domainEl ? domainEl.value : "hair", catEl ? catEl.value : "Other", domainEl ? domainEl.value : "hair").domain,
  category: catEl ? catEl.value : "Other",
  notes: "",
+ ingredients: [],
+ ingredientsVerified: false,
  entryMethod: "manual",
  entryMethods: ["manual"]
  });
@@ -2899,7 +2898,7 @@
  id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
  name: item.name,
  brand: "",
- domain: ["hair", "skin", "body"].includes(item.domain) ? item.domain : "hair",
+ domain: ["hair", "skin", "body"].includes(item.domain) ? item.domain : "unclassified",
  category: item.category || "Other",
  notes: `${item.price || ""} at ${item.bestStore || ""}`.trim()
  });

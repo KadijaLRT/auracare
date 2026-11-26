@@ -1,4 +1,4 @@
-# AuraCare — Black Hair Chemistry, Face & Body Studio (v2.59.0)
+# AuraCare — Black Hair Chemistry, Face & Body Studio (v2.60.1)
 
 ## Recommendation standards
 - Recommendations are tailored to textured/Black hair, scalp care, and melanin-rich skin using profile, routine, sensitivity, chemical/color history, styling, climate, and stash context.
@@ -79,3 +79,12 @@ Version 2.57 builds a fragrance preference profile from the perfumes and body mi
 - Offline/local routine fallback now follows the same concern-selected domains as the normal routine renderer; it no longer generates all three care routines by default.
 - Ambiguous generic “Moisturizer” scan results are not guessed into face/body care; hair-specific scans should use “Hair Moisturizer”, while face and body use their explicit categories.
 - Ambiguous generic “Moisturizer” scan results are not guessed into face/body care; use “Hair Moisturizer”, “Face Moisturizer”, or a body-specific category.
+
+## Version 2.60.1 — routine chemistry and evidence safeguards
+- Product-photo scans can retain a full ingredient panel separately from partial key ingredients; compatibility checks use only ingredient lists explicitly read from a legible label. Product-name lookups and manual entries are not treated as verified ingredient lists.
+- Routine output now includes conservative flags for verified retinoid + exfoliating-acid combinations, multiple exfoliants, and benzoyl peroxide + L-ascorbic acid. These are tolerance/oxidation cautions, not blanket claims of universal incompatibility.
+- The UI explicitly identifies products whose complete ingredient lists are unavailable and does not claim formula compatibility from a product name alone.
+- Added distinct Body Treatment and Body Sunscreen categories, step-role matching, targeted body-care steps, and exposed-area sun protection for relevant pigmentation concerns.
+- Split face AM cleanse, moisturize, and broad-spectrum SPF 30+ into separate fallback steps.
+- Corrected overgeneralized hair-chemistry guidance: no universal monthly chelation rule, dew-point cutoff, or one-size-fits-all protein/moisture schedule.
+- A rescan that cannot confidently classify an existing stash product now leaves it unclassified rather than preserving an earlier possibly incorrect domain.
