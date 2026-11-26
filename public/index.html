@@ -9,7 +9,7 @@
  <meta name="theme-color" content="#FAF8F5" />
  <link rel="manifest" href="/manifest.json" />
  <link rel="apple-touch-icon" href="/icon.svg" />
- <title>AuraCare v2.57 — Collection-Learned Scent Profile</title>
+ <title>AuraCare v2.59 — Domain-Safe Care Routines</title>
  <script src="https://cdn.tailwindcss.com"></script>
  <style>
  :root {
@@ -559,13 +559,59 @@
 
  const STASH_CATEGORIES = [
  // Hair (A-Z)
- "Bond Repair", "Clarifying / Chelating Shampoo", "Conditioner", "Deep Conditioner", "Edge Control / Wax", "Hair Dye", "Hair Gel", "Hair Oil / Sealant", "Hair Relaxer", "Heat Protectant", "Leave-In / Mist", "Moisturizer", "Oil Sheen", "Protein Treatment", "Setting Mousse / Foam / Lotion", "Shampoo", "Wig / Braid Scalp & Edge Care",
+ "Bond Repair", "Clarifying / Chelating Shampoo", "Conditioner", "Deep Conditioner", "Edge Control / Wax", "Hair Dye", "Hair Gel", "Hair Oil / Sealant", "Hair Relaxer", "Heat Protectant", "Leave-In / Mist", "Hair Moisturizer", "Moisturizer", "Oil Sheen", "Protein Treatment", "Setting Mousse / Foam / Lotion", "Shampoo", "Wig / Braid Scalp & Edge Care",
  // Face (A-Z)
  "Face Cleanser", "Face Moisturizer", "Face Treatment", "Sunscreen",
  // Body (A-Z)
  "Body Butter", "Body Lotion / Cream", "Body Oil", "Body Powder / Dusting Powder", "Body Scrub / Exfoliant", "Body Wash / Bar Soap", "Deodorant", "Perfume / Scents",
  "Other"
  ];
+
+    // Category, not broad product-name words, determines the care domain.
+    const CATEGORY_DOMAIN = Object.freeze({
+      "Bond Repair":"hair", "Clarifying / Chelating Shampoo":"hair", "Conditioner":"hair", "Deep Conditioner":"hair", "Edge Control / Wax":"hair", "Hair Dye":"hair", "Hair Gel":"hair", "Hair Oil / Sealant":"hair", "Hair Relaxer":"hair", "Heat Protectant":"hair", "Leave-In / Mist":"hair", "Hair Moisturizer":"hair", "Moisturizer":"hair", "Oil Sheen":"hair", "Protein Treatment":"hair", "Setting Mousse / Foam / Lotion":"hair", "Shampoo":"hair", "Wig / Braid Scalp & Edge Care":"hair",
+      "Face Cleanser":"skin", "Face Moisturizer":"skin", "Face Treatment":"skin", "Sunscreen":"skin",
+      "Body Butter":"body", "Body Lotion / Cream":"body", "Body Oil":"body", "Body Powder / Dusting Powder":"body", "Body Scrub / Exfoliant":"body", "Body Wash / Bar Soap":"body", "Deodorant":"body", "Perfume / Scents":"body"
+    });
+    const ROUTINE_ROLE_CATEGORIES = Object.freeze({
+      hair: {
+        cleanse:["Shampoo","Clarifying / Chelating Shampoo"], condition:["Conditioner","Deep Conditioner"],
+        leavein:["Leave-In / Mist","Hair Moisturizer","Moisturizer"], heat:["Heat Protectant"],
+        style:["Hair Gel","Setting Mousse / Foam / Lotion","Edge Control / Wax","Oil Sheen"],
+        treat:["Bond Repair","Protein Treatment"], seal:["Hair Oil / Sealant","Oil Sheen","Wig / Braid Scalp & Edge Care"]
+      },
+      skin: { cleanse:["Face Cleanser"], moisturize:["Face Moisturizer"], treatment:["Face Treatment"], protect:["Sunscreen"] },
+      body: { cleanse:["Body Wash / Bar Soap"], moisturize:["Body Butter","Body Lotion / Cream","Body Oil"], treatment:["Body Scrub / Exfoliant"], friction:["Body Powder / Dusting Powder","Body Butter","Body Lotion / Cream","Body Oil"], deodorize:["Deodorant"], fragrance:["Perfume / Scents"] }
+    });
+    function canonicalProductDomain(item) {
+      if (!item || !item.category) return null;
+      const categoryDomain = CATEGORY_DOMAIN[String(item.category).trim()];
+      if (!categoryDomain) return null; // Other/unknown remains unclassified.
+      return item.domain === categoryDomain ? categoryDomain : null; // Reject conflicting metadata.
+    }
+    function productMatchesRoutineRole(item, domain, role) {
+      if (canonicalProductDomain(item) !== domain) return false;
+      const allowed = ROUTINE_ROLE_CATEGORIES[domain]?.[role] || [];
+      return allowed.includes(String(item.category || '').trim());
+    }
+    function findOwnedRoutineProduct(domain, role, inventory = state.inventory) {
+      return (Array.isArray(inventory) ? inventory : []).find(item => productMatchesRoutineRole(item, domain, role)) || null;
+    }
+    function normalizeProductClassification(domain, category, fallbackDomain = null) {
+      const cleanCategory = String(category || '').trim();
+      const suppliedDomain = ['hair','skin','body'].includes(domain) ? domain : null;
+      // The legacy category "Moisturizer" is ambiguous outside an explicitly hair-classified entry.
+      if (cleanCategory === 'Moisturizer' && suppliedDomain !== 'hair' && fallbackDomain !== 'hair') {
+        return { domain: 'unclassified', category: 'Other', classified: false };
+      }
+      const mapped = CATEGORY_DOMAIN[cleanCategory];
+      if (mapped) return { domain: mapped, category: cleanCategory, classified: true };
+      if (cleanCategory === 'Other' && ['hair','skin','body'].includes(fallbackDomain)) {
+        return { domain: fallbackDomain, category: 'Other', classified: false };
+      }
+      return { domain: 'unclassified', category: 'Other', classified: false };
+    }
+
 
  function createBlankState() {
  return {
@@ -848,7 +894,7 @@
  const storeBox = document.getElementById("chips_stores");
  storeBox.innerHTML = ALL_STORES.map(store => {
  const active = (state.shoppingPrefs.stores || []).includes(store);
- return `<button type="button" onclick="toggleStorePref('${encodeURIComponent(store)}')"\\\\\").replace(/'/g, \"\\'\")\}')" class="text-[11px] px-2.5 py-1.5 rounded-full border font-semibold transition ${active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#594E47] border-[#DDD4C8]"}">${active ? "✓ " : "+ "}${store}</button>`;
+ return `<button type="button" onclick="toggleStorePref('${encodeURIComponent(store)}')" class="text-[11px] px-2.5 py-1.5 rounded-full border font-semibold transition ${active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#594E47] border-[#DDD4C8]"}">${active ? "✓ " : "+ "}${store}</button>`;
  }).join("");
 
  renderChipGroup("chips_proPrefs", PROFILE_OPTIONS.proPrefs, p.proPrefs, true, "toggleMultiOption", "proPrefs");
@@ -865,7 +911,7 @@
  const box = document.getElementById("hairModeChipsBox");
  box.innerHTML = HAIR_PROTECTIVE_MODES.map(m => {
  const active = state.currentHairState === m;
- return `<button type="button" onclick="setHairState('${encodeURIComponent(m)}')"\\\\\").replace(/'/g, \"\\'\")\}')" class="text-[11px] px-2.5 py-1 rounded-full border font-semibold ${active ? "bg-[#A9772B] text-white border-[#A9772B]" : "bg-white text-[#594E47] border-[#DDD4C8]"}">${active ? "✓ " : ""}${m}</button>`;
+ return `<button type="button" onclick="setHairState('${encodeURIComponent(m)}')" class="text-[11px] px-2.5 py-1 rounded-full border font-semibold ${active ? "bg-[#A9772B] text-white border-[#A9772B]" : "bg-white text-[#594E47] border-[#DDD4C8]"}">${active ? "✓ " : ""}${m}</button>`;
  }).join("");
  }
 
@@ -951,8 +997,7 @@
  saveProfileNow(true);
  }
 
- function renderProfileSummary() {
- const p = state.profile;
+ function renderProfileSummary() { const p = state.profile;
  const storesList = getEffectiveStores();
  const entries = [
  ["Basics", [p.ageRange, ...(p.skinTone || []), p.city].filter(Boolean).join(" • ")],
@@ -1134,14 +1179,14 @@
  const box = document.getElementById("triggerChipsBox");
  box.innerHTML = TRIGGER_FACTORS.map(t => {
  const active = state.activeTriggers.includes(t.label);
- return `<button type="button" onclick="toggleTrigger('${encodeURIComponent(t.label)}')"\\\\\").replace(/'/g, \"\\'\")\}')" class="text-[11px] px-2.5 py-1 rounded-full border font-semibold ${active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#594E47] border-[#DDD4C8]"}">${active ? "✓ " : "+ "}${t.label}</button>`;
+ return `<button type="button" onclick="toggleTrigger('${encodeURIComponent(t.label)}')" class="text-[11px] px-2.5 py-1 rounded-full border font-semibold ${active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#594E47] border-[#DDD4C8]"}">${active ? "✓ " : "+ "}${t.label}</button>`;
  }).join("");
  const chemBox = document.getElementById("hairChemistryBox"); if (chemBox) chemBox.innerHTML = BLACK_HAIR_CHEMISTRY_RULES.map(c => `<div class="p-3 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9]"><div class="font-bold text-[#8A5E1B]">${c.title}</div><div class="text-[#594E47] mt-0.5">${c.note}</div></div>`).join("");
  document.getElementById("stylingReferenceBox").innerHTML = STYLING_REFERENCE_GUIDE.map(sg => `<div class="p-3 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9]"><div class="font-bold text-[#231F1D]">${sg.title}</div><div class="text-[#594E47] mt-0.5">${sg.note}</div></div>`).join("");
  document.getElementById("proGuidanceBox").innerHTML = PRO_CATEGORIES.map(pc => `<div class="p-3 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9]"><div class="font-bold text-[#A9772B]">${pc.provider}</div><div class="text-[#594E47] mt-0.5">${pc.focus}</div></div>`).join("");
  document.getElementById("rootCauseCardsBox").innerHTML = TRIGGER_FACTORS.map(t => {
  const active = state.activeTriggers.includes(t.label);
- return `<div class="p-3 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] flex items-start justify-between gap-2"><div><div class="text-xs font-bold">${t.label} <span class="text-[10px] uppercase text-[#726862]">(${t.domain})</span></div><div class="text-xs text-[#594E47] mt-0.5">${t.note}</div></div><button type="button" onclick="toggleTrigger('${encodeURIComponent(t.label)}')"\\\\\").replace(/'/g, \"\\'\")\}')" class="text-[11px] font-semibold px-2 py-1 rounded-lg border shrink-0 ${active ? "bg-[#231F1D] text-white" : "bg-white"}">${active ? "Active" : "Track"}</button></div>`;
+ return `<div class="p-3 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] flex items-start justify-between gap-2"><div><div class="text-xs font-bold">${t.label} <span class="text-[10px] uppercase text-[#726862]">(${t.domain})</span></div><div class="text-xs text-[#594E47] mt-0.5">${t.note}</div></div><button type="button" onclick="toggleTrigger('${encodeURIComponent(t.label)}')" class="text-[11px] font-semibold px-2 py-1 rounded-lg border shrink-0 ${active ? "bg-[#231F1D] text-white" : "bg-white"}">${active ? "Active" : "Track"}</button></div>`;
  }).join("");
  }
 
@@ -1504,7 +1549,7 @@
         const ownedInSet = [];
         const missingInSet = [];
         sys.steps.forEach(st => {
-          const match = inv.find(i => i.domain === sys.domain && sys.brandKey && String(i.name || "").toLowerCase().includes(sys.brandKey) && st.regex.test(String(i.name || "")));
+          const match = inv.find(i => canonicalProductDomain(i) === sys.domain && String(i.category || '') === String(st.category || '') && sys.brandKey && String(i.name || "").toLowerCase().includes(sys.brandKey) && st.regex.test(String(i.name || "")));
           if (match) ownedInSet.push({ role: st.role, item: match });
           else missingInSet.push(st);
         });
@@ -1522,7 +1567,7 @@
       BRAND_SYSTEM_SETS.forEach(sys => {
         const triggered = out.some(rec => sys.steps.some(step => step.regex.test(String(rec.name || ""))));
         if (!triggered) return;
-        const matches = sys.steps.map(step => ({ step, owned: inv.find(item => item.domain === sys.domain && step.regex.test(String(item.name || ""))) || null }));
+        const matches = sys.steps.map(step => ({ step, owned: inv.find(item => canonicalProductDomain(item) === sys.domain && String(item.category || '') === String(step.category || '') && step.regex.test(String(item.name || ""))) || null }));
         const missing = matches.filter(x => !x.owned);
         const total = missing.reduce((sum, x) => sum + Number(x.step.priceNum || 0), 0);
         matches.forEach(({ step, owned }) => {
@@ -1845,11 +1890,7 @@
 
     function findStashItemByKeyword(domain, keywordsRegex) {
       const inv = Array.isArray(state.inventory) ? state.inventory : [];
-      return inv.find(i => {
-        if (!i || !i.name) return false;
-        if (domain && domain !== "all" && i.domain !== domain) return false;
-        return keywordsRegex.test(`${i.category || ""} ${i.name || ""}`);
-      }) || null;
+      return inv.find(i => i && i.name && canonicalProductDomain(i) === domain && keywordsRegex.test(String(i.category || ""))) || null;
     }
 
     function resolveStepProduct({ domain, roleHint, keywordsRegex, fallbackCategory, maxPrice, stores, inventory, triggers, profile, additionsCollector }) {
@@ -1857,13 +1898,13 @@
       for (const act of activeSystems) {
         if (roleHint) {
           const ownedRole = act.owned.find(o => o.role === roleHint);
-          if (ownedRole) {
+          if (ownedRole && productMatchesRoutineRole(ownedRole.item, domain, roleHint)) {
             return {
               source: "stash",
               label: `${ownedRole.item.name} (${act.system.brandLabel} — From Stash)`
             };
           }
-          const missingRole = act.missing.find(m => m.role === roleHint);
+          const missingRole = act.missing.find(m => m.role === roleHint && (ROUTINE_ROLE_CATEGORIES[domain]?.[roleHint] || []).includes(m.category));
           if (missingRole) {
             const st = (stores || []).find(s => missingRole.stores.map(x => x.toLowerCase()).includes(s.toLowerCase())) || missingRole.stores[0] || "Target";
             const priceStr = `$${missingRole.priceNum.toFixed(2)}`;
@@ -1896,14 +1937,7 @@
           label: `${owned.name} (From Stash)`
         };
       }
-      const domainItems = (inventory || []).filter(i => i.domain === domain && i.name);
-      if (domainItems.length) {
-        const fallbackOwned = domainItems[0];
-        return {
-          source: "stash",
-          label: `${fallbackOwned.name} (From Stash)`
-        };
-      }
+      const roleCategories = roleHint ? (ROUTINE_ROLE_CATEGORIES[domain]?.[roleHint] || []) : [];
       const candidates = pickRelevantCatalogItems({
         domain,
         maxPrice,
@@ -1911,9 +1945,10 @@
         inventory,
         triggers: [fallbackCategory, ...(triggers || [])],
         profile,
-        limit: 1
-      });
-      const rec = candidates[0] || CATALOG_CANDIDATES.find(c => c.domain === domain) || CATALOG_CANDIDATES[0];
+        limit: 12
+      }).filter(item => roleCategories.includes(String(item.category || '')));
+      const rec = candidates[0];
+      if (!rec) return { source: "missing", label: "Not in your stash — no verified role match" };
       const st = (stores || []).find(s => rec.stores && rec.stores.map(x => x.toLowerCase()).includes(s.toLowerCase()))
         || rec.bestStore
         || (rec.stores && rec.stores[0])
@@ -1961,8 +1996,7 @@
               domain: act.system.domain,
               category: m.category,
               price: `$${m.priceNum.toFixed(2)}`,
-              numericPrice: m.priceNum,
-              bestStore: st,
+              numericPrice: m.priceNum,              bestStore: st,
               alsoAt: m.stores.filter(s => s.toLowerCase() !== st.toLowerCase()).slice(0, 2).join(", "),
               store: st,
               estimatedPrice: `$${m.priceNum.toFixed(2)}`,
@@ -1990,200 +2024,17 @@
     }
 
     function buildLocalCheckinFallback() {
-      const inv = Array.isArray(state.inventory) ? state.inventory : [];
-      const maxP = Number(state.shoppingPrefs?.maxPrice) || 30;
-      const stores = getEffectiveStores();
-      const additions = [];
-
-      const hairCleanPick = resolveStepProduct({
-        domain: "hair",
-        roleHint: "cleanse",
-        keywordsRegex: /shampoo|cleanser|clarifying|bond repair/i,
-        fallbackCategory: "Bond Repair",
-        maxPrice: maxP,
-        stores,
-        inventory: inv,
-        triggers: state.activeTriggers,
-        profile: state.profile,
-        additionsCollector: additions
-      });
-      const hairCondPick = resolveStepProduct({
-        domain: "hair",
-        roleHint: "condition",
-        keywordsRegex: /conditioner|deep conditioner|leave-in|mist|moisturizer/i,
-        fallbackCategory: "Leave-In / Mist",
-        maxPrice: maxP,
-        stores,
-        inventory: inv,
-        triggers: state.activeTriggers,
-        profile: state.profile,
-        additionsCollector: additions
-      });
-      const hairStylePick = resolveStepProduct({
-        domain: "hair",
-        roleHint: "style",
-        keywordsRegex: /oil sheen|sheen|gel|edge|wax|oil|heat|custard|mousse/i,
-        fallbackCategory: "Oil Sheen",
-        maxPrice: maxP,
-        stores,
-        inventory: inv,
-        triggers: state.activeTriggers,
-        profile: state.profile,
-        additionsCollector: additions
-      });
-
-      const skinCleanPick = resolveStepProduct({
-        domain: "skin",
-        roleHint: "cleanse",
-        keywordsRegex: /cleanser|wash/i,
-        fallbackCategory: "Face Cleanser",
-        maxPrice: maxP,
-        stores,
-        inventory: inv,
-        triggers: state.activeTriggers,
-        profile: state.profile,
-        additionsCollector: additions
-      });
-      const skinMoistPick = resolveStepProduct({
-        domain: "skin",
-        roleHint: "moisturize",
-        keywordsRegex: /moisturizer|cream|lotion|sunscreen|spf|treatment/i,
-        fallbackCategory: "Face Moisturizer",
-        maxPrice: maxP,
-        stores,
-        inventory: inv,
-        triggers: state.activeTriggers,
-        profile: state.profile,
-        additionsCollector: additions
-      });
-
-      const bodyCleanPick = resolveStepProduct({
-        domain: "body",
-        roleHint: "cleanse",
-        keywordsRegex: /wash|soap|scrub|cleanser/i,
-        fallbackCategory: "Body Wash / Bar Soap",
-        maxPrice: maxP,
-        stores,
-        inventory: inv,
-        triggers: state.activeTriggers,
-        profile: state.profile,
-        additionsCollector: additions
-      });
-      const bodyMoistPick = resolveStepProduct({
-        domain: "body",
-        roleHint: "moisturize",
-        keywordsRegex: /lotion|butter|oil|powder/i,
-        fallbackCategory: "Body Lotion / Cream",
-        maxPrice: maxP,
-        stores,
-        inventory: inv,
-        triggers: state.activeTriggers,
-        profile: state.profile,
-        additionsCollector: additions
-      });
-
-      const bodyDeoPick = resolveStepProduct({
-        domain: "body",
-        keywordsRegex: /deodorant|antiperspirant/i,
-        fallbackCategory: "Deodorant",
-        maxPrice: maxP,
-        stores,
-        inventory: inv,
-        triggers: state.activeTriggers,
-        profile: state.profile,
-        additionsCollector: additions
-      });
-      const bodyScentPick = resolveStepProduct({
-        domain: "body",
-        keywordsRegex: /perfume|scent|fragrance|cologne|body mist/i,
-        fallbackCategory: "Perfume / Scents",
-        maxPrice: maxP,
-        stores,
-        inventory: inv,
-        triggers: state.activeTriggers,
-        profile: state.profile,
-        additionsCollector: additions
-      });
-
-      const allRecs = additions.length ? additions : getMissingStashRecommendations();
-
-      return {
-        climateImpact: state.profile.city
-          ? `Using ${state.profile.city} conditions (${state.weather?.tempF ?? "--"}°F, ${state.weather?.humidity ?? "--"}% humidity, AQI ${state.weather?.aqi ?? "--"})—layer water-based hydration before oils/butters so products absorb without buildup.`
-          : "Set your city in Profile & Pro for live weather and AQI adjustments.",
-        rootCauseInsights: (state.activeTriggers && state.activeTriggers.length ? state.activeTriggers : ["Routine balance"]).slice(0, 3).map(t => ({
-          cause: t,
-          fix: "Follow thin-to-thick order using your stash items or the matched store recommendations below without mixing clashing formulas."
-        })),
-        hairAssessment: `Hair mode: ${state.currentHairState}. Every step is paired with an owned stash item or store pick.`,
-        skinAssessment: "Face routine uses owned stash items or matched store picks in thin-to-thick order.",
-        hairRoutine: [
-          {
-            step: "Step 1: Prep & Cleanse",
-            detail: `Start with ${hairCleanPick.label} using a measured amount for ${state.currentHairState}, then rinse cleanly.`,
-            productUsed: hairCleanPick.label,
-            essential: true
-          },
-          {
-            step: "Step 2: Moisture & Conditioning",
-            detail: `Apply ${hairCondPick.label} on damp strands to boost slip and moisture retention before sealing.`,
-            productUsed: hairCondPick.label,
-            essential: true
-          },
-          {
-            step: "Step 3: Style & Seal",
-            detail: `Finish with ${hairStylePick.label} suited to ${state.selectedStylingMethod} in light, even layers.`,
-            productUsed: hairStylePick.label,
-            essential: false
-          }
-        ],
-        stylingGuide: {
-          method: state.selectedStylingMethod,
-          prepAndProtection: `Prep with ${hairCondPick.label} and apply measured amounts so strands stay soft without weighing down.`,
-          recommendedProducts: allRecs.filter(s => s.domain === "hair").slice(0, 2).map(s => ({
-            productType: s.category || "Store Recommendation",
-            suggestion: `${s.name} (${s.estimatedPrice || s.price}) at ${s.bestStore || s.store}`,
-            howToUse: s.reason || s.whyItFits
-          })),
-          techniqueAndTakedown: "Work in clean sections, keep tension gentle, and release styles carefully."
-        },
-        skinRoutine: [
-          {
-            step: "Step 1: Cleanse Face",
-            detail: `Gently cleanse with ${skinCleanPick.label} on damp skin and pat dry without harsh rubbing.`,
-            productUsed: skinCleanPick.label,
-            essential: true
-          },
-          {
-            step: "Step 2: Moisturize & Protect",
-            detail: `Apply ${skinMoistPick.label} while skin is slightly damp to support your moisture barrier.`,
-            productUsed: skinMoistPick.label,
-            essential: true
-          }
-        ],
-        bodyRoutine: [
-          {
-            step: "Step 1: Cleanse Body",
-            detail: `Cleanse with ${bodyCleanPick.label} and keep skin slightly damp after rinsing.`,
-            productUsed: bodyCleanPick.label,
-            essential: true
-          },
-          {
-            step: "Step 2: Moisturize & Layer",
-            detail: `Apply ${bodyMoistPick.label} in thin layers, dusting powder lightly over friction/sweat areas if needed.`,
-            productUsed: bodyMoistPick.label,
-            essential: true
-          },
-          {
-            step: "Step 3: Deodorant & Perfume / Scents",
-            detail: `Apply ${bodyDeoPick.label} on clean dry underarms, then layer ${bodyScentPick.label} on pulse points or clothing away from irritated skin.`,
-            productUsed: `${bodyDeoPick.label} + ${bodyScentPick.label}`,
-            essential: false
-          }
-        ],
-        proTreatments: [],
-        missingProducts: allRecs
-      };
+      // The offline fallback follows the same selected-domain plan as the normal renderer.
+      const plan = buildConcernRoutinePlan();
+      const selectedDomains = new Set([
+        ...(plan.hairRoutine.length ? ['hair'] : []),
+        ...(plan.skinRoutine.length ? ['skin'] : []),
+        ...(plan.bodyRoutine.length ? ['body'] : [])
+      ]);
+      plan.missingProducts = getMissingStashRecommendations().filter(item =>
+        item && selectedDomains.has(item.domain) && CATEGORY_DOMAIN[String(item.category || '').trim()] === item.domain
+      );
+      return plan;
     }
 
     function buildConcernRoutinePlan() {
@@ -2195,10 +2046,10 @@
       const checkinContext = getCheckinContext();
       const triggerText = [...checkinContext.triggers, checkinContext.note].join(' ').toLowerCase();
       const hairSelected = hairConcerns.length > 0 || /edge|hair|scalp|braid|wig|breakage|heat|protein|thinning|shed|brittle/.test(triggerText);
-      const faceSelected = faceConcerns.length > 0 || /skin|face|acne|break.?out|pimple|blemish|pigment|barrier|forehead|cheek|complexion|dark spot|dry patch/.test(triggerText);
+      const faceSelected = faceConcerns.length > 0 || /face|acne|break.?out|pimple|blemish|pigment|barrier|forehead|cheek|complexion|dark spot|dry patch/.test(triggerText);
       const bodySelected = bodyConcerns.length > 0 || /body|chaf|friction|kp|ingrown|arms|legs|rough skin|body bump/.test(triggerText);
       const owned = (domain, pattern) => {
-        const item = inv.find(x => x && x.name && x.domain === domain && pattern.test(`${x.category || ''} ${x.name || ''}`));
+        const item = inv.find(x => x && x.name && canonicalProductDomain(x) === domain && pattern.test(String(x.category || '')));
         return item ? item.name : 'Not in your stash — recommendation needed';
       };
       const step = (title, detail, product, essential=true) => ({ step:title, detail, productUsed:product, essential });
@@ -2246,87 +2097,51 @@
     }
 
     function sanitizeRoutineStepAssignments(steps, domain, fallbackSteps) {
-      const inv = Array.isArray(state.inventory) ? state.inventory : [];
-      const maxP = Number(state.shoppingPrefs?.maxPrice) || 30;
-      const stores = getEffectiveStores();
+      const inventory = Array.isArray(state.inventory) ? state.inventory : [];
       const baseList = Array.isArray(steps) && steps.length ? steps : fallbackSteps;
-
-      return baseList.map((s, idx) => {
-        const fb = fallbackSteps[idx] || fallbackSteps[0];
-        const stepTitle = cleanFalseStashLackNote((s && s.step) || fb.step);
-        const stepDetail = cleanFalseStashLackNote((s && s.detail) || fb.detail);
-        const rawProd = cleanFalseStashLackNote((s && s.productUsed) || "");
-        const stepKey = `${stepTitle} ${stepDetail}`.toLowerCase();
-
-        // Detect mismatched product categories for hair steps
-        let needsReassign = !rawProd || /^none\b/i.test(rawProd);
-        let roleRegex = null;
-        let roleCat = fb.productUsed;
-
-        if (domain === "hair") {
-          if (/\bprep\b|dampen|mist/i.test(stepKey)) {
-            roleRegex = /leave-in|mist|water|prep/i;
-            if (/shampoo|gel|edge|wax/i.test(rawProd)) needsReassign = true;
-          } else if (/\bcleanse\b|shampoo|wash/i.test(stepKey)) {
-            roleRegex = /shampoo|cleanser|clarifying/i;
-            if (/conditioner(?!.*shampoo)|curling|custard|gel|edge|oil|butter/i.test(rawProd) && !/shampoo/i.test(rawProd)) needsReassign = true;
-          } else if (/\bcondition|deep condition/i.test(stepKey)) {
-            roleRegex = /conditioner|deep conditioner|mask|masque/i;
-            if (/shampoo|gel|edge|wax/i.test(rawProd)) needsReassign = true;
-          } else if (/\btreat|bond|protein|repair/i.test(stepKey)) {
-            roleRegex = /bond|protein|treatment|repair|restructurizer/i;
-            if (/shampoo(?!.*treatment)|gel|edge/i.test(rawProd)) needsReassign = true;
-          } else if (/\bstyle|styling|curl|define/i.test(stepKey)) {
-            roleRegex = /custard|gel|mousse|foam|lotion|moisturizer|oil sheen|sheen|edge/i;
-            if (/shampoo/i.test(rawProd)) needsReassign = true;
-          } else if (/\bseal\b|oil|sheen|edge/i.test(stepKey)) {
-            roleRegex = /oil|sheen|butter|edge|wax|seal/i;
-            if (/shampoo/i.test(rawProd)) needsReassign = true;
-          }
+      const inferRole = (stepText) => {
+        const t = String(stepText || '').toLowerCase();
+        if (domain === 'hair') {
+          if (/heat protect|before heat/.test(t)) return 'heat';
+          if (/cleanse|shampoo|wash/.test(t)) return 'cleanse';
+          if (/condition|detangle/.test(t)) return 'condition';
+          if (/bond|protein|repair|treatment/.test(t)) return 'treat';
+          if (/leave.?in|moistur|mist|prep/.test(t)) return 'leavein';
+          if (/seal|oil|sheen|edge/.test(t)) return 'seal';
+          if (/style|styling|curl|define|roller/.test(t)) return 'style';
+        } else if (domain === 'skin') {
+          if (/sunscreen|spf|protect/.test(t)) return 'protect';
+          if (/cleanse|wash/.test(t)) return 'cleanse';
+          if (/treatment|serum|active|acne|dark.mark/.test(t)) return 'treatment';
+          if (/moistur|cream|barrier|recover/.test(t)) return 'moisturize';
+        } else if (domain === 'body') {
+          if (/cleanse|shower|wash|soap/.test(t)) return 'cleanse';
+          if (/friction|powder/.test(t)) return 'friction';
+          if (/deodorant|underarm/.test(t)) return 'deodorize';
+          if (/perfume|fragrance|scent/.test(t)) return 'fragrance';
+          if (/treatment|exfoliat|kp|ingrown|bump|dark.mark/.test(t)) return 'treatment';
+          if (/moistur|lotion|cream|butter|oil/.test(t)) return 'moisturize';
         }
-
-        let inferredRole = null;
-        if (domain === "hair") {
-          if (/\bprep\b|dampen|mist/i.test(stepKey)) inferredRole = "prep";
-          else if (/\bcleanse\b|shampoo|wash/i.test(stepKey)) inferredRole = "cleanse";
-          else if (/\bcondition|deep condition/i.test(stepKey)) inferredRole = "condition";
-          else if (/\btreat|bond|protein|repair/i.test(stepKey)) inferredRole = "treat";
-          else if (/\bstyle|styling|curl|define/i.test(stepKey)) inferredRole = "style";
-          else if (/\bseal\b|oil|sheen|edge/i.test(stepKey)) inferredRole = "seal";
-        } else if (domain === "skin") {
-          if (/\bcleanse|wash/i.test(stepKey)) inferredRole = "cleanse";
-          else if (/\bmoistur|cream|lotion/i.test(stepKey)) inferredRole = "moisturize";
-          else if (/\bspf|sunscreen|protect/i.test(stepKey)) inferredRole = "protect";
-        }
-
-        if ((needsReassign || inferredRole) && roleRegex) {
-          const picked = resolveStepProduct({
-            domain,
-            roleHint: inferredRole,
-            keywordsRegex: roleRegex,
-            fallbackCategory: stepTitle,
-            maxPrice: maxP,
-            stores,
-            inventory: inv,
-            triggers: state.activeTriggers,
-            profile: state.profile
-          });
-          if (needsReassign || picked.label.includes("Complete ")) {
-            roleCat = picked.label;
-          } else {
-            roleCat = rawProd;
-          }
-        } else if (needsReassign) {
-          roleCat = fb.productUsed;
-        } else {
-          roleCat = rawProd;
-        }
-
+        return null;
+      };
+      return baseList.map((item, index) => {
+        const fallback = fallbackSteps[index] || fallbackSteps[0] || {};
+        const step = cleanFalseStashLackNote((item && item.step) || fallback.step || 'Care step');
+        const detail = cleanFalseStashLackNote((item && item.detail) || fallback.detail || '');
+        const role = inferRole(`${step} ${detail}`);
+        const raw = String((item && item.productUsed) || '').trim();
+        const normalizedRaw = raw.toLowerCase().replace(/\s*\([^)]*\)/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+        const exactOwned = role ? inventory.find(product => {
+          if (!productMatchesRoutineRole(product, domain, role)) return false;
+          const name = String(product.name || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+          return normalizedRaw && (normalizedRaw === name || normalizedRaw.startsWith(name) || name.startsWith(normalizedRaw));
+        }) : null;
+        const matchedOwned = exactOwned || (role ? findOwnedRoutineProduct(domain, role, inventory) : null);
         return {
-          step: stepTitle || fb.step,
-          detail: stepDetail || fb.detail,
-          productUsed: roleCat,
-          essential: Boolean((s && s.essential) || fb.essential)
+          step,
+          detail,
+          productUsed: matchedOwned ? `${matchedOwned.name} (From Stash)` : 'Not in your stash — recommendation needed',
+          essential: item && item.essential !== undefined ? Boolean(item.essential) : Boolean(fallback.essential)
         };
       });
     }
@@ -2423,18 +2238,35 @@
         ...(/body|chaf|friction|kp|ingrown|rough skin|arms|legs|body bump/.test(getCheckinContext().note.toLowerCase()) ? ["body"] : [])
       ]);
       const additionsList = (Array.isArray(sourceR.missingProducts) ? sourceR.missingProducts : fallbackPlan.missingProducts)
-        .filter(m => m.domain && selectedDomains.has(m.domain));
+        .filter(m => m && m.domain && selectedDomains.has(m.domain) && CATEGORY_DOMAIN[String(m.category || '').trim()] === m.domain);
       const recommendationForStep = (step, domain) => {
         const title = String(step.step || '').toLowerCase();
-        const role = domain === 'hair'
-          ? (/cleanse|wash/.test(title) ? /shampoo|cleanser|clarifying|chelating/ : /condition/.test(title) ? /conditioner|mask|masque/ : /heat/.test(title) ? /heat protectant/ : /leave-in|moisturizer|mist/.test(title) ? /leave.?in|moisturizer|mist/ : /style|color/.test(title) ? /mousse|foam|setting|gel|styling/ : /$a/)
-          : domain === 'skin'
-            ? (/cleanse/.test(title) ? /cleanser/ : /sunscreen/.test(title) ? /sunscreen|spf/ : /moistur/.test(title) ? /moisturizer|cream/ : /treatment/.test(title) ? /treatment|serum|azelaic|benzoyl|retinoid/ : /$a/)
-            : (/cleanse/.test(title) ? /body wash|soap|cleanser/ : /moistur/.test(title) ? /lotion|cream|butter/ : /friction/.test(title) ? /powder|barrier|butter/ : /treatment/.test(title) ? /exfoliant|treatment|acid/ : /$a/);
-        const missing = /not in your stash/i.test(String(step.productUsed || ''));
-        if (!missing) return '';
-        const rec = additionsList.find(m => (!m.domain || m.domain === domain) && role.test(`${m.category || ''} ${m.name || ''}`));
-        return rec ? `<div class="mt-1 text-[11px] text-[#8A5E1B]"><strong>Recommended for this step:</strong> ${escapeAttr(rec.name)}${rec.reason ? ` — ${escapeAttr(rec.reason)}` : ''}</div>` : `<div class="mt-1 text-[11px] text-[#8A5E1B]">No matching product recommendation was returned for this step yet. Do not substitute an unrelated product.</div>`;
+        let role = null;
+        if (domain === 'hair') {
+          if (/heat/.test(title)) role = 'heat';
+          else if (/cleanse|wash/.test(title)) role = 'cleanse';
+          else if (/condition/.test(title)) role = 'condition';
+          else if (/bond|protein|repair|treat/.test(title)) role = 'treat';
+          else if (/leave.?in|moistur|mist|prep/.test(title)) role = 'leavein';
+          else if (/style|curl|roller/.test(title)) role = 'style';
+          else if (/seal|oil|sheen|edge/.test(title)) role = 'seal';
+        } else if (domain === 'skin') {
+          if (/cleanse/.test(title)) role = 'cleanse';
+          else if (/sunscreen|spf/.test(title)) role = 'protect';
+          else if (/treatment/.test(title)) role = 'treatment';
+          else if (/moistur|recover/.test(title)) role = 'moisturize';
+        } else if (domain === 'body') {
+          if (/cleanse|shower/.test(title)) role = 'cleanse';
+          else if (/friction|powder/.test(title)) role = 'friction';
+          else if (/deodorant/.test(title)) role = 'deodorize';
+          else if (/fragrance|perfume|scent/.test(title)) role = 'fragrance';
+          else if (/treatment|exfoliat/.test(title)) role = 'treatment';
+          else if (/moistur/.test(title)) role = 'moisturize';
+        }
+        if (!role || !/not in your stash/i.test(String(step.productUsed || ''))) return '';
+        const allowedCategories = ROUTINE_ROLE_CATEGORIES[domain]?.[role] || [];
+        const rec = additionsList.find(m => m.domain === domain && allowedCategories.includes(String(m.category || '')));
+        return rec ? `<div class="mt-1 text-[11px] text-[#8A5E1B]"><strong>Recommended for this step:</strong> ${escapeAttr(rec.name)}${rec.reason ? ` — ${escapeAttr(rec.reason)}` : ''}</div>` : `<div class="mt-1 text-[11px] text-[#8A5E1B]">No matching ${escapeAttr(domain)} product recommendation was returned for this step. Do not substitute an unrelated product.</div>`;
       };
       box.innerHTML = `
         <div class="card p-4 space-y-3">
@@ -2652,15 +2484,17 @@
 
      const allowedDomains = ['hair', 'skin', 'body'];
      const allowedCategories = STASH_CATEGORIES;
-     const domain = allowedDomains.includes(info.domain) ? info.domain : currentItem.domain;
      const category = allowedCategories.includes(info.category) ? info.category : currentItem.category;
+     const classification = normalizeProductClassification(info.domain, category, currentItem.domain);
+     const domain = classification.domain === "unclassified" ? currentItem.domain : classification.domain;
+     const safeCategory = classification.domain === "unclassified" ? currentItem.category : classification.category;
      const ingredients = Array.isArray(info.keyIngredients) ? info.keyIngredients.filter(Boolean).slice(0, 5).join(', ') : '';
      const notes = appendLookupNotes(currentItem.notes, [
        info.safetyNote,
        ingredients ? `Key ingredients (verify on label): ${ingredients}` : '',
        'Product details identified by AI; verify against the packaging.'
      ]);
-     state.inventory[idx] = { ...currentItem, brand: String(info.brand || currentItem.brand || '').trim(), domain, category, notes, lookupSource: 'AI identification' };
+     state.inventory[idx] = { ...currentItem, brand: String(info.brand || currentItem.brand || '').trim(), domain, category: safeCategory, notes, lookupSource: 'AI identification' };
      saveState(); renderStash();
      void refreshScentProfileFromStash();
      finish(`✓ Added likely product details for “${queryName}”. Please verify the brand and ingredients against the packaging.`);
@@ -2690,8 +2524,9 @@
  const data = await res.json().catch(() => ({}));
  if (!res.ok || !data.result) throw new Error(data.error || "Scan failed");
  const item = data.result;
- const nextDomain = ["hair", "skin", "body"].includes(item.domain) ? item.domain : "hair";
- const nextCategory = item.category || "Other";
+ const classification = normalizeProductClassification(item.domain, item.category, null);
+ const nextDomain = classification.domain;
+ const nextCategory = classification.category;
  const nextNotes = `${item.safetyNote || ""} ${(item.keyIngredients || []).join(", ")}`.trim();
 
  if (targetId) {
@@ -2702,8 +2537,8 @@
  ...prevItem,
  name: item.name || prevItem.name,
  brand: item.brand || prevItem.brand || "",
- domain: nextDomain || prevItem.domain,
- category: nextCategory || prevItem.category,
+ domain: nextDomain === "unclassified" ? (prevItem.domain || "unclassified") : nextDomain,
+ category: nextCategory === "Other" ? (prevItem.category || "Other") : nextCategory,
  notes: nextNotes || prevItem.notes || "",
  entryMethods: [...new Set([...(prevItem.entryMethods || (prevItem.entryMethod ? [prevItem.entryMethod] : [])), "phone-scan"])]
  };
@@ -2785,7 +2620,7 @@
  id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
  name,
  brand: "",
- domain: domainEl ? domainEl.value : "hair",
+ domain: normalizeProductClassification(domainEl ? domainEl.value : "hair", catEl ? catEl.value : "Other", domainEl ? domainEl.value : "hair").domain,
  category: catEl ? catEl.value : "Other",
  notes: "",
  entryMethod: "manual",
@@ -2828,6 +2663,17 @@
  renderStash();
  }
 
+ function updateEditCategoryOptions(id) {
+ const domainEl = document.getElementById(`edit-domain-${id}`);
+ const catEl = document.getElementById(`edit-category-${id}`);
+ if (!domainEl || !catEl) return;
+ const domain = domainEl.value;
+ const options = STASH_CATEGORIES.filter(c => c === 'Other' || CATEGORY_DOMAIN[c] === domain);
+ const previous = catEl.value;
+ catEl.innerHTML = options.map(c => `<option value="${escapeAttr(c)}">${escapeAttr(c)}</option>`).join('');
+ catEl.value = options.includes(previous) ? previous : 'Other';
+ }
+
  function escapeAttr(str) {
  return String(str || "")
  .replace(/&/g, "&amp;")
@@ -2859,7 +2705,7 @@
  state.inventory[idx] = {
  ...state.inventory[idx],
  name: updatedName,
- domain: domainEl ? domainEl.value : state.inventory[idx].domain || "hair",
+ domain: normalizeProductClassification(domainEl ? domainEl.value : state.inventory[idx].domain || "hair", catEl ? catEl.value : state.inventory[idx].category || "Other", domainEl ? domainEl.value : state.inventory[idx].domain || "hair").domain,
  category: catEl ? catEl.value : state.inventory[idx].category || "Other",
  notes: notesEl ? notesEl.value.trim() : ""
  };
@@ -2885,7 +2731,7 @@
  }
  list.innerHTML = items.map(i => {
  if (editingStashId === i.id) {
- const catOptions = STASH_CATEGORIES.map(c =>
+ const catOptions = STASH_CATEGORIES.filter(c => c === "Other" || CATEGORY_DOMAIN[c] === i.domain).map(c =>
  `<option value="${escapeAttr(c)}" ${i.category === c ? "selected" : ""}>${escapeAttr(c)}</option>`
  ).join("");
  return `
@@ -2893,8 +2739,9 @@
  <div class="text-[11px] font-bold uppercase text-[#8A5E1B]">Editing Stash Item</div>
  <input id="edit-name-${i.id}" type="text" value="${escapeAttr(i.name)}" onkeydown="if(event.key==='Enter'){event.preventDefault();saveEditProduct('${i.id}');}" class="w-full text-xs border border-[#DDD4C8] rounded-lg p-2 bg-[#FAF8F5]" />
  <div class="grid grid-cols-2 gap-2">
- <select id="edit-domain-${i.id}" class="text-xs border border-[#DDD4C8] rounded-lg p-2 bg-white">
+ <select id="edit-domain-${i.id}" onchange="updateEditCategoryOptions('${i.id}')" class="text-xs border border-[#DDD4C8] rounded-lg p-2 bg-white">
  <option value="hair" ${i.domain === "hair" ? "selected" : ""}>Hair &amp; Styling</option>
+ <option value="unclassified" ${i.domain === "unclassified" ? "selected" : ""}>Unclassified / Not Sure</option>
  <option value="skin" ${i.domain === "skin" ? "selected" : ""}>Face Skin Care</option>
  <option value="body" ${i.domain === "body" ? "selected" : ""}>Body Care</option>
  </select>
@@ -2933,7 +2780,7 @@
  const box = document.getElementById("storeChipsContainer");
  box.innerHTML = ALL_STORES.map(store => {
  const active = (state.shoppingPrefs.stores || []).includes(store);
- return `<button type="button" onclick="toggleStorePref('${encodeURIComponent(store)}')"\\\\\").replace(/'/g, \"\\'\")\}')" class="px-2.5 py-1 rounded-full text-xs font-semibold border ${active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#726862] border-[#DDD4C8]"}">${active ? "✓ " : "+ "}${store}</button>`;
+ return `<button type="button" onclick="toggleStorePref('${encodeURIComponent(store)}')" class="px-2.5 py-1 rounded-full text-xs font-semibold border ${active ? "bg-[#231F1D] text-white border-[#231F1D]" : "bg-white text-[#726862] border-[#DDD4C8]"}">${active ? "✓ " : "+ "}${store}</button>`;
  }).join("");
  }
 
@@ -2954,9 +2801,6 @@
  function updateBudgetSetting(val) {
  const num = Number(val) || 30;
  state.shoppingPrefs.maxPrice = num;
- const label = document.getElementById("budgetValLabel"); if (label) label.textContent = num;
- const badge = document.getElementById("budgetBadge"); if (badge) badge.textContent = num;
- const slider = document.getElementById("maxPriceSlider"); if (slider) slider.value = num;
  saveState();
  renderAllProfileChips();
  renderProfileSummary();
