@@ -1,4 +1,4 @@
-# AuraCare — Black Hair Chemistry, Face & Body Studio (v2.57.0)
+# AuraCare — Black Hair Chemistry, Face & Body Studio (v2.59.0)
 
 ## Recommendation standards
 - Recommendations are tailored to textured/Black hair, scalp care, and melanin-rich skin using profile, routine, sensitivity, chemical/color history, styling, climate, and stash context.
@@ -67,3 +67,15 @@
 
 
 Version 2.57 builds a fragrance preference profile from the perfumes and body mists saved in My Stash. It refreshes after fragrance items are added, scanned, edited, looked up, or removed, and feeds the inferred scent families and notes into fragrance recommendations alongside manually selected preferences.
+
+
+## Version 2.59 — strict hair / face / body product-domain isolation
+- Routine product matching now uses explicit stash categories and domain consistency; generic words such as “oil”, “cream”, “lotion”, or “cleanser” cannot move a product between care domains.
+- A product with conflicting domain/category metadata is treated as unclassified and cannot be assigned to a routine step. Unknown scan results remain unclassified rather than defaulting to hair.
+- Hair, face, and body steps accept only their own category-specific product roles; a product in the same domain but the wrong role is not substituted.
+- The AI routine response is revalidated in the browser before display, and store picks are matched by both domain and category role.
+- Removed the unsafe “first product in this domain” fallback that could place a face serum into a face-cleansing step or an unrelated item into hair/body care.
+- Bumped the service-worker cache to v2.59.
+- Offline/local routine fallback now follows the same concern-selected domains as the normal routine renderer; it no longer generates all three care routines by default.
+- Ambiguous generic “Moisturizer” scan results are not guessed into face/body care; hair-specific scans should use “Hair Moisturizer”, while face and body use their explicit categories.
+- Ambiguous generic “Moisturizer” scan results are not guessed into face/body care; use “Hair Moisturizer”, “Face Moisturizer”, or a body-specific category.
