@@ -1,4 +1,4 @@
-# AuraCare — Black Hair Chemistry, Face & Body Studio (v2.58.0)
+# AuraCare — Black Hair Chemistry, Face & Body Studio (v2.59.0)
 
 ## Recommendation standards
 - Recommendations are tailored to textured/Black hair, scalp care, and melanin-rich skin using profile, routine, sensitivity, chemical/color history, styling, climate, and stash context.
