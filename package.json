@@ -1,8 +1,8 @@
 {
   "name": "auracare-blank-onboarding",
-  "version": "2.59.0",
+  "version": "2.60.1",
   "private": true,
-  "description": "Black hair and melanin-rich skin care PWA with collection-learned fragrance profiles, budget-capped scent recommendations, profile- and check-in-driven routines, verified product lookup, and personal stash",
+  "description": "Evidence-informed Black hair, melanin-rich face and body care PWA with product-domain validation, ingredient-aware compatibility checks, personalized routines, and personal stash.",
   "scripts": {
     "dev": "vercel dev",
     "build": "echo 'Static PWA + Vercel serverless API ready'",
