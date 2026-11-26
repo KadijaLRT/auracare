@@ -488,8 +488,9 @@ Return JSON only:
               return Number.isFinite(numeric) && numeric > 0 && numeric <= scentBudget;
             }).map(item => ({ ...item, domain: 'body', category: 'Perfume / Scents', numericPrice: Number(item.numericPrice), price: item.price || `Estimated $${Number(item.numericPrice).toFixed(2)}` }));
             parsed.recommendations = priced;
-            parsed.budgetNote = `Hard cap applied: no more than $${scentBudget} per fragrance. Prices are estimates, not live retailer quotes.`;
+            parsed.budgetNote = `Hard cap applied: no more than ${scentBudget} per fragrance. Prices are estimates, not live retailer quotes.`;
           }
+          parsed.recommendations = (Array.isArray(parsed.recommendations) ? parsed.recommendations : []).map(normalizeRecommendation).filter(Boolean);
           return res.status(200).json({ result: parsed });
         } catch (__) {
           return res.status(200).json({ result: scentFocus ? { recommendations: [], budgetNote: `No fragrance price could be verified or responsibly estimated within $${scentBudget}. Try a higher budget or search again.` } : buildFallbackShopRecs({ shoppingPrefs, profile, activeTriggers: effectiveTriggers, checkInNote: effectiveCheckInNote, inventory }) });
@@ -550,6 +551,7 @@ Return JSON only:
         bodyRoutine: cleanSteps(parsed.bodyRoutine, fb.bodyRoutine),
         missingProducts: (Array.isArray(parsed.missingProducts) ? parsed.missingProducts : fb.missingProducts)
           .filter(item => {
+            if (!item || !CATEGORY_DOMAIN[String(item.category || '').trim()] || CATEGORY_DOMAIN[String(item.category || '').trim()] !== item.domain) return false;
             const key = String(item && item.name || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
             if (!key) return false;
             return !(inventory || []).some(owned => {
