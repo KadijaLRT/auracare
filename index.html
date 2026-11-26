@@ -2315,6 +2315,7 @@
             <div><strong>Technique &amp; Takedown:</strong> ${escapeAttr(guide.technique)}</div>
           </div>`; })() : ""}
 
+          </div>
           ${`<div id="routine-domain-panel-skin" role="tabpanel" aria-labelledby="routine-domain-tab-skin" class="routine-domain-panel ${activeRoutineDomain !== "skin" ? "hidden" : ""} space-y-3">`}
           ${finalSkinSteps.length ? `<div class="space-y-2">
             <h4 class="text-xs font-bold uppercase text-[#355243]">Face Skin Routine</h4>
@@ -2322,6 +2323,7 @@
             ${finalSkinSteps.map(s => `<div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs"><div class="font-bold">${escapeAttr(s.step)}</div><div class="text-[#594E47] mt-0.5">${escapeAttr(s.detail)}</div><div class="text-[11px] text-[#355243] font-semibold mt-1">Stash / Store Pick: ${escapeAttr(s.productUsed)}</div>${recommendationForStep(s, "skin")}</div>`).join("")}
           </div>` : ""}
 
+          </div>
           ${`<div id="routine-domain-panel-body" role="tabpanel" aria-labelledby="routine-domain-tab-body" class="routine-domain-panel ${activeRoutineDomain !== "body" ? "hidden" : ""} space-y-3">`}
           ${finalBodySteps.length ? `<div class="space-y-2">
             <h4 class="text-xs font-bold uppercase text-[#5B2C6F]">Body Care &amp; Body Powder Layering Routine</h4>
