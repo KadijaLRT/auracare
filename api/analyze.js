@@ -111,6 +111,24 @@ function parseJsonLoose(rawText) {
   return JSON.parse(sanitizeJsonString(rawText));
 }
 
+const CATEGORY_DOMAIN = Object.freeze({
+  'Bond Repair':'hair', 'Clarifying / Chelating Shampoo':'hair', 'Conditioner':'hair', 'Deep Conditioner':'hair', 'Edge Control / Wax':'hair', 'Hair Dye':'hair', 'Hair Gel':'hair', 'Hair Oil / Sealant':'hair', 'Hair Relaxer':'hair', 'Heat Protectant':'hair', 'Leave-In / Mist':'hair', 'Hair Moisturizer':'hair', 'Moisturizer':'hair', 'Oil Sheen':'hair', 'Protein Treatment':'hair', 'Setting Mousse / Foam / Lotion':'hair', 'Shampoo':'hair', 'Wig / Braid Scalp & Edge Care':'hair',
+  'Face Cleanser':'skin', 'Face Moisturizer':'skin', 'Face Treatment':'skin', 'Sunscreen':'skin',
+  'Body Butter':'body', 'Body Lotion / Cream':'body', 'Body Oil':'body', 'Body Powder / Dusting Powder':'body', 'Body Scrub / Exfoliant':'body', 'Body Wash / Bar Soap':'body', 'Deodorant':'body', 'Perfume / Scents':'body'
+});
+function normalizeInventoryDomain(item) {
+  const categoryDomain = CATEGORY_DOMAIN[String(item?.category || '').trim()];
+  if (!categoryDomain || item.domain !== categoryDomain) return { ...item, domain: 'unclassified' };
+  return { ...item, domain: categoryDomain };
+}
+function normalizeRecommendation(item) {
+  if (!item || typeof item !== 'object') return null;
+  const category = String(item.category || '').trim();
+  const domain = CATEGORY_DOMAIN[category];
+  if (!domain || item.domain !== domain) return null;
+  return { ...item, domain, category };
+}
+
 const SERVER_CATALOG = [
   {
     name: 'Olaplex No. 3 Hair Perfector',
@@ -174,11 +192,11 @@ function buildFallbackRoutine({ currentHairState, selectedStylingMethod, weather
   const bodyConcerns = [...(profile.bodyConcerns || [])];
   const triggerText = [...(activeTriggers || []), checkInNote].join(' ').toLowerCase();
   const hairSelected = hairConcerns.length || /hair|scalp|edge|breakage|wig|braid|heat/.test(triggerText);
-  const faceSelected = faceConcerns.length || /face|skin|acne|pigment|barrier/.test(triggerText);
+  const faceSelected = faceConcerns.length || /face|acne|pigment|barrier/.test(triggerText);
   const bodySelected = bodyConcerns.length || /body|chaf|friction|kp|ingrown/.test(triggerText);
   const stash = Array.isArray(inventory) ? inventory : [];
   const findOwned = (domain, pattern) => {
-    const item = stash.find(x => String(x.domain || '').toLowerCase() === domain && pattern.test(`${x.category || ''} ${x.name || ''}`));
+    const item = stash.find(x => String(x.domain || '').toLowerCase() === domain && CATEGORY_DOMAIN[String(x.category || '').trim()] === domain && pattern.test(String(x.category || '')));
     return item ? item.name : 'No matching product in your stash yet';
   };
   const wStr = weather && weather.tempF != null
@@ -190,19 +208,19 @@ function buildFallbackRoutine({ currentHairState, selectedStylingMethod, weather
     hairAssessment: hairSelected ? `${currentHairState}: routine limited to your selected hair/scalp concerns (${hairConcerns.join(', ') || 'check-in trigger'}).` : '',
     skinAssessment: faceSelected ? `Face routine limited to your selected concerns (${faceConcerns.join(', ') || 'check-in trigger'}).` : '',
     hairRoutine: hairSelected ? [
-      { step: 'Wash day — cleanse only when due', detail: 'Use a gentle shampoo appropriate to your scalp and chemical/color history. Do not add a clarifying or protein treatment unless buildup or damage is one of the selected concerns.', productUsed: findOwned('hair', /shampoo|cleanser/i), essential: true },
-      { step: 'Condition and detangle', detail: 'Condition after cleansing, detangle in sections with slip, and avoid pulling at fragile edges or the line of demarcation.', productUsed: findOwned('hair', /conditioner|deep conditioner/i), essential: true },
-      { step: 'Finish for your selected style', detail: `Use a leave-in or styling product only if it suits ${selectedStylingMethod}; use heat protectant before any direct heat.`, productUsed: findOwned('hair', /leave.?in|heat protectant|mousse|foam|gel/i), essential: false }
+      { step: 'Wash day — cleanse only when due', detail: 'Use a gentle shampoo appropriate to your scalp and chemical/color history. Do not add a clarifying or protein treatment unless buildup or damage is one of the selected concerns.', productUsed: findOwned('hair', /Shampoo|Clarifying \/ Chelating Shampoo/i), essential: true },
+      { step: 'Condition and detangle', detail: 'Condition after cleansing, detangle in sections with slip, and avoid pulling at fragile edges or the line of demarcation.', productUsed: findOwned('hair', /Conditioner|Deep Conditioner/i), essential: true },
+      { step: 'Finish for your selected style', detail: `Use a leave-in or styling product only if it suits ${selectedStylingMethod}; use heat protectant before any direct heat.`, productUsed: findOwned('hair', /Leave-In \/ Mist|Hair Moisturizer|Moisturizer|Heat Protectant|Setting Mousse \/ Foam \/ Lotion|Hair Gel/i), essential: false }
     ] : [],
     stylingGuide: { method: selectedStylingMethod, prepAndProtection: 'Do not apply heat without a dedicated heat protectant. Keep tension low around the hairline.', recommendedProducts: [], techniqueAndTakedown: 'Work in sections and remove styles gently; stop any style that causes pain or persistent tension.' },
     skinRoutine: faceSelected ? [
-      { step: 'AM — cleanse gently (or rinse)', detail: 'Use a gentle cleanser only if needed; avoid scrubbing or stacking exfoliants.', productUsed: findOwned('skin', /cleanser|wash/i), essential: true },
-      { step: 'AM — moisturize and protect', detail: 'Apply a non-irritating moisturizer, then broad-spectrum SPF 30+ every morning. SPF is especially important when treating dark marks.', productUsed: `${findOwned('skin', /moisturizer|cream|lotion/i)}; sunscreen: ${findOwned('skin', /sunscreen|spf/i)}`, essential: true },
+      { step: 'AM — cleanse gently (or rinse)', detail: 'Use a gentle cleanser only if needed; avoid scrubbing or stacking exfoliants.', productUsed: findOwned('skin', /Face Cleanser/i), essential: true },
+      { step: 'AM — moisturize and protect', detail: 'Apply a non-irritating moisturizer, then broad-spectrum SPF 30+ every morning. SPF is especially important when treating dark marks.', productUsed: `${findOwned('skin', /Face Moisturizer/i)}; sunscreen: ${findOwned('skin', /Sunscreen/i)}`, essential: true },
       { step: 'PM — targeted treatment only if selected', detail: 'Introduce one targeted active at a time, follow its label, and do not combine multiple exfoliating or irritating actives in the same routine.', productUsed: findOwned('skin', /treatment|serum|retinoid|azelaic|niacinamide|benzoyl/i), essential: false }
     ] : [],
     bodyRoutine: bodySelected ? [
-      { step: 'Shower — gentle cleanse', detail: 'Use a mild body cleanser; avoid aggressive scrubbing, especially over irritated or inflamed areas.', productUsed: findOwned('body', /body wash|soap|cleanser/i), essential: true },
-      { step: 'After shower — moisturize', detail: 'Apply moisturizer to slightly damp skin. Use a targeted exfoliating lotion only for concerns it is designed to address and according to its label.', productUsed: findOwned('body', /lotion|cream|butter|moisturizer/i), essential: true }
+      { step: 'Shower — gentle cleanse', detail: 'Use a mild body cleanser; avoid aggressive scrubbing, especially over irritated or inflamed areas.', productUsed: findOwned('body', /Body Wash \/ Bar Soap/i), essential: true },
+      { step: 'After shower — moisturize', detail: 'Apply moisturizer to slightly damp skin. Use a targeted exfoliating lotion only for concerns it is designed to address and according to its label.', productUsed: findOwned('body', /Body Butter|Body Lotion \/ Cream|Body Oil/i), essential: true }
     ] : [],
     proTreatments: [],
     missingProducts: []
@@ -290,6 +308,7 @@ export default async function handler(req, res) {
       existingDomain = 'hair',
       existingCategory = 'Other'
     } = req.body || {};
+    inventory = (Array.isArray(inventory) ? inventory : []).map(normalizeInventoryDomain);
     const effectiveCheckInNote = String(checkInNote || description || lastCheckIn?.note || '').slice(0, 600);
     const effectiveTriggers = [...new Set([
       ...(Array.isArray(activeTriggers) ? activeTriggers : []),
@@ -301,7 +320,7 @@ export default async function handler(req, res) {
       if (!imageBase64) return res.status(400).json({ error: 'No product photo provided.' });
 
       const visionPrompt = `Read product label and return compact JSON (no newlines in strings). If the label is a perfume, eau de parfum, eau de toilette, cologne, body mist, or fragrance oil, set domain="body" and category="Perfume / Scents". Do not classify a fragrance as hair or skincare:
-{"name":"Brand & Name","brand":"Brand","domain":"hair|skin|body","category":"Bond Repair|Clarifying / Chelating Shampoo|Conditioner|Deep Conditioner|Edge Control / Wax|Hair Dye|Hair Gel|Hair Oil / Sealant|Hair Relaxer|Heat Protectant|Leave-In / Mist|Moisturizer|Oil Sheen|Protein Treatment|Setting Mousse / Foam / Lotion|Shampoo|Wig / Braid Scalp & Edge Care|Face Cleanser|Face Moisturizer|Face Treatment|Sunscreen|Body Butter|Body Lotion / Cream|Body Oil|Body Powder / Dusting Powder|Body Scrub / Exfoliant|Body Wash / Bar Soap|Deodorant|Perfume / Scents|Other","keyIngredients":["ing1","ing2"],"safetyNote":"short note"}`;
+{"name":"Brand & Name","brand":"Brand","domain":"hair|skin|body","category":"Bond Repair|Clarifying / Chelating Shampoo|Conditioner|Deep Conditioner|Edge Control / Wax|Hair Dye|Hair Gel|Hair Oil / Sealant|Hair Relaxer|Heat Protectant|Leave-In / Mist|Hair Moisturizer|Moisturizer|Oil Sheen|Protein Treatment|Setting Mousse / Foam / Lotion|Shampoo|Wig / Braid Scalp & Edge Care|Face Cleanser|Face Moisturizer|Face Treatment|Sunscreen|Body Butter|Body Lotion / Cream|Body Oil|Body Powder / Dusting Powder|Body Scrub / Exfoliant|Body Wash / Bar Soap|Deodorant|Perfume / Scents|Other","keyIngredients":["ing1","ing2"],"safetyNote":"short note"}`;
 
       const rawText = await callGroqChat(
         apiKey,
@@ -320,7 +339,15 @@ export default async function handler(req, res) {
         true
       );
 
-      return res.status(200).json({ result: parseJsonLoose(rawText) });
+      const parsed = parseJsonLoose(rawText);
+      const category = String(parsed.category || 'Other').trim();
+      const categoryDomain = CATEGORY_DOMAIN[category];
+      const ambiguousLegacyMoisturizer = category === 'Moisturizer' && parsed.domain !== 'hair';
+      return res.status(200).json({ result: {
+        ...parsed,
+        category: categoryDomain && !ambiguousLegacyMoisturizer ? category : 'Other',
+        domain: categoryDomain && !ambiguousLegacyMoisturizer ? categoryDomain : 'unclassified'
+      }});
     }
 
     if (mode === 'product_name') {
@@ -332,6 +359,7 @@ export default async function handler(req, res) {
 Query: "${safeQuery}"
 Existing domain/category: ${existingDomain}/${existingCategory}
 Rules:
+- Do not use generic category "Moisturizer" for facial or body products. Use "Face Moisturizer" for face products, "Body Lotion / Cream" or "Body Butter" for body products, and "Hair Moisturizer" for hair products. If domain or purpose is uncertain, return domain="unclassified" and category="Other".
 - If you recognize this real commercial product (including well-known Black hair care lines like Aunt Jackie's, Olaplex, ApHogee, Mizani, KeraCare, Design Essentials, Camille Rose, Mielle, ORS, SheaMoisture, Eco Style, Ebin, TGIN, As I Am, Pattern, Carol's Daughter, or well-known skincare/body/perfume products), set "matched": true, set "confidence" between 0.80 and 0.99, fill in the real "brand", best matching "domain" ("hair"|"skin"|"body"), best matching "category" from ["Bond Repair","Clarifying / Chelating Shampoo","Conditioner","Deep Conditioner","Edge Control / Wax","Hair Dye","Hair Gel","Hair Oil / Sealant","Hair Relaxer","Heat Protectant","Leave-In / Mist","Moisturizer","Oil Sheen","Protein Treatment","Setting Mousse / Foam / Lotion","Shampoo","Wig / Braid Scalp & Edge Care","Face Cleanser","Face Moisturizer","Face Treatment","Sunscreen","Body Butter","Body Lotion / Cream","Body Oil","Body Powder / Dusting Powder","Body Scrub / Exfoliant","Body Wash / Bar Soap","Deodorant","Perfume / Scents","Other"], up to 5 verified "keyIngredients" (or fragrance notes if it is a Perfume / Scents product), and a concise "safetyNote" (or scent family/usage note).
 - Only if the query is completely unrecognized, homemade/DIY, or ambiguous across unrelated products, set "matched": false and "confidence": 0.
 Return compact single-line JSON only:
@@ -341,13 +369,17 @@ Return compact single-line JSON only:
         const result = parseJsonLoose(rawText);
         const confidence = Math.max(0, Math.min(1, Number(result.confidence) || 0));
         const matched = result.matched === true && confidence >= 0.72;
+        const category = String(result.category || existingCategory).trim();
+        const categoryDomain = CATEGORY_DOMAIN[category];
+        const ambiguousLegacyMoisturizer = category === 'Moisturizer' && result.domain !== 'hair';
+        const validClassification = Boolean(categoryDomain && !ambiguousLegacyMoisturizer);
         return {
           matched,
           confidence: matched ? confidence : 0,
           name: prodQuery,
           brand: matched ? String(result.brand || '').slice(0, 80) : '',
-          domain: matched && ['hair','skin','body'].includes(result.domain) ? result.domain : existingDomain,
-          category: matched ? String(result.category || existingCategory).slice(0, 80) : existingCategory,
+          domain: matched ? (validClassification ? categoryDomain : 'unclassified') : existingDomain,
+          category: matched ? (validClassification ? category.slice(0, 80) : 'Other') : existingCategory,
           keyIngredients: matched && Array.isArray(result.keyIngredients) ? result.keyIngredients.filter(x => typeof x === 'string').slice(0, 5) : [],
           safetyNote: matched ? String(result.safetyNote || '').slice(0, 240) : ''
         };
@@ -444,6 +476,7 @@ Return JSON only:
           parsed.recommendations = priced;
           parsed.budgetNote = `Hard cap applied: no more than $${scentBudget} per fragrance. Prices are estimates, not live retailer quotes.`;
         }
+        parsed.recommendations = (Array.isArray(parsed.recommendations) ? parsed.recommendations : []).map(normalizeRecommendation).filter(Boolean);
         return res.status(200).json({ result: parsed });
       } catch (_) {
         try {
@@ -469,7 +502,7 @@ Return JSON only:
       : 'Any';
 
     const systemInstructions = `Act as a cosmetology-informed textured-hair specialist, esthetician, and dermatologist-informed skincare educator with expertise in Black women's hair and melanin-rich skin. Do not claim to diagnose. Apply evidence-aware hair/scalp care: porosity and product buildup, relaxed/color-treated hair fragility, bond repair vs protein vs moisture, heat protection, traction prevention, and protective-style scalp hygiene. For melanin-rich skin prioritize barrier support, gentle hyperpigmentation care, and daily broad-spectrum SPF 30+. STRICT ROUTINE CONTRACT: first read the complete saved profile (hair texture, chemical/color history, hair issues/goals, face type/concerns, body concerns, sensitivities, preferences) AND the current/saved Check-In note, selected triggers, hair state, and styling method. Resolve overlapping signals and prioritize the user's actual stated concerns. First read profile.hairIssues + profile.hairGoals, profile.faceConcerns, and profile.bodyConcerns. Build a routine ONLY for domains with at least one selected concern (or a directly relevant active check-in trigger). Never create a generic hair, face, or body routine just to fill a section. For each selected concern, map each step to a specific need and explain the product's role, order, amount/application area, and frequency. Do not put shampoo in a conditioning step, moisturizer in an SPF step, perfume/deodorant in treatment steps, or one generic product into unrelated steps. If stash has no suitable item, say 'not in stash' and recommend a suitable product in missingProducts; do not pretend an unrelated stash item is suitable. Separate AM/PM and wash-day/styling routines. State which days to use actives and which products must not be layered in the same routine. Do not invent exact ingredient lists, clinical outcomes, or diagnoses. Pull from stash first only when category and purpose genuinely match. Do not repeat the names of owned stash products in routine step titles or details; refer to them generically as the matching product saved in My Stash. Owned products must not appear in missingProducts or be presented as purchases. Avoid ingredient conflicts and unnecessary duplicate actives; give AM/PM or alternating-day schedules for potentially irritating combinations. Never promise skin bleaching/lightening. Recommend the most suitable products for the user's selected concerns at [${stores}]. Price is secondary and must not act as a hard filter; prioritize suitability, evidence-informed performance, compatibility, and the user's hair/skin profile over the cheapest option. When comparable options exist, mention a good-value choice. CRITICAL SET RULE: if a routine requires a named brand system, include every still-missing member of that system in missingProducts, but do not repeat any member already owned in Stash. Complete owned-versus-missing set inventories belong in the Shop tab, not the routine display. ${lowEnergyMode ? 'Use a simplified version of the same relevant routine, not unrelated steps.' : 'Be specific and concise.'} Single-line JSON only:
-{"climateImpact":"1 sentence","rootCauseInsights":[{"cause":"C","fix":"F"}],"hairAssessment":"1 sentence","skinAssessment":"1 sentence","hairRoutine":[{"step":"S","detail":"D","productUsed":"Stash item","essential":true}],"stylingGuide":{"method":"${selectedStylingMethod}","prepAndProtection":"Prep","recommendedProducts":[{"productType":"T","suggestion":"Item","howToUse":"Use"}],"techniqueAndTakedown":"Tip"},"skinRoutine":[{"step":"S","detail":"D","productUsed":"Stash item","essential":true}],"bodyRoutine":[{"step":"S","detail":"D","productUsed":"Stash item","essential":true}],"proTreatments":[{"provider":"Salon|Dermatologist|Esthetician","treatment":"T","why":"W","cadence":"C"}],"missingProducts":[{"name":"N","brand":"B","domain":"hair|skin|body","store":"S","reason":"R","estimatedPrice":"$12.99","priority":"essential|optional","forConcern":"selected concern","compatibilityNotes":"safe layering/use notes"}]}`;
+{"climateImpact":"1 sentence","rootCauseInsights":[{"cause":"C","fix":"F"}],"hairAssessment":"1 sentence","skinAssessment":"1 sentence","hairRoutine":[{"step":"S","detail":"D","productUsed":"Stash item","essential":true}],"stylingGuide":{"method":"${selectedStylingMethod}","prepAndProtection":"Prep","recommendedProducts":[{"productType":"T","suggestion":"Item","howToUse":"Use"}],"techniqueAndTakedown":"Tip"},"skinRoutine":[{"step":"S","detail":"D","productUsed":"Stash item","essential":true}],"bodyRoutine":[{"step":"S","detail":"D","productUsed":"Stash item","essential":true}],"proTreatments":[{"provider":"Salon|Dermatologist|Esthetician","treatment":"T","why":"W","cadence":"C"}],"missingProducts":[{"name":"N","brand":"B","domain":"hair|skin|body","category":"domain-specific category","store":"S","reason":"R","estimatedPrice":"$12.99","priority":"essential|optional","forConcern":"selected concern","compatibilityNotes":"safe layering/use notes"}]}`;
 
     const userPrompt = `Note:${description || 'None'} Mode:${currentHairState} Style:${selectedStylingMethod} Check-in note:${effectiveCheckInNote || description || 'None'} Triggers:${effectiveTriggers.join(',') || 'None'} Saved check-in:${JSON.stringify(lastCheckIn || {})} Profile:${JSON.stringify(profile || {})} Weather:${JSON.stringify(weather || {})} Stash:${JSON.stringify((inventory || []).slice(0, 15))}`;
 
