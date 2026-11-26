@@ -1,4 +1,4 @@
-# AuraCare — Black Hair Chemistry, Face & Body Studio (v2.60.1)
+# AuraCare — Black Hair Chemistry, Face & Body Studio (v2.61.0)
 
 ## Recommendation standards
 - Recommendations are tailored to textured/Black hair, scalp care, and melanin-rich skin using profile, routine, sensitivity, chemical/color history, styling, climate, and stash context.
@@ -88,3 +88,11 @@ Version 2.57 builds a fragrance preference profile from the perfumes and body mi
 - Split face AM cleanse, moisturize, and broad-spectrum SPF 30+ into separate fallback steps.
 - Corrected overgeneralized hair-chemistry guidance: no universal monthly chelation rule, dew-point cutoff, or one-size-fits-all protein/moisture schedule.
 - A rescan that cannot confidently classify an existing stash product now leaves it unclassified rather than preserving an earlier possibly incorrect domain.
+
+
+## Version 2.61.0 — routine domain sub-tabs
+- The Routines screen now has independent Hair, Face / Skin, and Body sub-tabs within the existing Routines destination.
+- Each domain panel is independently shown/hidden, with accessible tab roles and selected-state attributes; the initial selection moves to the first populated routine when Hair has no plan.
+- Empty domains explain that no routine is currently selected instead of showing a blank panel.
+- Compatibility notes and professional-care suggestions remain available alongside the domain-specific routines.
+- The root and `public/` app entry points are kept in sync.

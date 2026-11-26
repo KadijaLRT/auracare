@@ -145,7 +145,15 @@
  <span class="font-semibold text-[#594E47]">Step-by-step routines from your check-in &amp; stash</span>
  <button type="button" onclick="switchTab('checkin')" class="font-bold text-[#A9772B] underline">← Back to Check-In</button>
  </div>
- <div id="aiResultContainer" class="space-y-4"></div>
+ <div class="card p-2 space-y-2">
+   <div class="grid grid-cols-3 gap-1" role="tablist" aria-label="Routine categories">
+    <button type="button" id="routine-domain-tab-hair" role="tab" aria-controls="routine-domain-panel-hair" aria-selected="true" onclick="setRoutineDomainTab('hair')" class="routine-domain-tab rounded-xl py-2.5 px-2 text-xs font-bold bg-[#231F1D] text-white">💇🏾‍♀️ Hair</button>
+    <button type="button" id="routine-domain-tab-skin" role="tab" aria-controls="routine-domain-panel-skin" aria-selected="false" onclick="setRoutineDomainTab('skin')" class="routine-domain-tab rounded-xl py-2.5 px-2 text-xs font-bold bg-white text-[#594E47]">✨ Face / Skin</button>
+    <button type="button" id="routine-domain-tab-body" role="tab" aria-controls="routine-domain-panel-body" aria-selected="false" onclick="setRoutineDomainTab('body')" class="routine-domain-tab rounded-xl py-2.5 px-2 text-xs font-bold bg-white text-[#594E47]">🧴 Body</button>
+   </div>
+   <p class="text-[10px] text-center text-[#726862]">Switch between your separate care plans.</p>
+  </div>
+  <div id="aiResultContainer" class="space-y-4"></div>
  </section>
 
  <section id="tab-stash" class="hidden space-y-4">
@@ -2197,6 +2205,24 @@
       return { mode, method, texture, chemistry, issues, styles: [...new Set(styles)].slice(0, 4), prep, technique, roller };
     }
 
+    let activeRoutineDomain = "hair";
+
+    function setRoutineDomainTab(domain) {
+      if (!["hair", "skin", "body"].includes(domain)) return;
+      activeRoutineDomain = domain;
+      document.querySelectorAll(".routine-domain-tab").forEach(btn => {
+        const selected = btn.id === `routine-domain-tab-${domain}`;
+        btn.setAttribute("aria-selected", selected ? "true" : "false");
+        btn.classList.toggle("bg-[#231F1D]", selected);
+        btn.classList.toggle("text-white", selected);
+        btn.classList.toggle("bg-white", !selected);
+        btn.classList.toggle("text-[#594E47]", !selected);
+      });
+      document.querySelectorAll(".routine-domain-panel").forEach(panel => {
+        panel.classList.toggle("hidden", panel.id !== `routine-domain-panel-${domain}`);
+      });
+    }
+
     function renderAIRoutine(r) {
       const box = document.getElementById("aiResultContainer");
       const fallbackPlan = buildConcernRoutinePlan();
@@ -2217,6 +2243,9 @@
       const finalHairSteps = hairSteps.length ? hairSteps : fullHairSteps;
       const finalSkinSteps = skinSteps.length ? skinSteps : fullSkinSteps;
       const finalBodySteps = bodySteps.length ? bodySteps : fullBodySteps;
+      if (!["hair", "skin", "body"].includes(activeRoutineDomain)) activeRoutineDomain = "hair";
+      if (activeRoutineDomain === "hair" && !finalHairSteps.length) activeRoutineDomain = finalSkinSteps.length ? "skin" : "body";
+      if (activeRoutineDomain === "skin" && !finalSkinSteps.length && finalBodySteps.length) activeRoutineDomain = "body";
 
       const selectedDomains = new Set([
         ...((state.profile.hairIssues || []).length || (state.profile.hairGoals || []).length ? ["hair"] : []),
@@ -2270,6 +2299,7 @@
 
           ${(sourceR.rootCauseInsights && sourceR.rootCauseInsights.length) ? `<div class="space-y-1.5"><h4 class="text-xs font-bold uppercase text-[#726862]">Root Causes &amp; Fixes</h4>${sourceR.rootCauseInsights.map(rc => `<div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs"><div class="font-bold">${escapeAttr(cleanFalseStashLackNote(rc.cause))}</div><div class="text-[#594E47] mt-0.5">${escapeAttr(cleanFalseStashLackNote(rc.fix))}</div></div>`).join("")}</div>` : ""}
 
+          ${`<div id="routine-domain-panel-hair" role="tabpanel" aria-labelledby="routine-domain-tab-hair" class="routine-domain-panel ${activeRoutineDomain !== "hair" ? "hidden" : ""} space-y-3">`}
           ${finalHairSteps.length ? `<div class="space-y-2">
             <h4 class="text-xs font-bold uppercase text-[#8A5E1B]">Hair, Scalp &amp; Protective Style Routine</h4>
             <p class="text-xs text-[#726862]">${escapeAttr(cleanFalseStashLackNote(sourceR.hairAssessment) || fallbackPlan.hairAssessment)}</p>
@@ -2285,22 +2315,36 @@
             <div><strong>Technique &amp; Takedown:</strong> ${escapeAttr(guide.technique)}</div>
           </div>`; })() : ""}
 
+          </div>
+          ${!finalHairSteps.length ? `<p class="text-xs text-[#726862] p-3 rounded-xl bg-[#FAF8F5]">No hair routine is currently selected by your profile or latest check-in. Update those details to build one.</p>` : ""}
+          </div>
+          ${`<div id="routine-domain-panel-skin" role="tabpanel" aria-labelledby="routine-domain-tab-skin" class="routine-domain-panel ${activeRoutineDomain !== "skin" ? "hidden" : ""} space-y-3">`}
           ${finalSkinSteps.length ? `<div class="space-y-2">
             <h4 class="text-xs font-bold uppercase text-[#355243]">Face Skin Routine</h4>
             <p class="text-xs text-[#726862]">${escapeAttr(cleanFalseStashLackNote(sourceR.skinAssessment) || fallbackPlan.skinAssessment)}</p>
             ${finalSkinSteps.map(s => `<div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs"><div class="font-bold">${escapeAttr(s.step)}</div><div class="text-[#594E47] mt-0.5">${escapeAttr(s.detail)}</div><div class="text-[11px] text-[#355243] font-semibold mt-1">Stash / Store Pick: ${escapeAttr(s.productUsed)}</div>${recommendationForStep(s, "skin")}</div>`).join("")}
           </div>` : ""}
 
+          </div>
+          ${!finalSkinSteps.length ? `<p class="text-xs text-[#726862] p-3 rounded-xl bg-[#FAF8F5]">No face routine is currently selected by your profile or latest check-in. Update those details to build one.</p>` : ""}
+          </div>
+          ${`<div id="routine-domain-panel-body" role="tabpanel" aria-labelledby="routine-domain-tab-body" class="routine-domain-panel ${activeRoutineDomain !== "body" ? "hidden" : ""} space-y-3">`}
           ${finalBodySteps.length ? `<div class="space-y-2">
             <h4 class="text-xs font-bold uppercase text-[#5B2C6F]">Body Care &amp; Body Powder Layering Routine</h4>
             ${finalBodySteps.map(s => `<div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs"><div class="font-bold">${escapeAttr(s.step)}</div><div class="text-[#594E47] mt-0.5">${escapeAttr(s.detail)}</div><div class="text-[11px] text-[#5B2C6F] font-semibold mt-1">Stash / Store Pick: ${escapeAttr(s.productUsed)}</div>${recommendationForStep(s, "body")}</div>`).join("")}
           </div>` : ""}
+
+          </div>
+
+          ${!finalBodySteps.length ? `<p class="text-xs text-[#726862] p-3 rounded-xl bg-[#FAF8F5]">No body routine is currently selected by your profile or latest check-in. Update those details to build one.</p>` : ""}
+          </div>
 
           ${(sourceR.proTreatments && sourceR.proTreatments.length) ? `<div class="space-y-1.5 pt-2 border-t border-[#EAE3D9]"><h4 class="text-xs font-bold uppercase text-[#231F1D]">Salon, Dermatologist &amp; Esthetician Suggestions</h4>${sourceR.proTreatments.map(pt => `<div class="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] text-xs"><div class="flex justify-between font-bold"><span class="text-[#A9772B]">${escapeAttr(pt.provider)}: ${escapeAttr(pt.treatment)}</span><span class="text-[10px] text-[#726862]">${escapeAttr(pt.cadence || "")}</span></div><div class="text-[#594E47] mt-0.5">${escapeAttr(cleanFalseStashLackNote(pt.why))}</div></div>`).join("")}</div>` : ""}
 
           ${additionsList.length ? `<div class="space-y-1.5 pt-2 border-t border-[#EAE3D9]"><h4 class="text-xs font-bold uppercase text-[#9A3412]">Recommended Store Picks</h4>${additionsList.map(m => `<div class="p-2 rounded-lg bg-amber-50/70 text-xs flex justify-between items-start gap-2"><div><strong>${escapeAttr(m.name)}</strong> ${m.store ? `(${escapeAttr(m.store)})` : ""}<div class="text-[#594E47]">${escapeAttr(cleanFalseStashLackNote(m.reason))}</div></div><span class="font-bold text-[#8A5E1B] shrink-0">${escapeAttr(m.estimatedPrice || m.price || "")}</span></div>`).join("")}</div>` : ""}
         </div>
       `;
+      setRoutineDomainTab(activeRoutineDomain);
     }
 
  const productLookupInProgress = new Set();
