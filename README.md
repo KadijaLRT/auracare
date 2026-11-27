@@ -1,4 +1,4 @@
-# AuraCare — Black Hair Chemistry, Face & Body Studio (v2.61.0)
+# AuraCare — Black Hair Chemistry, Face & Body Studio (v2.62.0)
 
 ## Recommendation standards
 - Recommendations are tailored to textured/Black hair, scalp care, and melanin-rich skin using profile, routine, sensitivity, chemical/color history, styling, climate, and stash context.
@@ -96,3 +96,10 @@ Version 2.57 builds a fragrance preference profile from the perfumes and body mi
 - Empty domains explain that no routine is currently selected instead of showing a blank panel.
 - Compatibility notes and professional-care suggestions remain available alongside the domain-specific routines.
 - The root and `public/` app entry points are kept in sync.
+
+
+## Version 2.62.0 — Groq resilience and domain-scoped recommendations
+- The API no longer blocks local fallback routines and curated catalog recommendations when `GROQ_API_KEY` is missing or Groq is rate-limited.
+- Groq failures fall through to profile/Check-In/Stash-based local routines or curated product catalog matches instead of making the app unusable.
+- Product recommendation results are strictly filtered to the requested Hair, Face/Skin, Body, or Fragrance domain after AI normalization and after brand-set completion.
+- The Shop screen explains when curated fallback results are being shown because Groq is unavailable.
