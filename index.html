@@ -1399,7 +1399,10 @@
  saveState();
  renderAIRoutine(data.result);
  setCheckinSubView("routines");
- status.classList.add("hidden");
+ if (data.meta?.providerFallback) {
+   status.textContent = data.meta.reason || "Groq is rate-limited or unavailable. Your routine was generated locally from your saved profile and Stash.";
+   status.classList.remove("hidden");
+ } else status.classList.add("hidden");
  } catch (err) {
  const fallbackRes = buildLocalCheckinFallback();
  state.lastAIRoutine = fallbackRes;
