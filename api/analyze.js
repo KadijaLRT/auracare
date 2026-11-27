@@ -1,4 +1,5 @@
 async function callGroqChat(apiKey, model, messages, temperature = 0.2, max_tokens = 650, jsonMode = true) {
+  if (!apiKey) { const err = new Error('AI provider is not configured. Using the built-in care and product catalog instead.'); err.status = 503; throw err; }
   const safeMaxTokens = Math.min(Number(max_tokens) || 550, 650);
   const baseBody = {
     model,
@@ -249,16 +250,30 @@ function buildFallbackRoutine({ currentHairState, selectedStylingMethod, weather
   return result;
 }
 
+function recommendationDomainForFocus(focusArea) {
+  const focus = String(focusArea || '').toLowerCase();
+  if (/fragrance|perfume|scent|cologne|body mist/.test(focus)) return 'body';
+  if (/face|skin|complexion|acne|pigment/.test(focus)) return 'skin';
+  if (/body|kp|ingrown|chaf|friction/.test(focus)) return 'body';
+  if (/hair|wig|braid|curl|roller|scalp|edge|bond repair/.test(focus)) return 'hair';
+  return 'all';
+}
+
+function filterRecommendationsForFocus(recommendations, focusArea) {
+  const target = recommendationDomainForFocus(focusArea);
+  return (Array.isArray(recommendations) ? recommendations : [])
+    .map(normalizeRecommendation).filter(Boolean)
+    .filter(item => target === 'all' || item.domain === target);
+}
+
 function buildFallbackShopRecs({ shoppingPrefs, profile, activeTriggers, checkInNote = "", inventory }) {
   const stores = Array.isArray(shoppingPrefs?.stores) ? shoppingPrefs.stores : [];
   const focusLower = String(shoppingPrefs?.focusArea || '').toLowerCase();
+  const requestedDomain = recommendationDomainForFocus(focusLower);
   const invNames = new Set((inventory || []).map(x => String((x && typeof x === 'object' ? x.name : x) || '').toLowerCase()));
   const ctx = JSON.stringify({ profile, activeTriggers, checkInNote, focusLower }).toLowerCase();
 
-  let targetDomain = 'all';
-  if (focusLower.includes('face') || focusLower.includes('skin')) targetDomain = 'skin';
-  else if (focusLower.includes('body')) targetDomain = 'body';
-  else if (focusLower.includes('hair') || focusLower.includes('wig') || focusLower.includes('braid') || focusLower.includes('curling') || focusLower.includes('roller')) targetDomain = 'hair';
+  const targetDomain = requestedDomain;
 
   const checkinText = `${JSON.stringify(activeTriggers || [])} ${checkInNote || ''}`.toLowerCase();
   const selectedDomains = new Set();
@@ -306,9 +321,6 @@ export default async function handler(req, res) {
   }
 
   const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) {
-    return res.status(500).json({ error: 'GROQ_API_KEY is not set in Vercel Environment Variables.' });
-  }
 
   try {
     const {
@@ -498,10 +510,10 @@ Return JSON only:
             const numeric = Number(item.numericPrice);
             return Number.isFinite(numeric) && numeric > 0 && numeric <= scentBudget;
           }).map(item => ({ ...item, domain: 'body', category: 'Perfume / Scents', numericPrice: Number(item.numericPrice), price: item.price || `Estimated $${Number(item.numericPrice).toFixed(2)}` }));
-          parsed.recommendations = priced;
+          parsed.recommendations = filterRecommendationsForFocus(priced, focusArea);
           parsed.budgetNote = `Hard cap applied: no more than $${scentBudget} per fragrance. Prices are estimates, not live retailer quotes.`;
         }
-        parsed.recommendations = (Array.isArray(parsed.recommendations) ? parsed.recommendations : []).map(normalizeRecommendation).filter(Boolean);
+        parsed.recommendations = filterRecommendationsForFocus(parsed.recommendations, focusArea);
         return res.status(200).json({ result: parsed });
       } catch (_) {
         try {
@@ -512,13 +524,13 @@ Return JSON only:
               const numeric = Number(item.numericPrice);
               return Number.isFinite(numeric) && numeric > 0 && numeric <= scentBudget;
             }).map(item => ({ ...item, domain: 'body', category: 'Perfume / Scents', numericPrice: Number(item.numericPrice), price: item.price || `Estimated $${Number(item.numericPrice).toFixed(2)}` }));
-            parsed.recommendations = priced;
+            parsed.recommendations = filterRecommendationsForFocus(priced, focusArea);
             parsed.budgetNote = `Hard cap applied: no more than ${scentBudget} per fragrance. Prices are estimates, not live retailer quotes.`;
           }
-          parsed.recommendations = (Array.isArray(parsed.recommendations) ? parsed.recommendations : []).map(normalizeRecommendation).filter(Boolean);
+          parsed.recommendations = filterRecommendationsForFocus(parsed.recommendations, focusArea);
           return res.status(200).json({ result: parsed });
         } catch (__) {
-          return res.status(200).json({ result: scentFocus ? { recommendations: [], budgetNote: `No fragrance price could be verified or responsibly estimated within $${scentBudget}. Try a higher budget or search again.` } : buildFallbackShopRecs({ shoppingPrefs, profile, activeTriggers: effectiveTriggers, checkInNote: effectiveCheckInNote, inventory }) });
+          return res.status(200).json({ result: scentFocus ? { recommendations: [], budgetNote: `No fragrance price could be verified or responsibly estimated within ${scentBudget}. Try a higher budget or search again.` } : buildFallbackShopRecs({ shoppingPrefs, profile, activeTriggers: effectiveTriggers, checkInNote: effectiveCheckInNote, inventory }), meta: { providerFallback: true, reason: 'Groq is unavailable or rate-limited; curated domain-specific catalog results are shown.' } });
         }
       }
     }
@@ -590,14 +602,15 @@ Return JSON only:
 
     try {
       const rawText = await callGroqChat(apiKey, primaryModel, messages, 0.25, 650, true);
-      return res.status(200).json({ result: normalizeRoutinePayload(parseJsonLoose(rawText)) });
+      return res.status(200).json({ result: normalizeRoutinePayload(parseJsonLoose(rawText)), meta: { providerFallback: false } });
     } catch (_) {
       try {
         const rawText = await callGroqChat(apiKey, fallbackModel, messages, 0.25, 650, true);
         return res.status(200).json({ result: normalizeRoutinePayload(parseJsonLoose(rawText)) });
       } catch (__) {
         return res.status(200).json({
-          result: buildFallbackRoutine({ currentHairState, selectedStylingMethod, weather, activeTriggers: effectiveTriggers, checkInNote: effectiveCheckInNote, profile, inventory })
+          result: buildFallbackRoutine({ currentHairState, selectedStylingMethod, weather, activeTriggers: effectiveTriggers, checkInNote: effectiveCheckInNote, profile, inventory }),
+          meta: { providerFallback: true, reason: 'Groq is unavailable or rate-limited; your routine was built locally from your saved concerns and Stash.' }
         });
       }
     }
