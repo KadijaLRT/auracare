@@ -2850,7 +2850,18 @@
  }
 
  let storeRecommendationsInProgress = false;
- async function fetchStoreRecommendations() {
+ async function filterShopRecommendationsForFocus(recommendations, focusArea) {
+   const focus = String(focusArea || '').toLowerCase();
+   let domain = 'all';
+   if (/face|skin|complexion|acne|pigment/.test(focus)) domain = 'skin';
+   else if (/body|kp|ingrown|chaf|friction/.test(focus)) domain = 'body';
+   else if (/hair|wig|braid|curl|roller|scalp|edge|bond repair/.test(focus)) domain = 'hair';
+   return (Array.isArray(recommendations) ? recommendations : []).filter(item =>
+     item && (domain === 'all' || item.domain === domain)
+   );
+}
+
+function fetchStoreRecommendations() {
    if (storeRecommendationsInProgress) return;
    const btn = document.getElementById('findDealsBtn');
    const status = document.getElementById('shopStatusMsg');
@@ -2887,7 +2898,7 @@
      };
      const cacheKey = JSON.stringify(payload);
      if (clientApiCache.has(cacheKey)) {
-       const cachedRecs = clientApiCache.get(cacheKey);
+       const cachedRecs = filterShopRecommendationsForFocus(clientApiCache.get(cacheKey), payload.shoppingPrefs.focusArea);
        state.shopRecommendations = cachedRecs;
        saveState();
        renderShopResults(cachedRecs);
@@ -2906,12 +2917,15 @@
      if (!Array.isArray(data.result?.recommendations)) throw new Error(data.error || 'The recommendation service returned an unexpected response. Please try again.');
 
      const fragranceMode = /perfume|scent|fragrance|cologne|body mist/i.test(payload.shoppingPrefs.focusArea);
-     const completedRecommendations = fragranceMode ? data.result.recommendations : completeRecommendedBrandSets(data.result.recommendations);
+     const domainScopedRecommendations = filterShopRecommendationsForFocus(data.result.recommendations, payload.shoppingPrefs.focusArea);
+     const completedRecommendations = fragranceMode ? domainScopedRecommendations : filterShopRecommendationsForFocus(completeRecommendedBrandSets(domainScopedRecommendations), payload.shoppingPrefs.focusArea);
      clientApiCache.set(cacheKey, completedRecommendations);
      state.shopRecommendations = completedRecommendations;
      saveState();
      renderShopResults(completedRecommendations);
-     status.textContent = fragranceMode
+     status.textContent = data.meta?.providerFallback
+       ? `Groq is rate-limited or unavailable. Showing curated ${payload.shoppingPrefs.focusArea.toLowerCase()} matches from AuraCare's built-in catalog; AI personalization will resume when Groq is available.`
+       : fragranceMode
        ? (completedRecommendations.length ? `Found ${completedRecommendations.length} fragrance matches for your scent profile, at or below $${payload.shoppingPrefs.scentBudget}. Prices are estimates; retailer stock is not live-verified.` : `No fragrance matches could be responsibly priced within your $${payload.shoppingPrefs.scentBudget} cap. Try a higher cap or adjust your scent preferences.`)
        : (completedRecommendations.length ? `Found ${completedRecommendations.length} matches based on your profile, Check-In, and products already in Stash.` : 'No additional products are needed for the selected concerns based on your current Stash.');
      status.classList.remove('hidden');
